@@ -1,0 +1,140 @@
+{
+  "nav": {
+    "dashboard": "ډاشبورډ",
+    "patients": "مریضان",
+    "billings": "بیلونه",
+    "reports": "ریپوټونه",
+    "about": "زمونږ په اړه",
+    "help": "مرسته",
+    "settings": "تنظیمات",
+    "newPatient": "نوی مریض داخله"
+  },
+  "dashboard": {
+    "logo": "خواجه کلینیک",
+    "title": "ډاشبورډ"
+  },
+  "settings": {
+    "language": "ژبه"
+  },
+  "patients": {
+    "new": "نوی مریض",
+    "title": "مریضان",
+    "description": "د ټولو مریضانو ریکارډونه، ملاقاتونه او کلینیکي مهال ویش دلته مدیریت کړئ.",
+    "searchPlaceholder": "په نوم، تیلیفون، یا پېژندنې له مخې ولټوه",
+    "TotalPatients": "ټول مریضان",
+    "actions": {
+      "add": "مریض اضافه کړئ",
+      "view": "کتل",
+      "addNew": "نوی مریض اضافه کړئ"
+    },
+    "filters": {
+      "all": "ټول مریضان",
+      "active": "فعال",
+      "inactive": "غیر فعال",
+      "upcoming": "راتلونکی",
+      "Any": "هرڅه",
+      "Gender": "جنسیت",
+      "male": "نارینه",
+      "female": "ښځینه",
+      "other": "نور"
+    },
+    "statistics": {
+      "total": "ټول مریضان",
+      "active": "فعال مریضان",
+      "appointments": "راتلونکې ملاقاتونه",
+      "followUps": "باقي تعقیبې"
+    },
+    "table": {
+      "title": "د مریضانو لیست",
+      "subtitle": "وروستۍ ریکارډونه",
+      "updatedBy": "د وروستي ملاقات له مخې تازه شوی",
+      "columnPatient": "مریض",
+      "columnPhone": "تیلیفون",
+      "columnLastVisit": "وروستی ملاقات",
+      "columnStatus": "حالت",
+      "columnBalance": "بیلانس",
+      "columnActions": "غوښتنې",
+      "empty": "هیڅ مریض ستاسو د لټون او فلټر سره سمون نه خوري."
+    },
+    "form": {
+      "fullName": "مکمل نوم",
+      "phone": "تیلیفون",
+      "age": "عمر",
+      "gender": "جنسیت",
+      "address": "پته"
+    },
+    "notifications": {
+      "addSuccess": "مریض په بریالیتوب سره اضافه شو",
+      "addError": "مریض اضافه کولو بې ګامې"
+    }
+  },
+  "newPatient": {
+    "intake": "په یوه کاري فلو کې د مریض ثبت او درملنې ثبت بشپړ کړئ.",
+    "patientId": "د مریض پېژندنه",
+    "date": "نېټه",
+    "personalInfo": "اينفي مريضي معلومات",
+    "fullName": "مکمل نوم",
+    "selectGender": "جنسيتọn هېښ کړئ",
+    "male": "نارینه",
+    "female": "ښځینه",
+    "other": "نور",
+    "gender": "جنسيت",
+    "phoneNumber": "شمارهلي تيليفون",
+    "age": "عمر",
+    "address": "پته",
+    "medicalHistory": "طبي تاریخ",
+    "visitDetails": "تفصيلې ملاقات",
+    "visitDetailsPlaceholder": "تفصيلې",
+    "allergies": "الرجياھات",
+    "chiefComplaint": "Основная жалоба",
+    "chiefComplaintPlaceholder": "دراتو ملاقاتكه لپاره Proncipal شكويا سي؟",
+    "currentMedications": "جواري دواوى",
+    "currentMedicationsPlaceholder": "هېڅ entraîne دواوى Υپېzolئ شته",
+    "clinicalNotes": "كلينينکي نوټونه",
+    "clinicalNotesPlaceholder": "Doctor ' s ابتدايې مشاهدات...",
+    "medicalConditions": "طبی حالات",
+    "diabetes": "شکر مريضي",
+    "hypertension": "خونۍ فشار",
+    "heartDisease": "دل کی بیماری",
+    "asthma": "ٱس٭ما",
+    "dentalChart": "دندانلي چارټ",
+    "fdiSystem": "FDI سيستم",
+    "procedure": "عملية",
+    "selectProcedure": "عملية هېښ کړئ...",
+    "selectedProcedure": "هېښ عملية نه دی",
+    "rootCanalTreatment": "رېټ كانال tratabaٔ (RCT)",
+    "filling": "پرېښتونه",
+    "extraction": "استخراج",
+    "cleaning": "صाफ شو",
+    "whitening": "سفيد شو",
+    "materialUsed": "كارولوو matière",
+"technique": "تکنېک",
+    "materialUsedPlaceholder": "مثلا: Gutta-percha, MTA",
+    "treatmentRecording": "درملنې ثبت",
+    "techniquePlaceholder": "مثلا: Lateral condensation",
+    "xray": "اكس رې",
+    "xRayPhotos": "X-Ray او كلينينيكي تصاویر",
+    "uploadXray": "X-ray اپلوډ کړئ",
+    "dragAndDrop": "کلک یا درآغیندنه",
+    "or": "یا",
+    "browseFiles": "فایل‌ها را مرور کنید",
+    "remove": "حذف کنید",
+    "xRayDescription": "X-Ray تصاویر، اندرلالي دندان صورټونه یا د لوټول",
+    "billing": "بilling",
+    "molar": "مولر",
+    "numberOfProcedures": "شمیر",
+    "subtotal": "فرعي مجموعه",
+"discount": "تخفیف",
+    "totalDue": "مجموعی بیل"
+   },
+  "common": {
+    "cancel": "لغوه",
+    "saving": "ذخیره کول..."
+  },
+  "pagination": {
+    "showing": "د {{start}} څخه تر {{end}} پورې ښودنه {{total}}",
+    "perPage": "هره څپه کې {{count}}",
+    "previous": "وروستۍ پاېژنده",
+    "next": "روان پاېژنده"
+  }
+}

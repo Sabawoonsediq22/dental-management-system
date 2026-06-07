@@ -1,0 +1,150 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "patients": "Patients",
+    "billings": "Billing",
+    "reports": "Reports",
+    "about": "About Us",
+    "help": "Help",
+    "settings": "Settings",
+    "newPatient": "New Patient Intake"
+  },
+  "dashboard": {
+    "logo": "Khwaja Clinic",
+    "title": "Dashboard"
+  },
+  "settings": {
+    "language": "Language"
+  },
+  "patients": {
+    "new": "New Patient",
+    "title": "Patients",
+    "description": "Manage your patient records, appointments, and clinical timelines from one central place.",
+    "searchPlaceholder": "Search by name, phone, or ID",
+    "TotalPatients": "Total Patients",
+    "actions": {
+      "add": "Add patient",
+      "view": "View",
+      "addNew": "Add New Patient"
+    },
+    "filters": {
+      "all": "All patients",
+      "active": "Active",
+      "inactive": "Inactive",
+      "upcoming": "Upcoming",
+      "Any": "Any",
+      "Gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}}",
+      "perPage": "{{count}} per page",
+      "previous": "Previous page",
+      "next": "Next page"
+    },
+    "statistics": {
+      "total": "Total patients",
+      "active": "Active patients",
+      "appointments": "Upcoming appointments",
+      "followUps": "Pending follow-ups",
+      "new": "New this Month",
+      "incomplete": "Incomplete Profiles"
+    },
+    "table": {
+      "title": "Patient roster",
+      "subtitle": "Latest records",
+      "updatedBy": "Updated by recent visit",
+      "columnPatient": "Patient",
+      "columnPhone": "Phone",
+      "columnLastVisit": "Last Visit",
+      "columnStatus": "Status",
+      "columnBalance": "Balance",
+      "columnActions": "Actions",
+      "empty": "No patients match your current search and filter."
+    },
+    "form": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "age": "Age",
+      "gender": "Gender",
+      "address": "Address"
+    },
+    "notifications": {
+      "addSuccess": "Patient added successfully",
+      "addError": "Failed to add patient"
+    }
+  },
+  "newPatient": {
+    "intake": "Complete patient registration and treatment recording in one seamless workflow.",
+    "patientId": "Patient ID",
+    "date": "Date",
+    "personalInfo": "Patient Personal Info",
+    "fullName": "Full Name",
+    "selectGender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "gender": "Gender",
+    "phoneNumber": "Phone Number",
+    "age": "Age",
+    "address": "Address",
+    "medicalHistory": "Medical History",
+    "visitDetails": "Visit Details",
+    "visitDetailsPlaceholder": "Details",
+    "allergies": "Allergies",
+    "chiefComplaint": "Chief Complaint",
+    "chiefComplaintPlaceholder": "What is the main reason for today's visit?",
+    "currentMedications": "Current Medications",
+    "currentMedicationsPlaceholder": "List any medications currently being taken",
+    "clinicalNotes": "Clinical Notes",
+    "clinicalNotesPlaceholder": "Doctor's initial observations...",
+    "medicalConditions": "Medical Conditions",
+    "diabetes": "Diabetes",
+    "hypertension": "Hypertension",
+    "heartDisease": "Heart Disease",
+    "asthma": "Asthma",
+    "dentalChart": "Dental Chart",
+    "fdiSystem": "FDI System",
+    "procedure": "Procedure",
+    "selectProcedure": "Select Procedure...",
+    "selectedProcedure": "No procedure selected",
+    "rootCanalTreatment": "Root Canal Treatment (RCT)",
+    "filling": "Filling",
+    "extraction": "Extraction",
+    "cleaning": "Cleaning",
+    "whitening": "Whitening",
+    "materialUsed": "Material Used",
+    "technique": "Technique",
+    "materialUsedPlaceholder": "e.g. Gutta-percha, MTA",
+    "treatmentRecording": "Treatment Recording",
+    "techniquePlaceholder": "e.g. Lateral condensation",
+    "xray": "X-ray",
+    "xRayPhotos": "X-Ray & Clinical Photos",
+    "uploadXray": "Upload X-ray",
+    "dragAndDrop": "Click or drag and drop",
+    "or": "or",
+    "browseFiles": "Browse Files",
+    "remove": "Remove",
+    "xRayDescription": "Upload X-ray images, intraoral photos, or other clinical documentation",
+    "billing": "Billing",
+    "molar": "Molar",
+    "numberOfProcedures": "Number of Procedures",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "totalDue": "Total Due",
+    "discardDraft": "Discard Draft",
+    "saveAndPrintInvoice": "Save & Print Invoice"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "saving": "Saving..."
+  },
+  "pagination": {
+    "showing": "Showing {{start}} to {{end}} of {{total}}",
+    "perPage": "{{count}} per page",
+    "previous": "Previous page",
+    "next": "Next page"
+  }
+}
