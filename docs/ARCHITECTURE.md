@@ -140,12 +140,11 @@ CREATE TABLE IF NOT EXISTS treatment_teeth (
 );
 
 CREATE TABLE IF NOT EXISTS payments (
-    id TEXT PRIMARY KEY,
-    invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-    amount REAL NOT NULL,
-    notes TEXT,
-    received_at TEXT NOT NULL DEFAULT (datetime('now')),
-    notes        TEXT DEFAULT ''
+    id           TEXT PRIMARY KEY,
+    invoice_id   TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    amount       REAL NOT NULL,
+    notes        TEXT DEFAULT '',
+    received_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS xrays (
@@ -286,13 +285,29 @@ async fn delete_patient(state: State<'_, AppState>, id: String) -> Result<(), St
     PatientService::delete(&state.db, &id).await.map_err(|e| e.to_string())
 }
 
-// Visit & billing commands
+// Visit, invoice & billing commands
 #[tauri::command]
 async fn create_visit(state: State<'_, AppState>, input: CreateVisitInput) -> Result<Visit, String> { ... }
 #[tauri::command]
-async fn add_payment(state: State<'_, AppState>, input: AddPaymentInput) -> Result<Payment, String> { ... }
+async fn update_visit_status(state: State<'_, AppState>, id: String, status: VisitStatus) -> Result<Visit, String> { ... }
+#[tauri::command]
+async fn create_invoice(state: State<'_, AppState>, input: CreateInvoiceInput) -> Result<Invoice, String> { ... }
 #[tauri::command]
 async fn get_patient_visits(state: State<'_, AppState>, patient_id: String) -> Result<Vec<Visit>, String> { ... }
+#[tauri::command]
+async fn get_visit_invoice(state: State<'_, AppState>, visit_id: String) -> Result<Option<Invoice>, String> { ... }
+#[tauri::command]
+async fn add_payment(state: State<'_, AppState>, input: AddPaymentInput) -> Result<Payment, String> { ... }
+#[tauri::command]
+async fn get_invoice_payments(state: State<'_, AppState>, invoice_id: String) -> Result<Vec<Payment>, String> { ... }
+#[tauri::command]
+async fn add_treatment_record(state: State<'_, AppState>, input: CreateTreatmentRecordInput) -> Result<TreatmentRecord, String> { ... }
+#[tauri::command]
+async fn list_procedures(state: State<'_, AppState>) -> Result<Vec<Procedure>, String> { ... }
+#[tauri::command]
+async fn upload_xray(state: State<'_, AppState>, patient_id: String, filename: String, bytes: Vec<u8>) -> Result<Xray, String> { ... }
+#[tauri::command]
+async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary, String> { ... }
 
 pub fn run() {
     // Initialize DB pool (blocking on the runtime init)
@@ -313,11 +328,16 @@ pub fn run() {
                 get_patient,
                 update_patient,
                 delete_patient,
+                list_procedures,
                 create_visit,
+                update_visit_status,
+                add_treatment_record,
+                create_invoice,
+                get_visit_invoice,
                 add_payment,
+                get_invoice_payments,
                 get_patient_visits,
                 upload_xray,
-                list_procedures,
                 get_report_summary,
             ])
             .run(tauri::generate_context!())
@@ -342,7 +362,11 @@ pub fn http_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/api/v1/patients", get(list_patients_http).post(create_patient_http))
         .route("/api/v1/patients/:id", get(get_patient_http).put(update_patient_http).delete(delete_patient_http))
-        .route("/api/v1/visits", post(create_visit_http))
+        .route("/api/v1/patients/:id/visits", get(list_visits_http).post(create_visit_http))
+        .route("/api/v1/visits/:id/treatments", post(add_treatment_http))
+        .route("/api/v1/visits/:id/invoice", get(get_invoice_http).post(create_invoice_http))
+        .route("/api/v1/invoices/:id/payments", post(add_payment_http).get(list_payments_http))
+        .route("/api/v1/procedures", get(list_procedures_http))
         .with_state(state)
 }
 ```
@@ -387,8 +411,32 @@ export const api = {
     update: (id: string, input: UpdatePatientInput)        => invoke<Patient>("update_patient", { id, input }),
     delete: (id: string)                                    => invoke("delete_patient", { id }),
   },
-  visits: { ... },
-  billing: { ... },
+  visits: {
+    list: (patientId: string)                             => invoke<Visit[]>("get_patient_visits", { patientId }),
+    create: (input: CreateVisitInput)                     => invoke<Visit>("create_visit", { input }),
+    updateStatus: (id: string, status: VisitStatus)       => invoke<Visit>("update_visit_status", { id, status }),
+    getInvoice: (visitId: string)                         => invoke<Invoice | null>("get_visit_invoice", { visitId }),
+  },
+  treatments: {
+    add: (input: CreateTreatmentRecordInput)              => invoke<TreatmentRecord>("add_treatment_record", { input }),
+  },
+  invoices: {
+    create: (input: CreateInvoiceInput)                   => invoke<Invoice>("create_invoice", { input }),
+    getPayments: (invoiceId: string)                      => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
+  },
+  payments: {
+    add: (input: AddPaymentInput)                         => invoke<Payment>("add_payment", { input }),
+  },
+  procedures: {
+    list: ()                                              => invoke<Procedure[]>("list_procedures"),
+  },
+  reports: {
+    summary: ()                                           => invoke<ReportSummary>("get_report_summary"),
+  },
+  xrays: {
+    upload: (patientId: string, filename: string, bytes: Uint8Array) =>
+      invoke<Xray>("upload_xray", { patientId, filename, bytes }),
+  },
 };
 ```
 
@@ -460,29 +508,12 @@ use serde::{Deserialize, Serialize};
 use chrono::{DateTime, NaiveDate};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
-pub struct Patient {
-    pub id: String,
-    pub full_name: String,
-    pub phone: String,
-    pub age: i32,
-    pub gender: Gender,
-    pub address: String,
-    pub last_visit_date: String,
-    pub initials: String,
-    pub is_complete_profile: bool,
-    pub allergies: Option<String>,
-    pub chief_complaint: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
-#[sqlite(type_name = "TEXT")]
-pub enum Gender { Male, Female, Other }
-
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Visit {
     pub id: String,
     pub patient_id: String,
     pub visit_date: String,
+    pub chief_complaint: Option<String>,
+    pub clinical_notes: Option<String>,
     pub total_amount: f64,
     pub discount: f64,
     pub status: VisitStatus,
@@ -493,17 +524,97 @@ pub struct Visit {
 pub enum VisitStatus { Open, Completed, Cancelled }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
-pub struct Payment {
+pub struct TreatmentRecord {
     pub id: String,
     pub visit_id: String,
+    pub procedure_id: String,
+    pub tooth_quadrant: Option<String>,
+    pub quantity: i32,
+    pub procedure_price: f64,
+    pub treatment_notes: Option<String>,
+    pub performed_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Invoice {
+    pub id: String,
+    pub visit_id: String,
+    pub invoice_number: String,
+    pub subtotal: f64,
+    pub discount: f64,
+    pub total_amount: f64,
+    pub paid_amount: f64,
+    pub outstanding_amount: f64,
+    pub status: InvoiceStatus,
+    pub issued_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[sqlite(type_name = "TEXT")]
+pub enum InvoiceStatus { Unpaid, Partial, Paid }
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct InvoiceItem {
+    pub id: i64,
+    pub invoice_id: String,
+    pub treatment_record_id: Option<String>,
+    pub procedure_name: String,
+    pub quantity: i32,
+    pub unit_price: f64,
+    pub total_price: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Payment {
+    pub id: String,
+    pub invoice_id: String,
     pub amount: f64,
-    pub method: PaymentMethod,
-    pub paid_at: String,
+    pub notes: Option<String>,
+    pub received_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlite(type_name = "TEXT")]
 pub enum PaymentMethod { Cash, Card, Mobile, Insurance }
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Procedure {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub default_price: f64,
+    pub category: String,
+    pub is_active: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Xray {
+    pub id: String,
+    pub patient_id: String,
+    pub file_path: String,
+    pub is_primary: bool,
+    pub uploaded_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct AppSettings {
+    pub id: i32,
+    pub clinic_name: Option<String>,
+    pub clinic_phone: Option<String>,
+    pub clinic_address: Option<String>,
+    pub language: Option<String>,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReportSummary {
+    pub active_patients: i64,
+    pub total_visits_this_month: i64,
+    pub revenue_this_month: f64,
+    pub outstanding_balance: f64,
+    pub completed_visits_this_month: i64,
+    pub cancelled_visits_this_month: i64,
+}
 ```
 
 ---
@@ -598,9 +709,9 @@ gantt
 |---|---|
 | **1: Foundation** | SQLite migration system, `db::init_pool()`, repositories for Patient/Visit, Tauri command stubs, `src/lib/api.ts` abstraction, Mock → API dual-mode toggle |
 | **2: Core Services** | Full Patient CRUD commands, search + pagination in SQL (`WHERE name LIKE ?`), React Query hooks, Patients page migrated off mock data |
-| **3: Clinical** | Visit service, visit-procedures join, procedure management (master data), NewPatient form wired to backend, tooth chart state saved as JSON in `visits.tooth_data` |
-| **4: Billing & Reports** | Payments service, invoice totals, `get_report_summary` (monthly revenue, active patients), Reports page stub filled in |
-| **5: Hardening** | PIN lock at app startup, audit_log on every mutating command, daily DB backup on shutdown, error boundaries in React, prepared statement caching |
+| **3: Clinical** | Visit service, treatment_records CRUD, procedure management (master data), invoice generation, NewPatient form wired to backend, tooth chart state saved as JSON in `treatment_records.tooth_quadrant` |
+| **4: Billing & Reports** | Payments service, invoice totals, `get_report_summary` (monthly revenue, active patients, outstanding balance), Reports page stub filled in |
+| **5: Hardening** | App settings management, audit_log on every mutating command, daily DB backup on shutdown, error boundaries in React, prepared statement caching |
 
 ---
 
@@ -640,9 +751,11 @@ gantt
 | `Patients.tsx` | `useState<Patient[]>([])` + `PatientsData.ts` | Replace with `usePatients()` query; call `api.patients.list()` |
 | `PatientTable.tsx` | Prop-drilled `patients[]` | No change; same prop interface, just data flows from React Query |
 | `PatientsHeader.tsx` | Prop-driven | No change; just live counts from `data.total` |
-| `NewPatient.tsx` | `useState<PatientFormData>` | On submit → `api.patients.create(input)` then `navigate("/patients")` |
-| `DentalChart.tsx` | `SelectedTooth[]` in React state | Serialize `selectedToothIds` as JSON column in `visits` table; fetch with visit |
+| `NewPatient.tsx` | `useState<PatientFormData>` | On submit → `api.patients.create(input)` then `api.visits.create()` + `api.treatments.add()` |
+| `DentalChart.tsx` | `SelectedTooth[]` in React state | Send `selectedToothIds` as JSON via `api.treatments.add()` |
 | `Dashboard.tsx` | Stub | Wire to `api.reports.summary()` |
-| `Billing.tsx` | Stub | Build payment UI against `api.visits.listOpen()` + `api.payments.add()` |
+| `Billing.tsx` | Stub | Build invoice + payment UI against `api.visits.list()` + `api.invoices.create()` + `api.payments.add()` |
+| `Reports.tsx` | Stub | Build charts/stats from `api.reports.summary()` + aggregation queries |
+| `Settings.tsx` | Stub | Wire clinic settings to `api.settings.get/update()` against `app_settings` table |
 | `MainLayout.tsx` | No data | No change needed |
 | `i18n/locales/*.json` | Static keys | Add backend error message keys under `error.*` namespace |

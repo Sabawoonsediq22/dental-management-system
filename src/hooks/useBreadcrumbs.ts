@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BreadcrumbItem } from "../../components/ui";
+import { BreadcrumbItem } from "../components/ui";
 
 export const useBreadcrumbs = (): BreadcrumbItem[] => {
   const location = useLocation();

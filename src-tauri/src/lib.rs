@@ -1,14 +1,217 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod db;
+mod models;
+mod services;
+mod utils;
+
+use tauri::State;
+use tauri::Manager;
+use crate::models::*;
+use crate::services::*;
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn greet(name: &str) -> Result<String, String> {
+    Ok(format!("Hello, {}! You've been greeted from Rust!", name))
+}
+
+// Patient commands
+#[tauri::command]
+async fn list_patients(
+    state: State<'_, AppState>,
+    query: Option<String>,
+    gender: Option<String>,
+    page: u32,
+    per_page: u32,
+) -> Result<PatientPageResult, String> {
+    PatientService::list(&state.db, query.as_deref(), gender.as_deref(), page, per_page)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn create_patient(
+    state: State<'_, AppState>,
+    input: CreatePatientInput,
+) -> Result<Patient, String> {
+    PatientService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_patient(state: State<'_, AppState>, id: String) -> Result<Patient, String> {
+    PatientService::find(&state.db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_patient(
+    state: State<'_, AppState>,
+    id: String,
+    input: UpdatePatientInput,
+) -> Result<Patient, String> {
+    PatientService::update(&state.db, &id, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn delete_patient(state: State<'_, AppState>, id: String) -> Result<(), String> {
+    PatientService::delete(&state.db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Visit commands
+#[tauri::command]
+async fn create_visit(state: State<'_, AppState>, input: CreateVisitInput) -> Result<Visit, String> {
+    VisitService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_visit_status(
+    state: State<'_, AppState>,
+    id: String,
+    status: VisitStatus,
+) -> Result<Visit, String> {
+    VisitService::update_status(&state.db, &id, status)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_patient_visits(
+    state: State<'_, AppState>,
+    patient_id: String,
+) -> Result<Vec<Visit>, String> {
+    VisitService::get_by_patient(&state.db, &patient_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Procedure commands
+#[tauri::command]
+async fn list_procedures(state: State<'_, AppState>) -> Result<Vec<Procedure>, String> {
+    ProcedureService::list(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Treatment commands
+#[tauri::command]
+async fn add_treatment_record(
+    state: State<'_, AppState>,
+    input: CreateTreatmentRecordInput,
+) -> Result<TreatmentRecord, String> {
+    TreatmentRecordService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Invoice commands
+#[tauri::command]
+async fn create_invoice(state: State<'_, AppState>, input: CreateInvoiceInput) -> Result<Invoice, String> {
+    InvoiceService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_visit_invoice(
+    state: State<'_, AppState>,
+    visit_id: String,
+) -> Result<Option<Invoice>, String> {
+    InvoiceService::get_for_visit(&state.db, &visit_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_payment(state: State<'_, AppState>, input: AddPaymentInput) -> Result<Payment, String> {
+    PaymentService::add(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_invoice_payments(
+    state: State<'_, AppState>,
+    invoice_id: String,
+) -> Result<Vec<Payment>, String> {
+    PaymentService::list_for_invoice(&state.db, &invoice_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Reports commands
+#[tauri::command]
+async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary, String> {
+    ReportService::summary(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Settings commands
+#[tauri::command]
+async fn get_settings(state: State<'_, AppState>) -> Result<AppSettings, String> {
+    SettingsService::get(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_settings(
+    state: State<'_, AppState>,
+    input: UpdateSettingsInput,
+) -> Result<AppSettings, String> {
+    SettingsService::update(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .setup(|app| {
+            let db_path = app
+                .path()
+                .app_data_dir()
+                .unwrap()
+                .join("dental_clinic.db")
+                .to_string_lossy()
+                .to_string();
+            
+            let pool = tauri::async_runtime::block_on(db::init_pool(&db_path)).expect("Failed to init DB");
+            tauri::async_runtime::block_on(db::run_migrations(&pool)).expect("Failed to run migrations");
+            
+            app.manage(AppState { db: pool });
+            
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            list_patients,
+            create_patient,
+            get_patient,
+            update_patient,
+            delete_patient,
+            list_procedures,
+            create_visit,
+            update_visit_status,
+            get_patient_visits,
+            add_treatment_record,
+            create_invoice,
+            get_visit_invoice,
+            add_payment,
+            get_invoice_payments,
+            get_report_summary,
+            get_settings,
+            update_settings,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

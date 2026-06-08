@@ -1,0 +1,21 @@
+pub mod errors;
+pub mod patient;
+pub mod visit;
+pub mod invoice;
+pub mod payment;
+pub mod procedure;
+pub mod xray;
+pub mod report;
+pub mod settings;
+pub mod treatment;
+
+pub use patient::PatientService;
+pub use visit::VisitService;
+pub use invoice::InvoiceService;
+pub use payment::PaymentService;
+pub use procedure::ProcedureService;
+// pub use xray::XrayService;
+pub use report::ReportService;
+pub use settings::SettingsService;
+pub use treatment::TreatmentRecordService;
+pub use settings::UpdateSettingsInput;

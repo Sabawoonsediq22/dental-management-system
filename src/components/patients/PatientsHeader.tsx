@@ -2,13 +2,10 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, SearchInput } from "../ui";
 import { AddIcon } from "../../shared/icons/icons";
-import {
-  GENDER_FILTER_OPTIONS,
-  PatientsHeaderProps,
-} from "../../types/PatientTypes";
-import { ALL_PATIENTS } from "../../shared/constants/PatientsData";
+import { GENDER_FILTER_OPTIONS, PatientsHeaderProps } from "../../types/PatientTypes";
 
 const PatientsHeader: React.FC<PatientsHeaderProps> = ({
+  patients,
   searchQuery,
   selectedGender,
   onSearchChange,
@@ -17,21 +14,21 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  /* ── Derive patient count from data for header badges ── */
   const patientStats = useMemo(() => {
-    const total = ALL_PATIENTS.length;
-    const active = ALL_PATIENTS.filter((p) => p.isCompleteProfile).length;
+    const total = patients.length;
+    const active = patients.filter((p) => p.is_complete_profile).length;
     const now = new Date();
-    const newThisMonth = ALL_PATIENTS.filter(
+    const newThisMonth = patients.filter(
       (p) =>
-        p.lastVisitDate.getMonth() === now.getMonth() &&
-        p.lastVisitDate.getFullYear() === now.getFullYear(),
+        p.last_visit &&
+        new Date(p.last_visit).getMonth() === now.getMonth() &&
+        new Date(p.last_visit).getFullYear() === now.getFullYear(),
     ).length;
-    const incompleteProfiles = ALL_PATIENTS.filter(
-      (p) => !p.isCompleteProfile,
+    const incompleteProfiles = patients.filter(
+      (p) => !p.is_complete_profile,
     ).length;
     return { total, active, newThisMonth, incompleteProfiles };
-  }, []);
+  }, [patients]);
 
   return (
     <div className="space-y-4">

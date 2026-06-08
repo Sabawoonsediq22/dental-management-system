@@ -1,152 +1,233 @@
-import { Procedure } from "../../types/PatientTypes";
-
 export const PROCEDURES: Procedure[] = [
   {
-    id: 1,
+    id: "PROC-001",
     name: "Examination",
     description: null,
-    defaultPrice: 200,
-    isActive: 1,
+    default_price: 200,
+    category: "General",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 2,
+    id: "PROC-002",
     name: "Simple Filling",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Restorative",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
-  { id: 3, name: "RCT", description: null, defaultPrice: 2000, isActive: 1 },
   {
-    id: 4,
+    id: "PROC-003",
+    name: "RCT",
+    description: null,
+    default_price: 2000,
+    category: "Endodontic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
+  },
+  {
+    id: "PROC-004",
     name: "Zirconium Crown",
     description: null,
-    defaultPrice: 100,
-    isActive: 1,
+    default_price: 100,
+    category: "Prosthetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 5,
+    id: "PROC-005",
     name: "PMF Crown",
     description: null,
-    defaultPrice: 2000,
-    isActive: 1,
+    default_price: 2000,
+    category: "Prosthetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 6,
+    id: "PROC-006",
     name: "Metal Crown",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Prosthetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 7,
+    id: "PROC-007",
     name: "Veneer Direct",
     description: null,
-    defaultPrice: 2000,
-    isActive: 1,
+    default_price: 2000,
+    category: "Cosmetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 8,
+    id: "PROC-008",
     name: "Extraction (Simple)",
     description: null,
-    defaultPrice: 500,
-    isActive: 1,
+    default_price: 500,
+    category: "Surgical",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 9,
+    id: "PROC-009",
     name: "Extraction (Complex)",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Surgical",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 10,
+    id: "PROC-010",
     name: "Extraction (Surgical)",
     description: null,
-    defaultPrice: 3000,
-    isActive: 1,
+    default_price: 3000,
+    category: "Surgical",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 11,
+    id: "PROC-011",
     name: "Mucocele Removing",
     description: null,
-    defaultPrice: 5000,
-    isActive: 1,
+    default_price: 5000,
+    category: "Surgical",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 12,
+    id: "PROC-012",
     name: "Crown Lengthening",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Surgical",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 13,
+    id: "PROC-013",
     name: "RCT + Post Corel + Crown",
     description: null,
-    defaultPrice: 5000,
-    isActive: 1,
+    default_price: 5000,
+    category: "Restorative",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 14,
+    id: "PROC-014",
     name: "Dentures Upper Lower",
     description: null,
-    defaultPrice: 30000,
-    isActive: 1,
+    default_price: 30000,
+    category: "Prosthetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 15,
+    id: "PROC-015",
     name: "Orthodontics (Basic)",
     description: null,
-    defaultPrice: 300,
-    isActive: 1,
+    default_price: 300,
+    category: "Orthodontic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 16,
+    id: "PROC-016",
     name: "Orthodontics (Standard)",
     description: null,
-    defaultPrice: 400,
-    isActive: 1,
+    default_price: 400,
+    category: "Orthodontic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 17,
+    id: "PROC-017",
     name: "Orthodontics Visit",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Orthodontic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 18,
+    id: "PROC-018",
     name: "Implant Surgery Only (Standard)",
     description: null,
-    defaultPrice: 400,
-    isActive: 1,
+    default_price: 400,
+    category: "Implant",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 19,
+    id: "PROC-019",
     name: "Implant Surgery Only (Premium)",
     description: null,
-    defaultPrice: 500,
-    isActive: 1,
+    default_price: 500,
+    category: "Implant",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 20,
+    id: "PROC-020",
     name: "Scaling & Polishing",
     description: null,
-    defaultPrice: 1500,
-    isActive: 1,
+    default_price: 1500,
+    category: "Preventive",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 21,
+    id: "PROC-021",
     name: "Bleaching",
     description: null,
-    defaultPrice: 100,
-    isActive: 1,
+    default_price: 100,
+    category: "Cosmetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
   {
-    id: 22,
+    id: "PROC-022",
     name: "Old Crown Cementation Fee",
     description: null,
-    defaultPrice: 150,
-    isActive: 1,
+    default_price: 150,
+    category: "Prosthetic",
+    is_active: true,
+    created_at: "",
+    updated_at: ""
   },
 ];
+
+export interface Procedure {
+  id: string;
+  name: string;
+  description: string | null;
+  default_price: number;
+  category: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

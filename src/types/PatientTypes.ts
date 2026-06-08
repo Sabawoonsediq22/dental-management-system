@@ -1,21 +1,12 @@
-export interface Patient {
-  id: string;
-  fullName: string;
-  phone: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  address: string;
-  lastVisitDate: Date;
-  initials: string;
-  isCompleteProfile: boolean;
-}
+import type { Patient } from "./ApiTypes";
 
 export interface Procedure {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
-  defaultPrice: number;
-  isActive: number;
+  default_price: number;
+  category: string | null;
+  is_active: boolean;
 }
 
 export interface PatientStats {

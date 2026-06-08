@@ -1,57 +1,37 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pagination } from "../../components/ui";
+import { LoadingSpinner, Pagination } from "../../components/ui";
 import PatientsHeader from "../../components/patients/PatientsHeader";
 import PatientTable from "../../components/patients/PatientTable";
-import { GenderFilterValue, Patient } from "../../types/PatientTypes";
+import { usePatients } from "../../hooks/usePatients";
+import type { Patient } from "../../types/ApiTypes";
 
 const Patients: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGender, setSelectedGender] =
-    useState<GenderFilterValue>("All");
+  const [selectedGender, setSelectedGender] = useState<"All" | "Male" | "Female" | "Other">("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [patients, setPatients] = useState<Patient[]>([]);
 
-
-  const filteredPatients = useMemo(() => {
-    return patients.filter((patient) => {
-      const genderOk =
-        selectedGender === "All" || patient.gender === selectedGender;
-
-      const q = searchQuery.trim().toLowerCase();
-      const searchOk =
-        !q ||
-        patient.fullName.toLowerCase().includes(q) ||
-        patient.phone.replace(/\s+/g, "").includes(q) ||
-        patient.id.toLowerCase().includes(q);
-
-      return genderOk && searchOk;
-    });
-  }, [searchQuery, selectedGender, patients]);
-
-  const totalFiltered = filteredPatients.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / itemsPerPage));
-
-  const effectivePage = Math.min(currentPage, totalPages);
-  const paginatedPatients = useMemo(() => {
-    const start = (effectivePage - 1) * itemsPerPage;
-    return filteredPatients.slice(start, start + itemsPerPage);
-  }, [filteredPatients, effectivePage, itemsPerPage]);
+  const { data, isLoading, error } = usePatients({
+    query: searchQuery || undefined,
+    gender: selectedGender !== "All" ? selectedGender : undefined,
+    page: currentPage,
+    perPage: itemsPerPage,
+  });
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
   };
 
-  const handleGenderChange = (gender: GenderFilterValue) => {
+  const handleGenderChange = (gender: "All" | "Male" | "Female" | "Other") => {
     setSelectedGender(gender);
     setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
+    if (page >= 1 && page <= (data?.total_pages ?? 1)) {
       setCurrentPage(page);
     }
   };
@@ -69,10 +49,29 @@ const Patients: React.FC = () => {
     console.log("Edit patient:", patient);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full mt-54 items-center justify-center">
+        <LoadingSpinner className="mr-4" />
+        <div className="text-lg">Loading patients...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full mt-54 items-center justify-center">
+        <div className="text-lg text-red-500">Error loading patients</div>
+      </div>
+    );
+  }
+
+  const patients = data?.items ?? [];
+
   return (
     <div className="flex flex-col h-full">
       <PatientsHeader
-        patients={filteredPatients}
+        patients={patients}
         searchQuery={searchQuery}
         selectedGender={selectedGender}
         onSearchChange={handleSearchChange}
@@ -82,11 +81,11 @@ const Patients: React.FC = () => {
 
       <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <PatientTable
-          patients={paginatedPatients}
-          currentPage={effectivePage}
+          patients={patients}
+          currentPage={currentPage}
           itemsPerPage={itemsPerPage}
-          totalItems={totalFiltered}
-          totalPages={totalPages}
+          totalItems={data?.total ?? 0}
+          totalPages={data?.total_pages ?? 1}
           onPageChange={handlePageChange}
           onItemsPerPageChange={handleItemsPerPageChange}
           onEditPatient={handleEditPatient}
@@ -94,9 +93,9 @@ const Patients: React.FC = () => {
       </div>
 
       <Pagination
-        currentPage={effectivePage}
-        totalPages={totalPages}
-        totalItems={totalFiltered}
+        currentPage={currentPage}
+        totalPages={data?.total_pages ?? 1}
+        totalItems={data?.total ?? 0}
         itemsPerPage={itemsPerPage}
         onPageChange={handlePageChange}
         onItemsPerPageChange={handleItemsPerPageChange}

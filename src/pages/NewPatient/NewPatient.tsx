@@ -524,7 +524,7 @@ const NewPatient: React.FC = () => {
                       ...prev,
                       procedure: selectedProcedureName,
                       procedureValue: selectedProcedure
-                        ? selectedProcedure.defaultPrice.toString()
+                        ? selectedProcedure.default_price.toString()
                         : "",
                     }));
                   }}
@@ -534,7 +534,7 @@ const NewPatient: React.FC = () => {
                   <option value="">{t("newPatient.selectProcedure")}</option>
                   {PROCEDURES.map((procedure) => (
                     <option key={procedure.id} value={procedure.name}>
-                      {procedure.name} - {procedure.defaultPrice}{" "}
+                      {procedure.name} - {procedure.default_price}{" "}
                       {getCurrencySymbol(procedure.name)}
                     </option>
                   ))}

@@ -4,8 +4,9 @@ import { PatientAvatar } from "../ui";
 import { EditIcon } from "../../shared/icons/icons";
 import { PatientTableProps } from "../../types/PatientTypes";
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
+function formatDate(date: string | null | undefined): string {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -73,10 +74,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <PatientAvatar name={patient.fullName} size="md" />
+                    <PatientAvatar name={patient.full_name} size="md" />
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {patient.fullName}
+                        {patient.full_name}
                       </span>
                     </div>
                   </div>
@@ -88,16 +89,16 @@ const PatientTable: React.FC<PatientTableProps> = ({
                   {patient.age} / {getGenderLabel(patient.gender)}
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell truncate max-w-xs">
-                  {patient.address}
+                  {patient.address || "-"}
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                  {formatDate(patient.lastVisitDate)}
+                  {formatDate(patient.last_visit)}
                 </td>
                 <td className="py-3 px-4">
                   <button
                     onClick={() => onEditPatient?.(patient)}
                     className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    aria-label={`Edit ${patient.fullName}`}
+                    aria-label={`Edit ${patient.full_name}`}
                   >
                     <EditIcon size="sm" />
                   </button>
@@ -117,10 +118,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <PatientAvatar name={patient.fullName} size="md" />
+                <PatientAvatar name={patient.full_name} size="md" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                    {patient.fullName}
+                    {patient.full_name}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {patient.phone}
@@ -130,7 +131,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <button
                 onClick={() => onEditPatient?.(patient)}
                 className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 shrink-0 transition-colors"
-                aria-label={`Edit ${patient.fullName}`}
+                aria-label={`Edit ${patient.full_name}`}
               >
                 <EditIcon size="sm" />
               </button>
@@ -139,7 +140,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <span>
                 {patient.age} yrs / {getGenderLabel(patient.gender)}
               </span>
-              <span>Last: {formatDate(patient.lastVisitDate)}</span>
+              <span>Last: {formatDate(patient.last_visit)}</span>
             </div>
           </div>
         ))}
