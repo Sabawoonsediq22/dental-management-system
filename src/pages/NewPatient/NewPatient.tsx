@@ -24,11 +24,13 @@ import { ToothData } from "../../components/dental-chart/types";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
+
 interface MedicalConditions {
   diabetes: boolean;
   hypertension: boolean;
   heartDisease: boolean;
   asthma: boolean;
+  other?: string;
 }
 
 interface PatientFormData {
@@ -233,7 +235,7 @@ const NewPatient: React.FC = () => {
     }
   };
 
-  const getMedicalConditionsString = (): string => {
+const getMedicalConditionsString = (): string => {
     const conditions: string[] = [];
     if (formData.medicalConditions.diabetes) conditions.push("Diabetes");
     if (formData.medicalConditions.hypertension)
@@ -241,9 +243,83 @@ const NewPatient: React.FC = () => {
     if (formData.medicalConditions.heartDisease)
       conditions.push("Heart Disease");
     if (formData.medicalConditions.asthma) conditions.push("Asthma");
+    if (formData.medicalConditions.other) conditions.push(formData.medicalConditions.other);
     return conditions.join(", ");
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error({ title: t("newPatient.validationError", "Please fix form errors before submitting") });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const ageNum = parseInt(formData.age) || 0;
+      const procedureId = PROCEDURES.find(p => p.name === formData.procedure)?.id || "";
+      const toothNumbers = selectedToothIds.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
+      
+      const patient = await api.patients.create({
+        full_name: formData.fullName,
+        phone: formData.phoneNumber,
+        age: ageNum,
+        gender: formData.gender || "Other",
+        address: formData.address || null,
+        allergies: formData.allergies || null,
+        medications: formData.currentMedications || null,
+        clinical_notes: formData.clinicalNotes || null,
+        is_complete_profile: true,
+      });
+
+      const conditions = getMedicalConditionsString();
+      if (conditions) {
+        const conditionList = conditions.split(", ");
+        for (const condition of conditionList) {
+          await api.patients.add_medical_condition(patient.id, condition);
+        }
+      }
+
+      const visit = await api.visits.create({
+        patient_id: patient.id,
+        chief_complaint: formData.chiefComplaint || null,
+        clinical_notes: formData.clinicalNotes || null,
+      });
+
+      if (procedureId) {
+        await api.treatments.add({
+          visit_id: visit.id,
+          procedure_id: procedureId,
+          tooth_quadrant: null,
+          tooth_numbers: toothNumbers,
+          quantity: numProc || 1,
+          procedure_price: procValue,
+          treatment_notes: formData.clinicalNotes || null,
+        });
+      }
+
+      await api.invoices.create({
+        visit_id: visit.id,
+        discount: discountAmount,
+      });
+
+      if (xrayFile) {
+        const arrayBuffer = await xrayFile.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        await api.patients.upload_xray(patient.id, xrayFile.name, Array.from(bytes));
+      }
+
+      toast.success({ title: t("newPatient.patientCreated", "Patient created successfully") });
+      navigate("/patients");
+    } catch (error) {
+      toast.error({ title: t("newPatient.saveFailed", "Failed to save patient data") });
+      console.error("Form submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -280,7 +356,7 @@ const NewPatient: React.FC = () => {
         </div>
       </div>
 
-      <form className="space-y-8">
+      <form className="space-y-8" onSubmit={handleSubmit}>
         <div className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
           <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
@@ -382,20 +458,8 @@ const NewPatient: React.FC = () => {
                 />
               </FormField>
 
-              <FormField label={t("newPatient.currentMedications")}>
-                <FormTextarea
-                  placeholder={t("newPatient.currentMedicationsPlaceholder")}
-                  onChange={(e) =>
-                    handleChange("currentMedications", e.target.value)
-                  }
-                  value={formData.currentMedications}
-                  className="h-20"
-                  disabled={isSubmitting}
-                />
-              </FormField>
-
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="space-y-3 my-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
+                <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   {t("newPatient.medicalConditions")}
                 </p>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -456,7 +520,32 @@ const NewPatient: React.FC = () => {
                     <span>{t("newPatient.asthma")}</span>
                   </label>
                 </div>
+                <div className="flex items-center w-full">
+                    <FormField label={t("newPatient.typeYours")} className="w-full">
+                      <FormInput
+                        placeholder={t(
+                        "newPatient.medicalConditionPlaceholder",
+                        "e.g. Epilepsy, Thyroid Issues, etc.",
+                        )}
+                        onChange={(e) => handleChange("medicalConditions", e.target.value)}
+                        value={formData.medicalConditions.other || ""}
+                        disabled={isSubmitting}
+                      />
+                    </FormField>
+                  </div>
               </div>
+
+              <FormField label={t("newPatient.currentMedications")}>
+                <FormTextarea
+                  placeholder={t("newPatient.currentMedicationsPlaceholder")}
+                  onChange={(e) =>
+                    handleChange("currentMedications", e.target.value)
+                  }
+                  value={formData.currentMedications}
+                  className="h-20"
+                  disabled={isSubmitting}
+                />
+              </FormField>
             </div>
           </div>
 

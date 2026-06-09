@@ -16,6 +16,7 @@ import type {
   ReportSummary,
   AppSettings,
   UpdateSettingsInput,
+  Xray,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -47,6 +48,7 @@ export const api = {
   },
   procedures: {
     list: () => invoke<Procedure[]>("list_procedures"),
+    findByName: (name: string) => invoke<Procedure | null>("find_procedure_by_name", { name }),
   },
   reports: {
     summary: () => invoke<ReportSummary>("get_report_summary"),

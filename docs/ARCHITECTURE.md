@@ -77,20 +77,23 @@ CREATE TABLE IF NOT EXISTS patients (
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
     age INTEGER NOT NULL CHECK (age > 0 AND age <= 120),
-    gender TEXT CHECK(gender IN ('Male','Female','Other')),
+    gender TEXT NOT NULL CHECK(gender IN ('Male','Female','Other')),
     address TEXT,
     is_complete_profile BOOLEAN DEFAULT FALSE,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS patient_medical_info (
-    patient_id TEXT PRIMARY KEY REFERENCES patients(id) ON DELETE CASCADE,
-    allergies TEXT DEFAULT '',
-    medications TEXT DEFAULT '',
-    clinical_notes TEXT DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+CREATE TABLE IF NOT EXISTS patient_allergies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    allergy_name TEXT
+);
+
+CREATE TABLE patient_medications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    medication_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS medical_conditions (
@@ -106,7 +109,7 @@ CREATE TABLE IF NOT EXISTS procedures (
     description TEXT,
     default_price  REAL NOT NULL CHECK (default_price >= 0),
     category TEXT DEFAULT 'General',
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -117,7 +120,7 @@ CREATE TABLE IF NOT EXISTS visits (
     visit_date TEXT NOT NULL DEFAULT (datetime('now')),
     chief_complaint TEXT DEFAULT '',
     clinical_notes TEXT DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'Open' CHECK(status IN ('Open','Completed','Cancelled')),
+    status TEXT DEFAULT 'Open' CHECK(status IN ('Open','Completed','Cancelled')),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -129,7 +132,6 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     tooth_quadrant TEXT,
     quantity INTEGER NOT NULL DEFAULT 1, -- stores number of procedures performed
     procedure_price REAL NOT NULL,
-    treatment_notes TEXT,
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

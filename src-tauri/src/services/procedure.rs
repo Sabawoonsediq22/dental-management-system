@@ -17,6 +17,17 @@ impl ProcedureService {
         Ok(procedures)
     }
 
+    pub async fn find_by_name(pool: &SqlitePool, name: &str) -> AppResult<Option<Procedure>> {
+        let procedure = sqlx::query_as(
+            "SELECT id, name, description, default_price, category, is_active, created_at, updated_at FROM procedures WHERE name = ?"
+        )
+        .bind(name)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(procedure)
+    }
+
     #[allow(dead_code)]
     pub async fn seed_defaults(pool: &SqlitePool) -> AppResult<()> {
         let defaults: Vec<(&str, &str, f64, &str)> = vec![
