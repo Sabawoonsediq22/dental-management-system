@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS patients (
     gender TEXT CHECK(gender IN ('Male','Female','Other')),
     address TEXT,
     is_complete_profile BOOLEAN DEFAULT FALSE,
+    initials TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -113,9 +114,12 @@ CREATE TABLE IF NOT EXISTS app_settings (
     clinic_phone TEXT,
     clinic_address TEXT,
     language TEXT DEFAULT 'en',
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Insert default settings if not exists
+INSERT OR IGNORE INTO app_settings (id, language) VALUES (1, 'en');
 
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

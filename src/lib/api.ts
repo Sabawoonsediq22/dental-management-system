@@ -21,24 +21,26 @@ import type {
 export const api = {
   patients: {
     list: (params: { query?: string; gender?: string; page?: number; perPage?: number }) =>
-      invoke<PatientPageResult>("list_patients", params),
+      invoke<PatientPageResult>("list_patients", { params }),
     get: (id: string) => invoke<Patient>("get_patient", { id }),
     create: (input: CreatePatientInput) => invoke<Patient>("create_patient", { input }),
     update: (id: string, input: UpdatePatientInput) => invoke<Patient>("update_patient", { id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),
+    add_medical_condition: (patient_id: string, condition_name: string) => invoke<void>("add_medical_condition", { patient_id, condition_name }),
+    upload_xray: (patient_id: string, filename: string, bytes: number[]) => invoke<Xray>("upload_xray", { patient_id, filename, bytes }),
   },
   visits: {
     create: (input: CreateVisitInput) => invoke<Visit>("create_visit", { input }),
     updateStatus: (id: string, status: Visit["status"]) => invoke<Visit>("update_visit_status", { id, status }),
-    list: (patientId: string) => invoke<Visit[]>("get_patient_visits", { patientId }),
+    list: (patientId: string) => invoke<Visit[]>("get_patient_visits", { patient_id: patientId }),
   },
   treatments: {
     add: (input: CreateTreatmentRecordInput) => invoke<TreatmentRecord>("add_treatment_record", { input }),
   },
   invoices: {
     create: (input: CreateInvoiceInput) => invoke<Invoice>("create_invoice", { input }),
-    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visitId }),
-    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
+    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visit_id: visitId }),
+    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoice_id: invoiceId }),
   },
   payments: {
     add: (input: AddPaymentInput) => invoke<Payment>("add_payment", { input }),

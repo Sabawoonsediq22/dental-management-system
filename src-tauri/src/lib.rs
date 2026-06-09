@@ -18,12 +18,13 @@ async fn greet(name: &str) -> Result<String, String> {
 #[tauri::command]
 async fn list_patients(
     state: State<'_, AppState>,
-    query: Option<String>,
-    gender: Option<String>,
-    page: u32,
-    per_page: u32,
+    params: PatientListParams,
 ) -> Result<PatientPageResult, String> {
-    PatientService::list(&state.db, query.as_deref(), gender.as_deref(), page, per_page)
+    let query = params.query.as_deref();
+    let gender = params.gender.as_deref();
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(10);
+    PatientService::list(&state.db, query, gender, page, per_page)
         .await
         .map_err(|e| e.to_string())
 }
@@ -59,6 +60,26 @@ async fn update_patient(
 #[tauri::command]
 async fn delete_patient(state: State<'_, AppState>, id: String) -> Result<(), String> {
     PatientService::delete(&state.db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn add_medical_condition(state: State<'_, AppState>, patient_id: String, condition_name: String) -> Result<(), String> {
+    PatientService::add_medical_condition(&state.db, &patient_id, &condition_name)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn upload_xray(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    patient_id: String,
+    filename: String,
+    bytes: Vec<u8>,
+) -> Result<Xray, String> {
+    XrayService::upload(&state.db, &app, &patient_id, &filename, &bytes)
         .await
         .map_err(|e| e.to_string())
 }
@@ -185,10 +206,21 @@ pub fn run() {
                 .to_string_lossy()
                 .to_string();
             
-            let pool = tauri::async_runtime::block_on(db::init_pool(&db_path)).expect("Failed to init DB");
-            tauri::async_runtime::block_on(db::run_migrations(&pool)).expect("Failed to run migrations");
+            println!("Database path: {}", db_path);
             
-            app.manage(AppState { db: pool });
+            let pool = tauri::async_runtime::block_on(db::init_pool(&db_path));
+            match pool {
+                Ok(pool) => {
+                    if let Err(e) = tauri::async_runtime::block_on(db::run_migrations(&pool)) {
+                        eprintln!("Failed to run migrations: {}", e);
+                    }
+                    app.manage(AppState { db: pool });
+                }
+                Err(e) => {
+                    eprintln!("Failed to init DB: {}", e);
+                    return Err(e.into());
+                }
+            }
             
             Ok(())
         })
@@ -199,6 +231,8 @@ pub fn run() {
             get_patient,
             update_patient,
             delete_patient,
+            add_medical_condition,
+            upload_xray,
             list_procedures,
             create_visit,
             update_visit_status,

@@ -23,6 +23,7 @@ import { isRTL } from "../../i18n";
 import { ToothData } from "../../components/dental-chart/types";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
+import { api } from "../../lib/api";
 interface MedicalConditions {
   diabetes: boolean;
   hypertension: boolean;
@@ -32,7 +33,7 @@ interface MedicalConditions {
 
 interface PatientFormData {
   fullName: string;
-  gender: "male" | "female" | "other" | "";
+  gender: "Male" | "Female" | "Other" | "";
   phoneNumber: string;
   age: string;
   address: string;
@@ -335,9 +336,9 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <option value="">-- {t("newPatient.selectGender")} --</option>
-                  <option value="male">{t("newPatient.male")}</option>
-                  <option value="female">{t("newPatient.female")}</option>
-                  <option value="other">{t("newPatient.other")}</option>
+                  <option value="Male">{t("newPatient.male")}</option>
+                  <option value="Female">{t("newPatient.female")}</option>
+                  <option value="Other">{t("newPatient.other")}</option>
                 </Select>
               </FormField>
 

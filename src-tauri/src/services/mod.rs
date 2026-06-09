@@ -14,7 +14,7 @@ pub use visit::VisitService;
 pub use invoice::InvoiceService;
 pub use payment::PaymentService;
 pub use procedure::ProcedureService;
-// pub use xray::XrayService;
+pub use xray::XrayService;
 pub use report::ReportService;
 pub use settings::SettingsService;
 pub use treatment::TreatmentRecordService;

@@ -51,7 +51,7 @@ const Patients: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full mt-54 items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <LoadingSpinner className="mr-4" />
         <div className="text-lg">Loading patients...</div>
       </div>
@@ -60,8 +60,8 @@ const Patients: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex h-full mt-54 items-center justify-center">
-        <div className="text-lg text-red-500">Error loading patients</div>
+      <div className="flex h-full items-center justify-center">
+        <div className="text-lg text-red-500">Error loading patients: {String(error)}</div>
       </div>
     );
   }

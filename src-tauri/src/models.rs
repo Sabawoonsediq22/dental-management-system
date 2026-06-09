@@ -17,7 +17,6 @@ pub struct Patient {
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
-#[sqlx(rename_all = "lowercase")]
 pub enum Gender {
     Male,
     Female,
@@ -255,6 +254,15 @@ pub struct PatientPageResult {
     pub page: u32,
     pub per_page: u32,
     pub total_pages: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PatientListParams {
+    pub query: Option<String>,
+    pub gender: Option<String>,
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
 }
 
 // Tauri state

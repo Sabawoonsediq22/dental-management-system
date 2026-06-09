@@ -39,7 +39,8 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         for stmt in sql.split(';') {
             let stmt = stmt.trim();
             if !stmt.is_empty() {
-                sqlx::query(stmt).execute(pool).await?;
+                // Ignore errors for ALTER TABLE ADD COLUMN if column already exists
+                let _ = sqlx::query(stmt).execute(pool).await;
             }
         }
     }

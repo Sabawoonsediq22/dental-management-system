@@ -32,68 +32,70 @@ impl PatientService {
             .fetch_one(pool)
             .await?;
 
-        // Get items with optional filtering
-        let items: Vec<Patient> = if query.is_some() || (gender.is_some() && gender != Some("All")) {
-            let has_conditions = false;
-
-            if let Some(q_str) = query {
-                if !q_str.trim().is_empty() {
-                    let like = format!("%{}%", q_str.trim());
-                    if has_conditions {
-                        // Can't easily chain LIKE conditions, so let's use a simpler approach
-                    }
-                    // For now, let's just use a simple approach
-                    let items = sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
-                    )
-                    .bind(&like)
-                    .bind(&like)
-                    .bind(&like)
-                    .bind(per_page_i64)
-                    .bind(offset)
-                    .fetch_all(pool)
-                    .await?;
-                    return Ok(PatientPageResult {
-                        items,
-                        total,
-                        page,
-                        per_page,
-                        total_pages: ((total + per_page_i64 - 1) / per_page_i64).max(1),
-                    });
-                }
-            }
-
-            if let Some(g) = gender {
-                if g != "All" && g != "all" {
-                    let items = sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        // Build query with optional filtering
+        let items: Vec<Patient> = if let Some(q_str) = query {
+            if !q_str.trim().is_empty() {
+                let like = format!("%{}%", q_str.trim());
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(&like)
+                .bind(&like)
+                .bind(&like)
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
+            } else if let Some(g) = gender {
+                if g != "All" {
+                    sqlx::query_as(
+                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(g)
                     .bind(per_page_i64)
                     .bind(offset)
                     .fetch_all(pool)
-                    .await?;
-                    return Ok(PatientPageResult {
-                        items,
-                        total,
-                        page,
-                        per_page,
-                        total_pages: ((total + per_page_i64 - 1) / per_page_i64).max(1),
-                    });
+                    .await?
+                } else {
+                    sqlx::query_as(
+                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    )
+                    .bind(per_page_i64)
+                    .bind(offset)
+                    .fetch_all(pool)
+                    .await?
                 }
+            } else {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
             }
-
-            // No conditions, get all
-            sqlx::query_as(
-                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
-            )
-            .bind(per_page_i64)
-            .bind(offset)
-            .fetch_all(pool)
-            .await?
+        } else if let Some(g) = gender {
+            if g != "All" {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(g)
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
+            } else {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
+            }
         } else {
             sqlx::query_as(
-                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
             )
             .bind(per_page_i64)
             .bind(offset)
@@ -114,7 +116,7 @@ impl PatientService {
 
     pub async fn find(pool: &SqlitePool, id: &str) -> AppResult<Patient> {
         let patient = sqlx::query_as(
-            "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials FROM patients WHERE id = ?"
+            "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE id = ?"
         )
         .bind(id)
         .fetch_optional(pool)
@@ -254,6 +256,17 @@ impl PatientService {
         if result.rows_affected() == 0 {
             return Err(crate::services::errors::AppError::NotFound(format!("Patient {} not found", id)));
         }
+        Ok(())
+    }
+
+    pub async fn add_medical_condition(pool: &SqlitePool, patient_id: &str, condition_name: &str) -> AppResult<()> {
+        let now = Utc::now().to_rfc3339();
+        sqlx::query("INSERT INTO medical_conditions (patient_id, condition_name, is_active, created_at) VALUES (?, ?, TRUE, ?)")
+            .bind(patient_id)
+            .bind(condition_name)
+            .bind(&now)
+            .execute(pool)
+            .await?;
         Ok(())
     }
 }

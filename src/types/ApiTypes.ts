@@ -20,6 +20,13 @@ export interface PatientPageResult {
   total_pages: number;
 }
 
+export interface PatientListParams {
+  query?: string;
+  gender?: string;
+  page?: number;
+  perPage?: number;
+}
+
 export interface CreatePatientInput {
   full_name: string;
   phone: string;

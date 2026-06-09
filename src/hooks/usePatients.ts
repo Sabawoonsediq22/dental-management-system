@@ -1,11 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import { useEffect } from "react";
 
 export function usePatients(params: { query?: string; gender?: string; page?: number; perPage?: number }) {
-  return useQuery({
+  const result = useQuery({
     queryKey: ["patients", params],
     queryFn: () => api.patients.list(params),
   });
+
+  useEffect(() => {
+    if (result.error) {
+      console.error("usePatients error:", result.error);
+    }
+  }, [result.error]);
+
+  return result;
 }
 
 export function usePatient(id: string) {
