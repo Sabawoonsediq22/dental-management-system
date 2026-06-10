@@ -13,7 +13,6 @@ pub struct Patient {
     pub is_complete_profile: bool,
     pub created_at: String,
     pub updated_at: String,
-    pub initials: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
@@ -74,7 +73,6 @@ pub struct TreatmentRecord {
     pub tooth_quadrant: Option<String>,
     pub quantity: i32,
     pub procedure_price: f64,
-    pub treatment_notes: Option<String>,
     pub performed_at: String,
 }
 

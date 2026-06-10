@@ -1,5 +1,5 @@
 -- Initial schema for dental clinic management system
-CREATE TABLE patients (
+CREATE TABLE IF NOT EXISTS patients (
     id TEXT PRIMARY KEY,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
@@ -11,21 +11,21 @@ CREATE TABLE patients (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE patient_allergies (
+CREATE TABLE IF NOT EXISTS patient_allergies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     allergy_name TEXT NOT NULL,
     UNIQUE(patient_id, allergy_name)
 );
 
-CREATE TABLE patient_medications (
+CREATE TABLE IF NOT EXISTS patient_medications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     medication_name TEXT NOT NULL,
     UNIQUE(patient_id, medication_name)
 );
 
-CREATE TABLE medical_conditions (
+CREATE TABLE IF NOT EXISTS medical_conditions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     condition_name TEXT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE medical_conditions (
     UNIQUE(patient_id, condition_name)
 );
 
-CREATE TABLE procedures (
+CREATE TABLE IF NOT EXISTS procedures (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -44,7 +44,7 @@ CREATE TABLE procedures (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE visits (
+CREATE TABLE IF NOT EXISTS visits (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     visit_date TEXT NOT NULL DEFAULT (datetime('now')),
@@ -55,7 +55,7 @@ CREATE TABLE visits (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE treatment_records (
+CREATE TABLE IF NOT EXISTS treatment_records (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     procedure_id TEXT NOT NULL REFERENCES procedures(id),
@@ -65,13 +65,13 @@ CREATE TABLE treatment_records (
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE treatment_teeth (
+CREATE TABLE IF NOT EXISTS treatment_teeth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     treatment_record_id TEXT NOT NULL REFERENCES treatment_records(id) ON DELETE CASCADE,
     tooth_number INTEGER
 );
 
-CREATE TABLE invoices (
+CREATE TABLE IF NOT EXISTS invoices (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL UNIQUE REFERENCES visits(id) ON DELETE CASCADE,
     invoice_number TEXT NOT NULL UNIQUE,
@@ -84,7 +84,7 @@ CREATE TABLE invoices (
     issued_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     amount REAL NOT NULL CHECK(amount > 0),
@@ -92,7 +92,7 @@ CREATE TABLE payments (
     received_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE xrays (
+CREATE TABLE IF NOT EXISTS xrays (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     file_path TEXT NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE xrays (
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE invoice_items (
+CREATE TABLE IF NOT EXISTS invoice_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     treatment_record_id TEXT REFERENCES treatment_records(id),
@@ -110,7 +110,7 @@ CREATE TABLE invoice_items (
     total_price REAL NOT NULL
 );
 
-CREATE TABLE app_settings (
+CREATE TABLE IF NOT EXISTS app_settings (
     id INTEGER PRIMARY KEY CHECK(id = 1),
     clinic_name TEXT,
     clinic_phone TEXT,
@@ -120,7 +120,7 @@ CREATE TABLE app_settings (
     updated_at TEXT NOT NULL
 );
 
-CREATE TABLE backups (
+CREATE TABLE IF NOT EXISTS backups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     backup_type TEXT NOT NULL CHECK (backup_type IN ('daily', 'weekly', 'monthly', 'manual')),
     backup_path TEXT NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE backups (
     completed_at TEXT
 );
 
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entity TEXT NOT NULL,
     entity_id TEXT NOT NULL,

@@ -3,17 +3,6 @@ use crate::models::*;
 use crate::services::errors::AppResult;
 use chrono::Utc;
 
-fn compute_initials(full_name: &str) -> String {
-    let parts: Vec<&str> = full_name.trim().split_whitespace().collect();
-    if parts.len() >= 2 {
-        let first = parts[0].chars().next().unwrap_or(' ').to_uppercase().to_string();
-        let last = parts.last().unwrap().chars().next().unwrap_or(' ').to_uppercase().to_string();
-        first + &last
-    } else {
-        full_name.chars().take(2).collect::<String>().to_uppercase()
-    }
-}
-
 pub struct PatientService;
 
 impl PatientService {
@@ -37,7 +26,7 @@ impl PatientService {
             if !q_str.trim().is_empty() {
                 let like = format!("%{}%", q_str.trim());
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(&like)
                 .bind(&like)
@@ -49,7 +38,7 @@ impl PatientService {
             } else if let Some(g) = gender {
                 if g != "All" {
                     sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(g)
                     .bind(per_page_i64)
@@ -58,7 +47,7 @@ impl PatientService {
                     .await?
                 } else {
                     sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(per_page_i64)
                     .bind(offset)
@@ -67,7 +56,7 @@ impl PatientService {
                 }
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -77,7 +66,7 @@ impl PatientService {
         } else if let Some(g) = gender {
             if g != "All" {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(g)
                 .bind(per_page_i64)
@@ -86,7 +75,7 @@ impl PatientService {
                 .await?
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -95,7 +84,7 @@ impl PatientService {
             }
         } else {
             sqlx::query_as(
-                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
             )
             .bind(per_page_i64)
             .bind(offset)
@@ -116,7 +105,7 @@ impl PatientService {
 
     pub async fn find(pool: &SqlitePool, id: &str) -> AppResult<Patient> {
         let patient = sqlx::query_as(
-            "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, COALESCE(initials, '') as initials FROM patients WHERE id = ?"
+            "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE id = ?"
         )
         .bind(id)
         .fetch_optional(pool)
@@ -137,12 +126,11 @@ impl PatientService {
             Gender::Other => "Other",
         };
 
-        let initials = compute_initials(&input.full_name);
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "INSERT INTO patients (id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at, initials)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO patients (id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(&id)
         .bind(&input.full_name)
@@ -153,23 +141,40 @@ impl PatientService {
         .bind(input.is_complete_profile.unwrap_or(false))
         .bind(&now)
         .bind(&now)
-        .bind(&initials)
         .execute(pool)
         .await?;
 
-        // Insert medical info
-        sqlx::query(
-            "INSERT INTO patient_medical_info (patient_id, allergies, medications, clinical_notes, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?)"
-        )
-        .bind(&id)
-        .bind(&input.allergies)
-        .bind(&input.medications)
-        .bind(&input.clinical_notes)
-        .bind(&now)
-        .bind(&now)
-        .execute(pool)
-        .await?;
+        // Insert allergies
+        if let Some(ref allergies) = input.allergies {
+            for allergy in allergies.split(',') {
+                let allergy = allergy.trim();
+                if !allergy.is_empty() {
+                    sqlx::query(
+                        "INSERT OR IGNORE INTO patient_allergies (patient_id, allergy_name) VALUES (?, ?)"
+                    )
+                    .bind(&id)
+                    .bind(allergy)
+                    .execute(pool)
+                    .await?;
+                }
+            }
+        }
+
+        // Insert medications
+        if let Some(ref medications) = input.medications {
+            for med in medications.split(',') {
+                let med = med.trim();
+                if !med.is_empty() {
+                    sqlx::query(
+                        "INSERT OR IGNORE INTO patient_medications (patient_id, medication_name) VALUES (?, ?)"
+                    )
+                    .bind(&id)
+                    .bind(med)
+                    .execute(pool)
+                    .await?;
+                }
+            }
+        }
 
         Ok(Patient {
             id,
@@ -181,7 +186,6 @@ impl PatientService {
             is_complete_profile: input.is_complete_profile.unwrap_or(false),
             created_at: now.clone(),
             updated_at: now,
-            initials,
         })
     }
 
@@ -194,7 +198,6 @@ impl PatientService {
         let gender = input.gender.unwrap_or(existing.gender);
         let address = input.address;
         let is_complete_profile = input.is_complete_profile.unwrap_or(existing.is_complete_profile);
-        let initials = compute_initials(&full_name);
 
         let gender_str = match gender {
             Gender::Male => "Male",
@@ -205,7 +208,7 @@ impl PatientService {
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, is_complete_profile=?, updated_at=?, initials=?
+            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, is_complete_profile=?, updated_at=?
              WHERE id=?"
         )
         .bind(&full_name)
@@ -215,24 +218,9 @@ impl PatientService {
         .bind(&address)
         .bind(is_complete_profile)
         .bind(&now)
-        .bind(&initials)
         .bind(id)
         .execute(pool)
         .await?;
-
-        if input.allergies.is_some() || input.medications.is_some() || input.clinical_notes.is_some() {
-            sqlx::query(
-                "UPDATE patient_medical_info SET allergies=?, medications=?, clinical_notes=?, updated_at=?
-                 WHERE patient_id=?"
-            )
-            .bind(&input.allergies)
-            .bind(&input.medications)
-            .bind(&input.clinical_notes)
-            .bind(&now)
-            .bind(id)
-            .execute(pool)
-            .await?;
-        }
 
         Ok(Patient {
             id: existing.id,
@@ -244,7 +232,6 @@ impl PatientService {
             is_complete_profile,
             created_at: existing.created_at,
             updated_at: now,
-            initials,
         })
     }
 
@@ -260,11 +247,9 @@ impl PatientService {
     }
 
     pub async fn add_medical_condition(pool: &SqlitePool, patient_id: &str, condition_name: &str) -> AppResult<()> {
-        let now = Utc::now().to_rfc3339();
-        sqlx::query("INSERT INTO medical_conditions (patient_id, condition_name, is_active, created_at) VALUES (?, ?, TRUE, ?)")
+        sqlx::query("INSERT INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)")
             .bind(patient_id)
             .bind(condition_name)
-            .bind(&now)
             .execute(pool)
             .await?;
         Ok(())

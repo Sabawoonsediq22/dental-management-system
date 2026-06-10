@@ -14,7 +14,7 @@ impl InvoiceService {
 
         // Calculate subtotal from treatment records for this visit
         let treatment_records: Vec<TreatmentRecord> = sqlx::query_as(
-            "SELECT id, visit_id, procedure_id, tooth_quadrant, quantity, procedure_price, treatment_notes, performed_at FROM treatment_records WHERE visit_id = ?"
+            "SELECT id, visit_id, procedure_id, tooth_quadrant, quantity, procedure_price, performed_at FROM treatment_records WHERE visit_id = ?"
         )
         .bind(&input.visit_id)
         .fetch_all(pool)

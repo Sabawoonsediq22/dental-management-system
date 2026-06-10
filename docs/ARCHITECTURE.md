@@ -61,11 +61,11 @@ graph LR
 
 ### Why SQLite + SQLx over alternatives
 
-| Decision | Rationale |
-|---|---|
-| **SQLite** (not Postgres/MySQL) | Tauri apps ship a single binary; no external DB server needed. Schema lives in `src-tauri/migrations/`. |
-| **SQLx over Diesel/SeaORM** | SQLx is compile-time checked (SQL files verified at build), no codegen step, lightweight, idiomatic Rust, async-first via `sqlx::query!`. |
-| **Keep it embedded** | Dental clinics run on a single PC. Cloud sync can be layered later via a REST API. |
+| Decision                        | Rationale                                                                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **SQLite** (not Postgres/MySQL) | Tauri apps ship a single binary; no external DB server needed. Schema lives in `src-tauri/migrations/`.                                   |
+| **SQLx over Diesel/SeaORM**     | SQLx is compile-time checked (SQL files verified at build), no codegen step, lightweight, idiomatic Rust, async-first via `sqlx::query!`. |
+| **Keep it embedded**            | Dental clinics run on a single PC. Cloud sync can be layered later via a REST API.                                                        |
 
 ### Recommended schema (SQL)
 
@@ -87,19 +87,19 @@ CREATE TABLE IF NOT EXISTS patients (
 CREATE TABLE IF NOT EXISTS patient_allergies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-    allergy_name TEXT
+    allergy_name TEXT NOT NULL, UNIQUE(patient_id, allergy_name)
 );
 
 CREATE TABLE patient_medications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-    medication_name TEXT
+    medication_name TEXT NOT NULL, UNIQUE(patient_id, medication_name)
 );
 
 CREATE TABLE IF NOT EXISTS medical_conditions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-    condition_name TEXT NOT NULL, -- 'diabetes' | 'hypertension' | 'asthma' ...
+    condition_name TEXT NOT NULL, UNIQUE(patient_id, condition_name) -- 'diabetes' | 'hypertension' | 'asthma' ...
     is_active BOOLEAN DEFAULT FALSE
 );
 
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     procedure_id TEXT NOT NULL REFERENCES procedures(id),
     tooth_quadrant TEXT,
-    quantity INTEGER NOT NULL DEFAULT 1, -- stores number of procedures performed
+    quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0), -- stores number of procedures performed
     procedure_price REAL NOT NULL,
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS treatment_teeth (
 CREATE TABLE IF NOT EXISTS payments (
     id           TEXT PRIMARY KEY,
     invoice_id   TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-    amount       REAL NOT NULL,
+    amount       REAL NOT NULL CHECK(amount > 0),
     notes        TEXT DEFAULT '',
     received_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -161,11 +161,11 @@ CREATE TABLE IF NOT EXISTS invoices (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL UNIQUE REFERENCES visits(id) ON DELETE CASCADE,
     invoice_number TEXT NOT NULL UNIQUE,
-    subtotal REAL NOT NULL,
-    discount REAL NOT NULL DEFAULT 0,
-    total_amount REAL NOT NULL,
-    paid_amount REAL NOT NULL DEFAULT 0,
-    outstanding_amount REAL NOT NULL DEFAULT 0,
+    subtotal REAL NOT NULL CHECK(subtotal >= 0),
+    discount REAL NOT NULL DEFAULT 0 CHECK(discount >= 0),
+    total_amount REAL NOT NULL CHECK(total_amount >= 0),
+    paid_amount REAL NOT NULL DEFAULT 0 CHECK(paid_amount >= 0),
+    outstanding_amount REAL NOT NULL DEFAULT 0 CHECK(outstanding_amount >= 0),
     status TEXT NOT NULL CHECK(status IN ('Unpaid','Partial','Paid')),
     issued_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -181,13 +181,25 @@ CREATE TABLE IF NOT EXISTS invoice_items (
 );
 
 CREATE TABLE IF NOT EXISTS app_settings (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY CHECK(id = 1),
     clinic_name TEXT,
     clinic_phone TEXT,
     clinic_address TEXT,
     language TEXT DEFAULT 'en',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS backups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    backup_type TEXT NOT NULL CHECK (backup_type IN ('daily', 'weekly', 'monthly', 'manual')),
+    backup_path TEXT NOT NULL,
+    cloud_provider TEXT NOT NULL DEFAULT 'google_drive',
+    status TEXT NOT NULL CHECK (status IN ('success', 'failed', 'pending')),
+    file_size INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -210,6 +222,7 @@ CREATE INDEX idx_visits_date       ON visits(visit_date);
 ### Rust — SQLx setup
 
 **`src-tauri/Cargo.toml`** additions:
+
 ```toml
 [dependencies]
 tauri = { version = "2", features = [] }
@@ -226,6 +239,7 @@ thiserror = "2"
 ```
 
 **`src-tauri/src/db.rs`** — connection pool setup:
+
 ```rust
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use std::str::FromStr;
@@ -249,6 +263,7 @@ pub async fn init_pool(db_path: &str) -> Result<sqlx::SqlitePool, sqlx::Error> {
 IPC calls are the primary API surface. Rust functions decorated with `#[tauri::command]` run in-process, serialize results as JSON, and return to the React frontend.
 
 **`src-tauri/src/lib.rs`:**
+
 ```rust
 mod db;
 mod services;
@@ -380,6 +395,7 @@ pub fn http_router(state: Arc<AppState>) -> Router {
 ### Step 1: Add a Tauri API abstraction layer
 
 Create `src/lib/api.ts`:
+
 ```typescript
 import { invoke } from "@tauri-apps/api/core";
 
@@ -406,34 +422,47 @@ export interface PatientPageResult {
 
 export const api = {
   patients: {
-    list: (params: { query?: string; gender?: string; page?: number; perPage?: number }) =>
-      invoke<PatientPageResult>("list_patients", params),
-    get:  (id: string)                                      => invoke<Patient>("get_patient", { id }),
-    create: (input: CreatePatientInput)                    => invoke<Patient>("create_patient", { input }),
-    update: (id: string, input: UpdatePatientInput)        => invoke<Patient>("update_patient", { id, input }),
-    delete: (id: string)                                    => invoke("delete_patient", { id }),
+    list: (params: {
+      query?: string;
+      gender?: string;
+      page?: number;
+      perPage?: number;
+    }) => invoke<PatientPageResult>("list_patients", params),
+    get: (id: string) => invoke<Patient>("get_patient", { id }),
+    create: (input: CreatePatientInput) =>
+      invoke<Patient>("create_patient", { input }),
+    update: (id: string, input: UpdatePatientInput) =>
+      invoke<Patient>("update_patient", { id, input }),
+    delete: (id: string) => invoke("delete_patient", { id }),
   },
   visits: {
-    list: (patientId: string)                             => invoke<Visit[]>("get_patient_visits", { patientId }),
-    create: (input: CreateVisitInput)                     => invoke<Visit>("create_visit", { input }),
-    updateStatus: (id: string, status: VisitStatus)       => invoke<Visit>("update_visit_status", { id, status }),
-    getInvoice: (visitId: string)                         => invoke<Invoice | null>("get_visit_invoice", { visitId }),
+    list: (patientId: string) =>
+      invoke<Visit[]>("get_patient_visits", { patientId }),
+    create: (input: CreateVisitInput) =>
+      invoke<Visit>("create_visit", { input }),
+    updateStatus: (id: string, status: VisitStatus) =>
+      invoke<Visit>("update_visit_status", { id, status }),
+    getInvoice: (visitId: string) =>
+      invoke<Invoice | null>("get_visit_invoice", { visitId }),
   },
   treatments: {
-    add: (input: CreateTreatmentRecordInput)              => invoke<TreatmentRecord>("add_treatment_record", { input }),
+    add: (input: CreateTreatmentRecordInput) =>
+      invoke<TreatmentRecord>("add_treatment_record", { input }),
   },
   invoices: {
-    create: (input: CreateInvoiceInput)                   => invoke<Invoice>("create_invoice", { input }),
-    getPayments: (invoiceId: string)                      => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
+    create: (input: CreateInvoiceInput) =>
+      invoke<Invoice>("create_invoice", { input }),
+    getPayments: (invoiceId: string) =>
+      invoke<Payment[]>("get_invoice_payments", { invoiceId }),
   },
   payments: {
-    add: (input: AddPaymentInput)                         => invoke<Payment>("add_payment", { input }),
+    add: (input: AddPaymentInput) => invoke<Payment>("add_payment", { input }),
   },
   procedures: {
-    list: ()                                              => invoke<Procedure[]>("list_procedures"),
+    list: () => invoke<Procedure[]>("list_procedures"),
   },
   reports: {
-    summary: ()                                           => invoke<ReportSummary>("get_report_summary"),
+    summary: () => invoke<ReportSummary>("get_report_summary"),
   },
   xrays: {
     upload: (patientId: string, filename: string, bytes: Uint8Array) =>
@@ -456,7 +485,11 @@ npm install -D @tanstack/react-query-devtools
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-export function usePatients(params: { query?: string; gender?: string; page: number }) {
+export function usePatients(params: {
+  query?: string;
+  gender?: string;
+  page: number;
+}) {
   return useQuery({
     queryKey: ["patients", params],
     queryFn: () => api.patients.list(params),
@@ -475,6 +508,7 @@ export function useCreatePatient() {
 ### Step 3: Migrate page components from mock to API
 
 **Before** (`src/pages/Patients/Patients.tsx` — current):
+
 ```tsx
 const Patients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]); // in-memory only
@@ -483,6 +517,7 @@ const Patients: React.FC = () => {
 ```
 
 **After**:
+
 ```tsx
 const Patients: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -707,28 +742,28 @@ gantt
     Error handling + error boundaries   :e4, 15, 2
 ```
 
-| Phase | Deliverables |
-|---|---|
-| **1: Foundation** | SQLite migration system, `db::init_pool()`, repositories for Patient/Visit, Tauri command stubs, `src/lib/api.ts` abstraction, Mock → API dual-mode toggle |
-| **2: Core Services** | Full Patient CRUD commands, search + pagination in SQL (`WHERE name LIKE ?`), React Query hooks, Patients page migrated off mock data |
-| **3: Clinical** | Visit service, treatment_records CRUD, procedure management (master data), invoice generation, NewPatient form wired to backend, tooth chart state saved as JSON in `treatment_records.tooth_quadrant` |
-| **4: Billing & Reports** | Payments service, invoice totals, `get_report_summary` (monthly revenue, active patients, outstanding balance), Reports page stub filled in |
-| **5: Hardening** | App settings management, audit_log on every mutating command, daily DB backup on shutdown, error boundaries in React, prepared statement caching |
+| Phase                    | Deliverables                                                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1: Foundation**        | SQLite migration system, `db::init_pool()`, repositories for Patient/Visit, Tauri command stubs, `src/lib/api.ts` abstraction, Mock → API dual-mode toggle                                             |
+| **2: Core Services**     | Full Patient CRUD commands, search + pagination in SQL (`WHERE name LIKE ?`), React Query hooks, Patients page migrated off mock data                                                                  |
+| **3: Clinical**          | Visit service, treatment_records CRUD, procedure management (master data), invoice generation, NewPatient form wired to backend, tooth chart state saved as JSON in `treatment_records.tooth_quadrant` |
+| **4: Billing & Reports** | Payments service, invoice totals, `get_report_summary` (monthly revenue, active patients, outstanding balance), Reports page stub filled in                                                            |
+| **5: Hardening**         | App settings management, audit_log on every mutating command, daily DB backup on shutdown, error boundaries in React, prepared statement caching                                                       |
 
 ---
 
 ## 10. Key Technology Justifications
 
-| Layer | Selected Tech | Rationale |
-|---|---|---|
-| **Database** | SQLite 3 via SQLx | Embedded, zero ops, ACID, WAL mode for concurrency, file-portable for backups |
-| **Rust ORM/sql** | SQLx `query!` | Compile-time SQL verification, no runtime reflection, full SQL expressivity |
-| **Async runtime** | Tokio | De facto Rust async standard; SQLx requires it |
-| **Serialization** | serde + serde_json | Universal, Tauri-native, zero config |
-| **Error handling** | thiserror + anyhow | Typed domain errors catch at compile boundary; anyhow for glue |
-| **Auth** | Argon2 (via argon2 crate) | Memory-hard KDF; no external auth server needed for local-only |
-| **Frontend data** | TanStack Query v5 | Industry standard for server-state; handles cache, refetch, loading/error states |
-| **Future cloud** | Axum (optional) | Can be embedded in same Tauri binary or spun out to `api.clinic.example.com` with same service layer |
+| Layer              | Selected Tech             | Rationale                                                                                            |
+| ------------------ | ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Database**       | SQLite 3 via SQLx         | Embedded, zero ops, ACID, WAL mode for concurrency, file-portable for backups                        |
+| **Rust ORM/sql**   | SQLx `query!`             | Compile-time SQL verification, no runtime reflection, full SQL expressivity                          |
+| **Async runtime**  | Tokio                     | De facto Rust async standard; SQLx requires it                                                       |
+| **Serialization**  | serde + serde_json        | Universal, Tauri-native, zero config                                                                 |
+| **Error handling** | thiserror + anyhow        | Typed domain errors catch at compile boundary; anyhow for glue                                       |
+| **Auth**           | Argon2 (via argon2 crate) | Memory-hard KDF; no external auth server needed for local-only                                       |
+| **Frontend data**  | TanStack Query v5         | Industry standard for server-state; handles cache, refetch, loading/error states                     |
+| **Future cloud**   | Axum (optional)           | Can be embedded in same Tauri binary or spun out to `api.clinic.example.com` with same service layer |
 
 ---
 
@@ -748,16 +783,16 @@ gantt
 
 ## 12. Migration Order for Existing Components
 
-| Component | Current Data Source | Migration Action |
-|---|---|---|
-| `Patients.tsx` | `useState<Patient[]>([])` + `PatientsData.ts` | Replace with `usePatients()` query; call `api.patients.list()` |
-| `PatientTable.tsx` | Prop-drilled `patients[]` | No change; same prop interface, just data flows from React Query |
-| `PatientsHeader.tsx` | Prop-driven | No change; just live counts from `data.total` |
-| `NewPatient.tsx` | `useState<PatientFormData>` | On submit → `api.patients.create(input)` then `api.visits.create()` + `api.treatments.add()` |
-| `DentalChart.tsx` | `SelectedTooth[]` in React state | Send `selectedToothIds` as JSON via `api.treatments.add()` |
-| `Dashboard.tsx` | Stub | Wire to `api.reports.summary()` |
-| `Billing.tsx` | Stub | Build invoice + payment UI against `api.visits.list()` + `api.invoices.create()` + `api.payments.add()` |
-| `Reports.tsx` | Stub | Build charts/stats from `api.reports.summary()` + aggregation queries |
-| `Settings.tsx` | Stub | Wire clinic settings to `api.settings.get/update()` against `app_settings` table |
-| `MainLayout.tsx` | No data | No change needed |
-| `i18n/locales/*.json` | Static keys | Add backend error message keys under `error.*` namespace |
+| Component             | Current Data Source                           | Migration Action                                                                                        |
+| --------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `Patients.tsx`        | `useState<Patient[]>([])` + `PatientsData.ts` | Replace with `usePatients()` query; call `api.patients.list()`                                          |
+| `PatientTable.tsx`    | Prop-drilled `patients[]`                     | No change; same prop interface, just data flows from React Query                                        |
+| `PatientsHeader.tsx`  | Prop-driven                                   | No change; just live counts from `data.total`                                                           |
+| `NewPatient.tsx`      | `useState<PatientFormData>`                   | On submit → `api.patients.create(input)` then `api.visits.create()` + `api.treatments.add()`            |
+| `DentalChart.tsx`     | `SelectedTooth[]` in React state              | Send `selectedToothIds` as JSON via `api.treatments.add()`                                              |
+| `Dashboard.tsx`       | Stub                                          | Wire to `api.reports.summary()`                                                                         |
+| `Billing.tsx`         | Stub                                          | Build invoice + payment UI against `api.visits.list()` + `api.invoices.create()` + `api.payments.add()` |
+| `Reports.tsx`         | Stub                                          | Build charts/stats from `api.reports.summary()` + aggregation queries                                   |
+| `Settings.tsx`        | Stub                                          | Wire clinic settings to `api.settings.get/update()` against `app_settings` table                        |
+| `MainLayout.tsx`      | No data                                       | No change needed                                                                                        |
+| `i18n/locales/*.json` | Static keys                                   | Add backend error message keys under `error.*` namespace                                                |
