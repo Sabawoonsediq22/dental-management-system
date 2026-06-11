@@ -10,7 +10,7 @@ impl ReportService {
         let now = Utc::now();
         let year = now.format("%Y").to_string();
 
-        let active_patients: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients WHERE is_complete_profile = 1")
+        let total_patients: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
             .fetch_one(pool)
             .await?;
 
@@ -49,7 +49,7 @@ impl ReportService {
         .await?;
 
         Ok(ReportSummary {
-            active_patients,
+            active_patients: total_patients,
             total_visits_this_month,
             revenue_this_month: revenue_this_month.unwrap_or(0.0),
             outstanding_balance: outstanding_balance.unwrap_or(0.0),

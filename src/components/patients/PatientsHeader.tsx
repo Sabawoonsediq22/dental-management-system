@@ -16,7 +16,6 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
 
   const patientStats = useMemo(() => {
     const total = patients.length;
-    const active = patients.filter((p) => p.is_complete_profile).length;
     const now = new Date();
     const newThisMonth = patients.filter(
       (p) =>
@@ -24,10 +23,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
         new Date(p.last_visit).getMonth() === now.getMonth() &&
         new Date(p.last_visit).getFullYear() === now.getFullYear(),
     ).length;
-    const incompleteProfiles = patients.filter(
-      (p) => !p.is_complete_profile,
-    ).length;
-    return { total, active, newThisMonth, incompleteProfiles };
+    return { total, newThisMonth };
   }, [patients]);
 
   return (

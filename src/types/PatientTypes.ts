@@ -3,17 +3,13 @@ import type { Patient } from "./ApiTypes";
 export interface Procedure {
   id: string;
   name: string;
-  description: string | null;
-  default_price: number;
-  category: string | null;
-  is_active: boolean;
+  additional_note: string | null;
+  price: number;
 }
 
 export interface PatientStats {
   total: number;
-  active: number;
   newThisMonth: number;
-  incompleteProfiles: number;
 }
 
 export type GenderFilterValue = "All" | "Male" | "Female" | "Other";

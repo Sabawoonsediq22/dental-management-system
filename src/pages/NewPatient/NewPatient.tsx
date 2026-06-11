@@ -25,38 +25,6 @@ import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
 
-interface MedicalConditions {
-  diabetes: boolean;
-  hypertension: boolean;
-  heartDisease: boolean;
-  asthma: boolean;
-  other?: string;
-}
-
-interface PatientFormData {
-  fullName: string;
-  gender: "Male" | "Female" | "Other" | "";
-  phoneNumber: string;
-  age: string;
-  address: string;
-  allergies: string;
-  chiefComplaint: string;
-  currentMedications: string;
-  clinicalNotes: string;
-  medicalConditions: MedicalConditions;
-  procedure: string;
-  procedureValue: string;
-  numberOfProcedures: string;
-  discount: string;
-}
-
-interface FormErrors {
-  fullName?: string;
-  phoneNumber?: string;
-  age?: string;
-  address?: string;
-}
-
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -251,7 +219,7 @@ const getMedicalConditionsString = (): string => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error({ title: t("newPatient.validationError", "Please fix form errors before submitting") });
+      toast.error({ title: t("newPatient.validationError", "Please fill in all required fields before submitting") });
       return;
     }
 
@@ -271,7 +239,6 @@ const getMedicalConditionsString = (): string => {
         allergies: formData.allergies || null,
         medications: formData.currentMedications || null,
         clinical_notes: formData.clinicalNotes || null,
-        is_complete_profile: true,
       });
 
       const conditions = getMedicalConditionsString();
@@ -527,7 +494,12 @@ const getMedicalConditionsString = (): string => {
                         "newPatient.medicalConditionPlaceholder",
                         "e.g. Epilepsy, Thyroid Issues, etc.",
                         )}
-                        onChange={(e) => handleChange("medicalConditions", e.target.value)}
+                        onChange={(e) =>
+                        handleChange("medicalConditions", {
+                          ...formData.medicalConditions,
+                          other: e.target.value,
+                        })
+                      }
                         value={formData.medicalConditions.other || ""}
                         disabled={isSubmitting}
                       />
@@ -614,7 +586,7 @@ const getMedicalConditionsString = (): string => {
                       ...prev,
                       procedure: selectedProcedureName,
                       procedureValue: selectedProcedure
-                        ? selectedProcedure.default_price.toString()
+                        ? selectedProcedure.price.toString()
                         : "",
                     }));
                   }}
@@ -623,8 +595,8 @@ const getMedicalConditionsString = (): string => {
                 >
                   <option value="">{t("newPatient.selectProcedure")}</option>
                   {PROCEDURES.map((procedure) => (
-                    <option key={procedure.id} value={procedure.name}>
-                      {procedure.name} - {procedure.default_price}{" "}
+                    <option key={procedure.name} value={procedure.name}>
+                      {procedure.name} - {procedure.price}{" "}
                       {getCurrencySymbol(procedure.name)}
                     </option>
                   ))}

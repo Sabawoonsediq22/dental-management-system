@@ -26,7 +26,7 @@ impl PatientService {
             if !q_str.trim().is_empty() {
                 let like = format!("%{}%", q_str.trim());
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(&like)
                 .bind(&like)
@@ -38,25 +38,16 @@ impl PatientService {
             } else if let Some(g) = gender {
                 if g != "All" {
                     sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                        "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(g)
                     .bind(per_page_i64)
                     .bind(offset)
                     .fetch_all(pool)
                     .await?
-                } else {
-                    sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
-                    )
-                    .bind(per_page_i64)
-                    .bind(offset)
-                    .fetch_all(pool)
-                    .await?
-                }
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -66,7 +57,7 @@ impl PatientService {
         } else if let Some(g) = gender {
             if g != "All" {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(g)
                 .bind(per_page_i64)
@@ -75,7 +66,35 @@ impl PatientService {
                 .await?
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                    .bind(per_page_i64)
+                    .bind(offset)
+                    .fetch_all(pool)
+                    .await?
+                }
+            } else {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
+            }
+        } else if let Some(g) = gender {
+            if g != "All" {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                )
+                .bind(g)
+                .bind(per_page_i64)
+                .bind(offset)
+                .fetch_all(pool)
+                .await?
+            } else {
+                sqlx::query_as(
+                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -84,7 +103,7 @@ impl PatientService {
             }
         } else {
             sqlx::query_as(
-                "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
             )
             .bind(per_page_i64)
             .bind(offset)
@@ -105,7 +124,7 @@ impl PatientService {
 
     pub async fn find(pool: &SqlitePool, id: &str) -> AppResult<Patient> {
         let patient = sqlx::query_as(
-            "SELECT id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at FROM patients WHERE id = ?"
+            "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE id = ?"
         )
         .bind(id)
         .fetch_optional(pool)
@@ -129,8 +148,8 @@ impl PatientService {
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "INSERT INTO patients (id, full_name, phone, age, gender, address, is_complete_profile, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO patients (id, full_name, phone, age, gender, address, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(&id)
         .bind(&input.full_name)
@@ -138,7 +157,6 @@ impl PatientService {
         .bind(input.age)
         .bind(gender_str)
         .bind(&input.address)
-        .bind(input.is_complete_profile.unwrap_or(false))
         .bind(&now)
         .bind(&now)
         .execute(pool)
@@ -183,7 +201,6 @@ impl PatientService {
             age: input.age,
             gender: input.gender,
             address: input.address,
-            is_complete_profile: input.is_complete_profile.unwrap_or(false),
             created_at: now.clone(),
             updated_at: now,
         })
@@ -197,7 +214,6 @@ impl PatientService {
         let age = input.age.unwrap_or(existing.age);
         let gender = input.gender.unwrap_or(existing.gender);
         let address = input.address;
-        let is_complete_profile = input.is_complete_profile.unwrap_or(existing.is_complete_profile);
 
         let gender_str = match gender {
             Gender::Male => "Male",
@@ -208,15 +224,13 @@ impl PatientService {
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, is_complete_profile=?, updated_at=?
-             WHERE id=?"
+            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, updated_at=? WHERE id=?"
         )
         .bind(&full_name)
         .bind(&phone)
         .bind(age)
         .bind(gender_str)
         .bind(&address)
-        .bind(is_complete_profile)
         .bind(&now)
         .bind(id)
         .execute(pool)
@@ -229,7 +243,6 @@ impl PatientService {
             age,
             gender,
             address,
-            is_complete_profile,
             created_at: existing.created_at,
             updated_at: now,
         })

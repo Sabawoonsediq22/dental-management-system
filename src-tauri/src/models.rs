@@ -10,7 +10,6 @@ pub struct Patient {
     pub age: i32,
     pub gender: Gender,
     pub address: Option<String>,
-    pub is_complete_profile: bool,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -89,10 +88,8 @@ pub struct TreatmentTooth {
 pub struct Procedure {
     pub id: String,
     pub name: String,
-    pub description: Option<String>,
-    pub default_price: f64,
-    pub category: Option<String>,
-    pub is_active: bool,
+    pub additional_note: Option<String>,
+    pub price: f64,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -196,7 +193,6 @@ pub struct CreatePatientInput {
     pub allergies: Option<String>,
     pub medications: Option<String>,
     pub clinical_notes: Option<String>,
-    pub is_complete_profile: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -209,7 +205,6 @@ pub struct UpdatePatientInput {
     pub allergies: Option<String>,
     pub medications: Option<String>,
     pub clinical_notes: Option<String>,
-    pub is_complete_profile: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

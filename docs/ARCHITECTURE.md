@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS patients (
     age INTEGER NOT NULL CHECK (age > 0 AND age <= 120),
     gender TEXT NOT NULL CHECK(gender IN ('Male','Female','Other')),
     address TEXT,
-    is_complete_profile BOOLEAN DEFAULT FALSE,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -106,10 +105,8 @@ CREATE TABLE IF NOT EXISTS medical_conditions (
 CREATE TABLE IF NOT EXISTS procedures (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    description TEXT,
-    default_price  REAL NOT NULL CHECK (default_price >= 0),
-    category TEXT DEFAULT 'General',
-    is_active BOOLEAN DEFAULT TRUE,
+    additional_note TEXT,
+    price  REAL NOT NULL price >= 0),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

@@ -5,7 +5,6 @@ export interface Patient {
   age: number;
   gender: "Male" | "Female" | "Other";
   address: string | null;
-  is_complete_profile: boolean;
   created_at: string;
   updated_at: string;
   initials: string;
@@ -36,7 +35,6 @@ export interface CreatePatientInput {
   allergies?: string | null;
   medications?: string | null;
   clinical_notes?: string | null;
-  is_complete_profile?: boolean;
 }
 
 export interface UpdatePatientInput {
@@ -48,7 +46,6 @@ export interface UpdatePatientInput {
   allergies?: string | null;
   medications?: string | null;
   clinical_notes?: string | null;
-  is_complete_profile?: boolean;
 }
 
 export interface Visit {
@@ -93,10 +90,8 @@ export interface CreateTreatmentRecordInput {
 export interface Procedure {
   id: string;
   name: string;
-  description?: string | null;
-  default_price: number;
-  category?: string | null;
-  is_active: boolean;
+  additional_note?: string | null;
+  price: number;
   created_at: string;
   updated_at: string;
 }
