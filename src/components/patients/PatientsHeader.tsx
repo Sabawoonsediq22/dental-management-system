@@ -2,7 +2,10 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, SearchInput } from "../ui";
 import { AddIcon } from "../../shared/icons/icons";
-import { GENDER_FILTER_OPTIONS, PatientsHeaderProps } from "../../types/PatientTypes";
+import {
+  GENDER_FILTER_OPTIONS,
+  PatientsHeaderProps,
+} from "../../types/PatientTypes";
 
 const PatientsHeader: React.FC<PatientsHeaderProps> = ({
   patients,
