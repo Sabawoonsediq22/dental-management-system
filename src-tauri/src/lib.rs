@@ -40,6 +40,17 @@ async fn create_patient(
 }
 
 #[tauri::command]
+async fn create_patient_intake(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    input: CreatePatientIntakeInput,
+) -> Result<PatientIntakeResult, String> {
+    NewPatientIntakeService::create(&state.db, &app, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn get_patient(state: State<'_, AppState>, id: String) -> Result<Patient, String> {
     PatientService::find(&state.db, &id)
         .await
@@ -221,6 +232,11 @@ pub fn run() {
                     if let Err(e) = tauri::async_runtime::block_on(db::run_migrations(&pool)) {
                         eprintln!("Failed to run migrations: {}", e);
                     }
+                    if let Err(e) =
+                        tauri::async_runtime::block_on(ProcedureService::seed_defaults(&pool))
+                    {
+                        eprintln!("Failed to seed default procedures: {}", e);
+                    }
                     app.manage(AppState { db: pool });
                 }
                 Err(e) => {
@@ -235,6 +251,7 @@ pub fn run() {
             greet,
             list_patients,
             create_patient,
+            create_patient_intake,
             get_patient,
             update_patient,
             delete_patient,

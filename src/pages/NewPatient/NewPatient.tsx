@@ -24,9 +24,11 @@ import { ToothData } from "../../components/dental-chart/types";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
+import { useProcedures } from "../../hooks/useVisits";
 
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
+  const { data: procedures = PROCEDURES } = useProcedures();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<PatientFormData>({
@@ -203,7 +205,7 @@ const NewPatient: React.FC = () => {
     }
   };
 
-const getMedicalConditionsString = (): string => {
+const getMedicalConditionsArray = (): string[] => {
     const conditions: string[] = [];
     if (formData.medicalConditions.diabetes) conditions.push("Diabetes");
     if (formData.medicalConditions.hypertension)
@@ -212,7 +214,7 @@ const getMedicalConditionsString = (): string => {
       conditions.push("Heart Disease");
     if (formData.medicalConditions.asthma) conditions.push("Asthma");
     if (formData.medicalConditions.other) conditions.push(formData.medicalConditions.other);
-    return conditions.join(", ");
+    return Array.from(new Set(conditions.filter(Boolean)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,10 +229,19 @@ const getMedicalConditionsString = (): string => {
     
     try {
       const ageNum = parseInt(formData.age) || 0;
-      const procedureId = PROCEDURES.find(p => p.name === formData.procedure)?.id || "";
       const toothNumbers = selectedToothIds.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
-      
-      const patient = await api.patients.create({
+      const medicalConditions = getMedicalConditionsArray();
+      const xrayPayload = xrayFile
+        ? {
+            xray_filename: xrayFile.name,
+            xray_bytes: Array.from(new Uint8Array(await xrayFile.arrayBuffer())),
+          }
+        : {
+            xray_filename: null,
+            xray_bytes: null,
+          };
+
+      await api.patients.create_intake({
         full_name: formData.fullName,
         phone: formData.phoneNumber,
         age: ageNum,
@@ -238,45 +249,16 @@ const getMedicalConditionsString = (): string => {
         address: formData.address || null,
         allergies: formData.allergies || null,
         medications: formData.currentMedications || null,
-        clinical_notes: formData.clinicalNotes || null,
-      });
-
-      const conditions = getMedicalConditionsString();
-      if (conditions) {
-        const conditionList = conditions.split(", ");
-        for (const condition of conditionList) {
-          await api.patients.add_medical_condition(patient.id, condition);
-        }
-      }
-
-      const visit = await api.visits.create({
-        patient_id: patient.id,
+        medical_conditions: medicalConditions,
         chief_complaint: formData.chiefComplaint || null,
         clinical_notes: formData.clinicalNotes || null,
-      });
-
-      if (procedureId) {
-        await api.treatments.add({
-          visit_id: visit.id,
-          procedure_id: procedureId,
-          tooth_quadrant: null,
-          tooth_numbers: toothNumbers,
-          quantity: numProc || 1,
-          procedure_price: procValue,
-          treatment_notes: formData.clinicalNotes || null,
-        });
-      }
-
-      await api.invoices.create({
-        visit_id: visit.id,
+        procedure_name: formData.procedure || null,
+        procedure_price_override: procValue > 0 ? procValue : null,
+        tooth_numbers: toothNumbers,
+        quantity: numProc || 1,
         discount: discountAmount,
+        ...xrayPayload,
       });
-
-      if (xrayFile) {
-        const arrayBuffer = await xrayFile.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        await api.patients.upload_xray(patient.id, xrayFile.name, Array.from(bytes));
-      }
 
       toast.success({ title: t("newPatient.patientCreated", "Patient created successfully") });
       navigate("/patients");
@@ -579,7 +561,7 @@ const getMedicalConditionsString = (): string => {
                   value={formData.procedure}
                   onChange={(e) => {
                     const selectedProcedureName = e.target.value;
-                    const selectedProcedure = PROCEDURES.find(
+                    const selectedProcedure = procedures.find(
                       (p) => p.name === selectedProcedureName,
                     );
                     setFormData((prev) => ({
@@ -594,7 +576,7 @@ const getMedicalConditionsString = (): string => {
                   disabled={isSubmitting}
                 >
                   <option value="">{t("newPatient.selectProcedure")}</option>
-                  {PROCEDURES.map((procedure) => (
+                  {procedures.map((procedure) => (
                     <option key={procedure.name} value={procedure.name}>
                       {procedure.name} - {procedure.price}{" "}
                       {getCurrencySymbol(procedure.name)}

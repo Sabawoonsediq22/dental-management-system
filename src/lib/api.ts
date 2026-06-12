@@ -3,6 +3,8 @@ import type {
   Patient,
   PatientPageResult,
   CreatePatientInput,
+  CreatePatientIntakeInput,
+  PatientIntakeResult,
   UpdatePatientInput,
   Visit,
   CreateVisitInput,
@@ -25,6 +27,8 @@ export const api = {
       invoke<PatientPageResult>("list_patients", { params }),
     get: (id: string) => invoke<Patient>("get_patient", { id }),
     create: (input: CreatePatientInput) => invoke<Patient>("create_patient", { input }),
+    create_intake: (input: CreatePatientIntakeInput) =>
+      invoke<PatientIntakeResult>("create_patient_intake", { input }),
     update: (id: string, input: UpdatePatientInput) => invoke<Patient>("update_patient", { id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),
     add_medical_condition: (patient_id: string, condition_name: string) => invoke<void>("add_medical_condition", { patient_id, condition_name }),

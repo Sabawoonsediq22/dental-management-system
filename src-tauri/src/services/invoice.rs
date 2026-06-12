@@ -1,7 +1,7 @@
-use sqlx::SqlitePool;
 use crate::models::*;
 use crate::services::errors::{AppError, AppResult};
 use chrono::Utc;
+use sqlx::SqlitePool;
 
 pub struct InvoiceService;
 
@@ -20,7 +20,10 @@ impl InvoiceService {
         .fetch_all(pool)
         .await?;
 
-        let subtotal: f64 = treatment_records.iter().map(|t| t.procedure_price * t.quantity as f64).sum();
+        let subtotal: f64 = treatment_records
+            .iter()
+            .map(|t| t.procedure_price * t.quantity as f64)
+            .sum();
         let total_amount = subtotal - input.discount;
 
         let invoice = sqlx::query_as::<_, Invoice>(

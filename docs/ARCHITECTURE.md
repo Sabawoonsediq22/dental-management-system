@@ -565,7 +565,6 @@ pub struct TreatmentRecord {
     pub tooth_quadrant: Option<String>,
     pub quantity: i32,
     pub procedure_price: f64,
-    pub treatment_notes: Option<String>,
     pub performed_at: String,
 }
 
