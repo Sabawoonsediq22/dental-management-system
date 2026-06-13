@@ -45,29 +45,10 @@ impl PatientService {
                     .bind(offset)
                     .fetch_all(pool)
                     .await?
-            } else {
-                sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
-                )
-                .bind(per_page_i64)
-                .bind(offset)
-                .fetch_all(pool)
-                .await?
-            }
-        } else if let Some(g) = gender {
-            if g != "All" {
-                sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
-                )
-                .bind(g)
-                .bind(per_page_i64)
-                .bind(offset)
-                .fetch_all(pool)
-                .await?
-            } else {
-                sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
-                )
+                } else {
+                    sqlx::query_as(
+                        "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    )
                     .bind(per_page_i64)
                     .bind(offset)
                     .fetch_all(pool)

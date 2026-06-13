@@ -25,36 +25,41 @@ import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
 import { useProcedures } from "../../hooks/useVisits";
+import type {
+  CreatePatientInput,
+} from "../../types/ApiTypes";
 
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
   const { data: procedures = PROCEDURES } = useProcedures();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState<PatientFormData>({
+  const [patient, setPatient] = useState<PatientState>({
     fullName: "",
     gender: "",
     phoneNumber: "",
-    age: "",
+    age: 0,
     address: "",
-    allergies: "",
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
     chiefComplaint: "",
-    currentMedications: "",
     clinicalNotes: "",
+    procedure: "",
+    procedureValue: "",
+    numberOfProcedures: "1",
+    discount: "0",
     medicalConditions: {
       diabetes: false,
       hypertension: false,
       heartDisease: false,
       asthma: false,
+      other: "",
     },
-    procedure: "",
-    procedureValue: "",
-    numberOfProcedures: "1",
-    discount: "0",
   });
-
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
@@ -62,6 +67,37 @@ const NewPatient: React.FC = () => {
 
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
+  const [allergies, _setAllergies] = useState<PatientAllergiesState>({
+    patientId: "",
+    allergyName: ""
+  });
+  const [medications, _setMedications] = useState<PatientMedicationsState>({
+    patientId: "",
+    medicationName: ""
+  });
+  const [medicalConditionsList, _setMedicalConditionsList] = useState<MedicalConditionsState>({
+    patientId: "",
+    conditionName: false,
+    isActive: true
+  });
+  // const [visits, setVisits] = useState<VisitsState[]>([]);
+  // const [treatmentRecords, setTreatmentRecords] = useState<TreatmentRecordsState[]>([]);
+  // const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTeethState[]>([]);
+  // const [invoice, setInvoice] = useState<InvoiceState>({
+  //   invoiceNumber: "",
+  //   subtotal: 0,
+  //   discount: 0,
+  //   totalAmount: 0,
+  //   paidAmount: 0,
+  //   outstandingAmount: 0,
+  //   status: "Unpaid",
+  // });
+  // const [invoiceItems, setInvoiceItems] = useState<InvoiceItemsState[]>([]);
+  // const [payments, setPayments] = useState<PaymentsState[]>([]);
+  // const [xrays, setXrays] = useState<XraysState[]>([]);
+  // const [appSettings, setAppSettings] = useState<AppSettingsState>({});
+  // const [backups, setBackups] = useState<BackupsState[]>([]);
+  // const [auditLogs, setAuditLogs] = useState<AuditLogState[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSelectedToothChange = (toothData?: ToothData) => {
@@ -137,26 +173,28 @@ const NewPatient: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.fullName.trim()) {
+    if (!patient.fullName.trim()) {
       newErrors.fullName = "Full name is required";
-    } else if (formData.fullName.length > 100) {
+    } else if (patient.fullName.length > 100) {
       newErrors.fullName = "Name must be 100 characters or less";
     }
 
-    if (!formData.phoneNumber.trim()) {
+    if (!patient.phoneNumber.trim()) {
       newErrors.phoneNumber = "Phone number is required";
-    } else if (!/^[+\d\s-()]+$/.test(formData.phoneNumber)) {
+    } else if (!/^[+\d\s-()]+$/.test(patient.phoneNumber)) {
       newErrors.phoneNumber = "Invalid phone format";
     }
 
-    if (
-      formData.age &&
-      (parseInt(formData.age) < 0 || parseInt(formData.age) > 150)
-    ) {
-      newErrors.age = "Age must be between 0 and 150";
+    if (!patient.gender) {
+      newErrors.gender = "Gender is required";
     }
 
-    if (formData.address && formData.address.length > 200) {
+    const ageNum = parseInt(String(patient.age), 10);
+    if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+      newErrors.age = "Age must be between 1 and 120";
+    }
+
+    if (patient.address && patient.address.length > 200) {
       newErrors.address = "Address must be 200 characters or less";
     }
 
@@ -166,12 +204,34 @@ const NewPatient: React.FC = () => {
 
   const handleChange = (
     field: string,
-    value: string | boolean | MedicalConditions,
+    value: string | boolean | medicalConditions | string[],
   ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
+
+  const handlePatientChange = (field: string, value: string | boolean) => {
+    setPatient((prev) => {
+      if (field === "age") {
+        return {
+          ...prev,
+          age: value === "" ? 0 : parseInt(value as string, 10),
+        };
+      }
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
 
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({
@@ -205,69 +265,52 @@ const NewPatient: React.FC = () => {
     }
   };
 
-const getMedicalConditionsArray = (): string[] => {
-    const conditions: string[] = [];
-    if (formData.medicalConditions.diabetes) conditions.push("Diabetes");
-    if (formData.medicalConditions.hypertension)
-      conditions.push("Hypertension");
-    if (formData.medicalConditions.heartDisease)
-      conditions.push("Heart Disease");
-    if (formData.medicalConditions.asthma) conditions.push("Asthma");
-    if (formData.medicalConditions.other) conditions.push(formData.medicalConditions.other);
-    return Array.from(new Set(conditions.filter(Boolean)));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePatient = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error({ title: t("newPatient.validationError", "Please fill in all required fields before submitting") });
-      return;
-    }
+
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
     try {
-      const ageNum = parseInt(formData.age) || 0;
-      const toothNumbers = selectedToothIds.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
-      const medicalConditions = getMedicalConditionsArray();
-      const xrayPayload = xrayFile
-        ? {
-            xray_filename: xrayFile.name,
-            xray_bytes: Array.from(new Uint8Array(await xrayFile.arrayBuffer())),
-          }
-        : {
-            xray_filename: null,
-            xray_bytes: null,
-          };
+      const gender = patient.gender as CreatePatientInput["gender"];
+      const input: CreatePatientInput = {
+        full_name: patient.fullName.trim(),
+        phone: patient.phoneNumber.trim(),
+        age: patient.age,
+        gender,
+        address: patient.address?.trim() || null,
+      };
 
-      await api.patients.create_intake({
-        full_name: formData.fullName,
-        phone: formData.phoneNumber,
-        age: ageNum,
-        gender: formData.gender || "Other",
-        address: formData.address || null,
-        allergies: formData.allergies || null,
-        medications: formData.currentMedications || null,
-        medical_conditions: medicalConditions,
-        chief_complaint: formData.chiefComplaint || null,
-        clinical_notes: formData.clinicalNotes || null,
-        procedure_name: formData.procedure || null,
-        procedure_price_override: procValue > 0 ? procValue : null,
-        tooth_numbers: toothNumbers,
-        quantity: numProc || 1,
-        discount: discountAmount,
-        ...xrayPayload,
-      });
+      const created = await api.patients.create(input);
 
-      toast.success({ title: t("newPatient.patientCreated", "Patient created successfully") });
-      navigate("/patients");
+      toast.success({ title: "Patient created successfully" });
+      navigate(`/patients/${created.id}`);
     } catch (error) {
-      toast.error({ title: t("newPatient.saveFailed", "Failed to save patient data") });
-      console.error("Form submission error:", error);
+      toast.error({ title: "Failed to create patient" });
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePatientAllergies = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handleMedicalCondition = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handlePatientMedication = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handleVisitDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handleProcedures = (e: React.FormEvent) => {
+    e.preventDefault();
   };
 
   return (
@@ -305,7 +348,7 @@ const getMedicalConditionsArray = (): string[] => {
         </div>
       </div>
 
-      <form className="space-y-8" onSubmit={handleSubmit}>
+      <div className="space-y-8">
         <div className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
           <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
@@ -313,7 +356,10 @@ const getMedicalConditionsArray = (): string[] => {
               {t("newPatient.personalInfo")}
             </h3>
           </div>
-          <div className="space-y-4 px-4 pb-6">
+          <form
+            className="space-y-4 px-4 pb-6"
+            onSubmit={handlePatient}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 label={t("newPatient.fullName")}
@@ -324,8 +370,8 @@ const getMedicalConditionsArray = (): string[] => {
                     "newPatient.fullNamePlaceholder",
                     "e.g. Ahmad Shah",
                   )}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
-                  value={formData.fullName}
+                  onChange={(e) => handlePatientChange("fullName", e.target.value)}
+                  value={patient.fullName}
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -336,8 +382,8 @@ const getMedicalConditionsArray = (): string[] => {
               >
                 <FormInput
                   placeholder="+93 7XX XXX XXX"
-                  onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                  value={formData.phoneNumber}
+                  onChange={(e) => handlePatientChange("phoneNumber", e.target.value)}
+                  value={patient.phoneNumber}
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -346,8 +392,8 @@ const getMedicalConditionsArray = (): string[] => {
                 <FormInput
                   type="number"
                   placeholder={t("newPatient.agePlaceholder", "Years")}
-                  onChange={(e) => handleChange("age", e.target.value)}
-                  value={formData.age}
+                  onChange={(e) => handlePatientChange("age", e.target.value)}
+                  value={patient.age}
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -356,8 +402,8 @@ const getMedicalConditionsArray = (): string[] => {
             <div className="flex flex-col md:flex-row md:gap-4">
               <FormField label={t("newPatient.gender")} className="flex-1">
                 <Select
-                  value={formData.gender}
-                  onChange={(e) => handleChange("gender", e.target.value)}
+                  value={patient.gender}
+                  onChange={(e) => handlePatientChange("gender", e.target.value)}
                   disabled={isSubmitting}
                 >
                   <option value="">-- {t("newPatient.selectGender")} --</option>
@@ -377,13 +423,13 @@ const getMedicalConditionsArray = (): string[] => {
                     "newPatient.addressPlaceholder",
                     "District, City, Province",
                   )}
-                  onChange={(e) => handleChange("address", e.target.value)}
-                  value={formData.address}
+                  onChange={(e) => handlePatientChange("address", e.target.value)}
+                  value={patient.address}
                   disabled={isSubmitting}
                 />
               </FormField>
             </div>
-          </div>
+          </form>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -395,6 +441,7 @@ const getMedicalConditionsArray = (): string[] => {
               </h3>
             </div>
             <div className="space-y-4 px-4 pb-4">
+            <form onSubmit={handlePatientAllergies}>
               <FormField label={t("newPatient.allergies")}>
                 <FormInput
                   placeholder={t(
@@ -402,20 +449,22 @@ const getMedicalConditionsArray = (): string[] => {
                     "Penicillin, Latex, etc.",
                   )}
                   onChange={(e) => handleChange("allergies", e.target.value)}
-                  value={formData.allergies}
+                  value={allergies.allergyName}
                   disabled={isSubmitting}
                 />
               </FormField>
+            </form>
 
               <div className="space-y-3 my-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
                 <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   {t("newPatient.medicalConditions")}
                 </p>
+              <form onSubmit={handleMedicalCondition}>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={formData.medicalConditions.diabetes}
+                      checked={medicalConditionsList.conditionName}
                       onChange={(e) =>
                         handleChange("medicalConditions", {
                           ...formData.medicalConditions,
@@ -487,19 +536,21 @@ const getMedicalConditionsArray = (): string[] => {
                       />
                     </FormField>
                   </div>
+                </form>
               </div>
-
+              <form onSubmit={handlePatientMedication}>
               <FormField label={t("newPatient.currentMedications")}>
                 <FormTextarea
                   placeholder={t("newPatient.currentMedicationsPlaceholder")}
                   onChange={(e) =>
                     handleChange("currentMedications", e.target.value)
                   }
-                  value={formData.currentMedications}
+                  value={medications.medicationName}
                   className="h-20"
                   disabled={isSubmitting}
                 />
               </FormField>
+              </form>
             </div>
           </div>
 
@@ -510,7 +561,7 @@ const getMedicalConditionsArray = (): string[] => {
                 {t("newPatient.visitDetails")}
               </h3>
             </div>
-            <div className="space-y-4 px-4 pb-4">
+            <form onSubmit={handleVisitDetails} className="space-y-4 px-4 pb-4">
               <FormField label={t("newPatient.chiefComplaint")}>
                 <FormTextarea
                   placeholder={t("newPatient.chiefComplaintPlaceholder")}
@@ -534,7 +585,7 @@ const getMedicalConditionsArray = (): string[] => {
                   disabled={isSubmitting}
                 />
               </FormField>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -556,6 +607,7 @@ const getMedicalConditionsArray = (): string[] => {
             </div>
 
             <div className="space-y-4 flex-2">
+            <form onSubmit={handleProcedures}>
               <FormField label={t("newPatient.procedure")}>
                 <Select
                   value={formData.procedure}
@@ -584,6 +636,7 @@ const getMedicalConditionsArray = (): string[] => {
                   ))}
                 </Select>
               </FormField>
+            </form>
 
               <FormField label={t("newPatient.xray")}>
                 <div
@@ -773,7 +826,8 @@ const getMedicalConditionsArray = (): string[] => {
           </Button>
           <Button
             variant="default"
-            type="submit"
+            type="button"
+            onClick={handlePatient}
             className="px-6 py-2 bg-primary hover:bg-primary/90 text-white transition-colors cursor-pointer"
             disabled={isSubmitting}
           >
@@ -782,7 +836,7 @@ const getMedicalConditionsArray = (): string[] => {
               : t("newPatient.saveAndPrintInvoice")}
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
