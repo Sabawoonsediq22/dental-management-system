@@ -152,6 +152,7 @@ impl PatientService {
 
         Self::insert_allergies(&mut tx, &id, input.allergies.as_deref()).await?;
         Self::insert_medications(&mut tx, &id, input.medications.as_deref()).await?;
+        Self::insert_medical_conditions(&mut tx, &id, input.medical_conditions.as_deref()).await?;
 
         tx.commit().await?;
 
@@ -203,6 +204,24 @@ impl PatientService {
         Ok(())
     }
 
+    async fn insert_medical_conditions(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        patient_id: &str,
+        medical_conditions: Option<&[String]>,
+    ) -> AppResult<()> {
+        for condition in Self::dedupe_strings(medical_conditions.unwrap_or(&[])) {
+            sqlx::query(
+                "INSERT OR IGNORE INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)"
+            )
+            .bind(patient_id)
+            .bind(condition)
+            .execute(&mut **tx)
+            .await?;
+        }
+
+        Ok(())
+    }
+
     fn split_csv(value: Option<&str>) -> Vec<String> {
         let mut result = Vec::new();
 
@@ -217,6 +236,25 @@ impl PatientService {
                 .any(|existing: &String| existing.eq_ignore_ascii_case(&item))
             {
                 result.push(item);
+            }
+        }
+
+        result
+    }
+
+    fn dedupe_strings(values: &[String]) -> Vec<String> {
+        let mut result = Vec::new();
+
+        for value in values
+            .iter()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+        {
+            if !result
+                .iter()
+                .any(|existing: &String| existing.eq_ignore_ascii_case(&value))
+            {
+                result.push(value);
             }
         }
 

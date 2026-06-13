@@ -121,6 +121,27 @@ const NewPatient: React.FC = () => {
     ).join(", ");
   };
 
+  const getSelectedMedicalConditions = () => {
+    const labels: Record<string, string> = {
+      diabetes: "Diabetes",
+      hypertension: "Hypertension",
+      heartDisease: "Heart Disease",
+      asthma: "Asthma",
+    };
+
+    const selectedConditions = Object.entries(formData.medicalConditions)
+      .filter(([key, value]) => key !== "other" && value === true)
+      .map(([key]) => labels[key] ?? key);
+
+    const otherCondition = formData.medicalConditions.other?.trim();
+
+    if (otherCondition) {
+      selectedConditions.push(otherCondition);
+    }
+
+    return Array.from(new Set(selectedConditions));
+  };
+
   const handleAllergyInputChange = (value: string) => {
     setAllergyInput(value);
   };
@@ -251,6 +272,7 @@ const NewPatient: React.FC = () => {
       const gender = patient.gender as CreatePatientInput["gender"];
       const allergiesCsv = formatCsvList(allergyInput);
       const medicationsCsv = formatCsvList(medicationInput);
+      const selectedMedicalConditions = getSelectedMedicalConditions();
       const input: CreatePatientInput = {
         full_name: patient.fullName.trim(),
         phone: patient.phoneNumber.trim(),
@@ -259,6 +281,7 @@ const NewPatient: React.FC = () => {
         address: patient.address?.trim() || null,
         allergies: allergiesCsv || null,
         medications: medicationsCsv || null,
+        medical_conditions: selectedMedicalConditions.length > 0 ? selectedMedicalConditions : null,
       };
 
       const created = await api.patients.create(input);
@@ -274,10 +297,6 @@ const NewPatient: React.FC = () => {
   };
 
   const handlePatientAllergies = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handleMedicalCondition = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
@@ -440,7 +459,6 @@ const NewPatient: React.FC = () => {
                 <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   {t("newPatient.medicalConditions")}
                 </p>
-              <form onSubmit={handleMedicalCondition}>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <label className="flex items-center gap-2">
                     <input
@@ -517,7 +535,6 @@ const NewPatient: React.FC = () => {
                       />
                     </FormField>
                   </div>
-                </form>
               </div>
               <form onSubmit={handlePatientMedication}>
               <FormField label={t("newPatient.currentMedications")}>

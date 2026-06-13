@@ -34,6 +34,7 @@ export interface CreatePatientInput {
   address?: string | null;
   allergies?: string | null;
   medications?: string | null;
+  medical_conditions?: string[] | null;
   clinical_notes?: string | null;
 }
 
