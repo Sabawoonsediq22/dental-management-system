@@ -28,12 +28,16 @@ import { useProcedures } from "../../hooks/useVisits";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
+import { FormErrors, medicalConditions, MedicalConditionsState, PatientAllergiesState, PatientMedicationsState, PatientState } from "../../types/PatientFormTypes";
+import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
   const { data: procedures = PROCEDURES } = useProcedures();
   const navigate = useNavigate();
 
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [patient, setPatient] = useState<PatientState>({
     fullName: "",
     gender: "",
@@ -41,9 +45,19 @@ const NewPatient: React.FC = () => {
     age: 0,
     address: "",
   });
-
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allergies, _setAllergies] = useState<PatientAllergiesState>({
+    patientId: "",
+    allergyName: ""
+  });
+  const [medications, _setMedications] = useState<PatientMedicationsState>({
+    patientId: "",
+    medicationName: ""
+  });
+  const [medicalConditionsList, _setMedicalConditionsList] = useState<MedicalConditionsState>({
+    patientId: "",
+    conditionName: false,
+    isActive: true
+  });
 
   const [formData, setFormData] = useState({
     chiefComplaint: "",
@@ -64,22 +78,8 @@ const NewPatient: React.FC = () => {
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
-  const [allergies, _setAllergies] = useState<PatientAllergiesState>({
-    patientId: "",
-    allergyName: ""
-  });
-  const [medications, _setMedications] = useState<PatientMedicationsState>({
-    patientId: "",
-    medicationName: ""
-  });
-  const [medicalConditionsList, _setMedicalConditionsList] = useState<MedicalConditionsState>({
-    patientId: "",
-    conditionName: false,
-    isActive: true
-  });
   // const [visits, setVisits] = useState<VisitsState[]>([]);
   // const [treatmentRecords, setTreatmentRecords] = useState<TreatmentRecordsState[]>([]);
   // const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTeethState[]>([]);
@@ -170,38 +170,6 @@ const NewPatient: React.FC = () => {
     setXrayPreview(null);
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!patient.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
-    } else if (patient.fullName.length > 100) {
-      newErrors.fullName = "Name must be 100 characters or less";
-    }
-
-    if (!patient.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone number is required";
-    } else if (!/^[+\d\s-()]+$/.test(patient.phoneNumber)) {
-      newErrors.phoneNumber = "Invalid phone format";
-    }
-
-    if (!patient.gender) {
-      newErrors.gender = "Gender is required";
-    }
-
-    const ageNum = parseInt(String(patient.age), 10);
-    if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
-      newErrors.age = "Age must be between 1 and 120";
-    }
-
-    if (patient.address && patient.address.length > 200) {
-      newErrors.address = "Address must be 200 characters or less";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleChange = (
     field: string,
     value: string | boolean | medicalConditions | string[],
@@ -268,7 +236,7 @@ const NewPatient: React.FC = () => {
   const handlePatient = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validatePatientForm(patient, setErrors)) return;
 
     setIsSubmitting(true);
     try {
@@ -393,6 +361,7 @@ const NewPatient: React.FC = () => {
                   type="number"
                   placeholder={t("newPatient.agePlaceholder", "Years")}
                   onChange={(e) => handlePatientChange("age", e.target.value)}
+                  onFocus={(e) => { e.target.select(); }}
                   value={patient.age}
                   disabled={isSubmitting}
                 />

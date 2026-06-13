@@ -1,6 +1,6 @@
 -- Initial schema for dental clinic management system
 CREATE TABLE IF NOT EXISTS patients (
-    id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY UNIQUE,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
     age INTEGER NOT NULL CHECK (age > 0 AND age <= 120),
