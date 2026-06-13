@@ -28,7 +28,7 @@ import { useProcedures } from "../../hooks/useVisits";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
-import { FormErrors, medicalConditions, MedicalConditionsState, PatientAllergiesState, PatientMedicationsState, PatientState } from "../../types/PatientFormTypes";
+import { FormErrors, medicalConditions, PatientState } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
@@ -45,19 +45,8 @@ const NewPatient: React.FC = () => {
     age: 0,
     address: "",
   });
-  const [allergies, _setAllergies] = useState<PatientAllergiesState>({
-    patientId: "",
-    allergyName: ""
-  });
-  const [medications, _setMedications] = useState<PatientMedicationsState>({
-    patientId: "",
-    medicationName: ""
-  });
-  const [medicalConditionsList, _setMedicalConditionsList] = useState<MedicalConditionsState>({
-    patientId: "",
-    conditionName: false,
-    isActive: true
-  });
+  const [allergyInput, setAllergyInput] = useState("");
+  const [medicationInput, setMedicationInput] = useState("");
 
   const [formData, setFormData] = useState({
     chiefComplaint: "",
@@ -119,6 +108,25 @@ const NewPatient: React.FC = () => {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat().format(Math.round(amount));
+  };
+
+  const formatCsvList = (value: string) => {
+    return Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    ).join(", ");
+  };
+
+  const handleAllergyInputChange = (value: string) => {
+    setAllergyInput(value);
+  };
+
+  const handleMedicationInputChange = (value: string) => {
+    setMedicationInput(value);
   };
 
   const getCurrencySymbol = (procedureName: string): string => {
@@ -241,12 +249,16 @@ const NewPatient: React.FC = () => {
     setIsSubmitting(true);
     try {
       const gender = patient.gender as CreatePatientInput["gender"];
+      const allergiesCsv = formatCsvList(allergyInput);
+      const medicationsCsv = formatCsvList(medicationInput);
       const input: CreatePatientInput = {
         full_name: patient.fullName.trim(),
         phone: patient.phoneNumber.trim(),
         age: patient.age,
         gender,
         address: patient.address?.trim() || null,
+        allergies: allergiesCsv || null,
+        medications: medicationsCsv || null,
       };
 
       const created = await api.patients.create(input);
@@ -415,10 +427,10 @@ const NewPatient: React.FC = () => {
                 <FormInput
                   placeholder={t(
                     "newPatient.allergiesPlaceholder",
-                    "Penicillin, Latex, etc.",
+                    "e.g. Penicillin, Latex, Peanuts",
                   )}
-                  onChange={(e) => handleChange("allergies", e.target.value)}
-                  value={allergies.allergyName}
+                  onChange={(e) => handleAllergyInputChange(e.target.value)}
+                  value={allergyInput}
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -433,7 +445,7 @@ const NewPatient: React.FC = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={medicalConditionsList.conditionName}
+                      checked={formData.medicalConditions.diabetes}
                       onChange={(e) =>
                         handleChange("medicalConditions", {
                           ...formData.medicalConditions,
@@ -510,11 +522,12 @@ const NewPatient: React.FC = () => {
               <form onSubmit={handlePatientMedication}>
               <FormField label={t("newPatient.currentMedications")}>
                 <FormTextarea
-                  placeholder={t("newPatient.currentMedicationsPlaceholder")}
-                  onChange={(e) =>
-                    handleChange("currentMedications", e.target.value)
-                  }
-                  value={medications.medicationName}
+                  placeholder={t(
+                    "newPatient.currentMedicationsPlaceholder",
+                    "e.g. Metformin, Atorvastatin, Ibuprofen",
+                  )}
+                  onChange={(e) => handleMedicationInputChange(e.target.value)}
+                  value={medicationInput}
                   className="h-20"
                   disabled={isSubmitting}
                 />

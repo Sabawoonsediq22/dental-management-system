@@ -1,7 +1,7 @@
-use sqlx::SqlitePool;
 use crate::models::*;
 use crate::services::errors::AppResult;
 use chrono::Utc;
+use sqlx::{SqlitePool, Transaction};
 
 pub struct PatientService;
 
@@ -111,14 +111,21 @@ impl PatientService {
         .fetch_optional(pool)
         .await?;
 
-        patient.ok_or_else(|| crate::services::errors::AppError::NotFound(format!("Patient {} not found", id)))
+        patient.ok_or_else(|| {
+            crate::services::errors::AppError::NotFound(format!("Patient {} not found", id))
+        })
     }
 
     pub async fn create(pool: &SqlitePool, input: CreatePatientInput) -> AppResult<Patient> {
-        let id = format!("KD-{}-{:03}", chrono::Local::now().format("%Y"), {
-            let count = sqlx::query_scalar::<_, i32>("SELECT COUNT(*) FROM patients").fetch_one(pool).await.unwrap_or(0);
-            count + 1
-        });
+        let mut tx = pool.begin().await?;
+        let patient_count: i32 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
+            .fetch_one(&mut *tx)
+            .await?;
+        let id = format!(
+            "KD-{}-{:03}",
+            chrono::Local::now().format("%Y"),
+            patient_count + 1
+        );
 
         let gender_str = match input.gender {
             Gender::Male => "Male",
@@ -140,40 +147,13 @@ impl PatientService {
         .bind(&input.address)
         .bind(&now)
         .bind(&now)
-        .execute(pool)
+        .execute(&mut *tx)
         .await?;
 
-        // Insert allergies
-        if let Some(ref allergies) = input.allergies {
-            for allergy in allergies.split(',') {
-                let allergy = allergy.trim();
-                if !allergy.is_empty() {
-                    sqlx::query(
-                        "INSERT OR IGNORE INTO patient_allergies (patient_id, allergy_name) VALUES (?, ?)"
-                    )
-                    .bind(&id)
-                    .bind(allergy)
-                    .execute(pool)
-                    .await?;
-                }
-            }
-        }
+        Self::insert_allergies(&mut tx, &id, input.allergies.as_deref()).await?;
+        Self::insert_medications(&mut tx, &id, input.medications.as_deref()).await?;
 
-        // Insert medications
-        if let Some(ref medications) = input.medications {
-            for med in medications.split(',') {
-                let med = med.trim();
-                if !med.is_empty() {
-                    sqlx::query(
-                        "INSERT OR IGNORE INTO patient_medications (patient_id, medication_name) VALUES (?, ?)"
-                    )
-                    .bind(&id)
-                    .bind(med)
-                    .execute(pool)
-                    .await?;
-                }
-            }
-        }
+        tx.commit().await?;
 
         Ok(Patient {
             id,
@@ -187,10 +167,72 @@ impl PatientService {
         })
     }
 
-    pub async fn update(pool: &SqlitePool, id: &str, input: UpdatePatientInput) -> AppResult<Patient> {
+    async fn insert_allergies(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        patient_id: &str,
+        allergies: Option<&str>,
+    ) -> AppResult<()> {
+        for allergy in Self::split_csv(allergies) {
+            sqlx::query(
+                "INSERT OR IGNORE INTO patient_allergies (patient_id, allergy_name) VALUES (?, ?)",
+            )
+            .bind(patient_id)
+            .bind(allergy)
+            .execute(&mut **tx)
+            .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn insert_medications(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        patient_id: &str,
+        medications: Option<&str>,
+    ) -> AppResult<()> {
+        for medication in Self::split_csv(medications) {
+            sqlx::query(
+                "INSERT OR IGNORE INTO patient_medications (patient_id, medication_name) VALUES (?, ?)"
+            )
+            .bind(patient_id)
+            .bind(medication)
+            .execute(&mut **tx)
+            .await?;
+        }
+
+        Ok(())
+    }
+
+    fn split_csv(value: Option<&str>) -> Vec<String> {
+        let mut result = Vec::new();
+
+        for item in value
+            .unwrap_or("")
+            .split(',')
+            .map(|item| item.trim().to_string())
+            .filter(|item| !item.is_empty())
+        {
+            if !result
+                .iter()
+                .any(|existing: &String| existing.eq_ignore_ascii_case(&item))
+            {
+                result.push(item);
+            }
+        }
+
+        result
+    }
+
+    pub async fn update(
+        pool: &SqlitePool,
+        id: &str,
+        input: UpdatePatientInput,
+    ) -> AppResult<Patient> {
         let existing = Self::find(pool, id).await?;
 
-        let full_name = input.full_name.unwrap_or_else(|| existing.full_name.clone());
+        let full_name = input
+            .full_name
+            .unwrap_or_else(|| existing.full_name.clone());
         let phone = input.phone.unwrap_or_else(|| existing.phone.clone());
         let age = input.age.unwrap_or(existing.age);
         let gender = input.gender.unwrap_or(existing.gender);
@@ -235,12 +277,19 @@ impl PatientService {
             .execute(pool)
             .await?;
         if result.rows_affected() == 0 {
-            return Err(crate::services::errors::AppError::NotFound(format!("Patient {} not found", id)));
+            return Err(crate::services::errors::AppError::NotFound(format!(
+                "Patient {} not found",
+                id
+            )));
         }
         Ok(())
     }
 
-    pub async fn add_medical_condition(pool: &SqlitePool, patient_id: &str, condition_name: &str) -> AppResult<()> {
+    pub async fn add_medical_condition(
+        pool: &SqlitePool,
+        patient_id: &str,
+        condition_name: &str,
+    ) -> AppResult<()> {
         sqlx::query("INSERT INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)")
             .bind(patient_id)
             .bind(condition_name)
