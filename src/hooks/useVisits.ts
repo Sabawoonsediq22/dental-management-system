@@ -1,13 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-export function useProcedures() {
-  return useQuery({
-    queryKey: ["procedures"],
-    queryFn: () => api.procedures.list(),
-  });
-}
-
 export function useVisits(patientId: string) {
   return useQuery({
     queryKey: ["visits", patientId],

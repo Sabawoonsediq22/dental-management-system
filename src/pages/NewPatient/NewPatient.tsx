@@ -24,7 +24,6 @@ import { ToothData } from "../../components/dental-chart/types";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
-import { useProcedures } from "../../hooks/useVisits";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
@@ -33,7 +32,6 @@ import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
-  const { data: procedures = PROCEDURES } = useProcedures();
   const navigate = useNavigate();
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -609,7 +607,7 @@ const NewPatient: React.FC = () => {
                   value={formData.procedure}
                   onChange={(e) => {
                     const selectedProcedureName = e.target.value;
-                    const selectedProcedure = procedures.find(
+                    const selectedProcedure = PROCEDURES.find(
                       (p) => p.name === selectedProcedureName,
                     );
                     setFormData((prev) => ({
@@ -624,7 +622,7 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <option value="">{t("newPatient.selectProcedure")}</option>
-                  {procedures.map((procedure, index) => (
+                  {PROCEDURES.map((procedure, index) => (
                     <option key={index} value={procedure.name}>
                       {procedure.name} - {procedure.price}{" "}
                       {getCurrencySymbol(procedure.name)}

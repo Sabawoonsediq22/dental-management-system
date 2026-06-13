@@ -124,21 +124,6 @@ async fn get_patient_visits(
         .map_err(|e| e.to_string())
 }
 
-// Procedure commands
-#[tauri::command]
-async fn list_procedures(state: State<'_, AppState>) -> Result<Vec<Procedure>, String> {
-    ProcedureService::list(&state.db)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn find_procedure_by_name(state: State<'_, AppState>, name: String) -> Result<Option<Procedure>, String> {
-    ProcedureService::find_by_name(&state.db, &name)
-        .await
-        .map_err(|e| e.to_string())
-}
-
 // Treatment commands
 #[tauri::command]
 async fn add_treatment_record(
@@ -232,11 +217,6 @@ pub fn run() {
                     if let Err(e) = tauri::async_runtime::block_on(db::run_migrations(&pool)) {
                         eprintln!("Failed to run migrations: {}", e);
                     }
-                    if let Err(e) =
-                        tauri::async_runtime::block_on(ProcedureService::seed_defaults(&pool))
-                    {
-                        eprintln!("Failed to seed default procedures: {}", e);
-                    }
                     app.manage(AppState { db: pool });
                 }
                 Err(e) => {
@@ -257,8 +237,6 @@ pub fn run() {
             delete_patient,
             add_medical_condition,
             upload_xray,
-            list_procedures,
-            find_procedure_by_name,
             create_visit,
             update_visit_status,
             get_patient_visits,
