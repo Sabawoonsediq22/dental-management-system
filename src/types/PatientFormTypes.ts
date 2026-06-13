@@ -36,6 +36,26 @@ export interface MedicalConditionsState {
   isActive: boolean;
 }
 
+export interface PatientVisit {
+  id?: string;
+  patientId: string;
+  visitDate: string;
+  chiefComplaint: string;
+  clinicalNotes: string;
+  status: "Open" | "Completed" | "Canceled";
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PatientProcedure {
+  id?: string;
+  name: string;
+  additionalNotes?: string | null;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface FormErrors {
   fullName?: string;
   phoneNumber?: string;

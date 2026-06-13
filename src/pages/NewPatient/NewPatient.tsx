@@ -28,7 +28,7 @@ import { useProcedures } from "../../hooks/useVisits";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
-import { FormErrors, medicalConditions, PatientState } from "../../types/PatientFormTypes";
+import { FormErrors, medicalConditions, PatientState, PatientVisit } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
@@ -47,21 +47,26 @@ const NewPatient: React.FC = () => {
   });
   const [allergyInput, setAllergyInput] = useState("");
   const [medicationInput, setMedicationInput] = useState("");
-
-  const [formData, setFormData] = useState({
+  const [medicalConditions, setMedicalConditions] = useState<medicalConditions>({
+    diabetes: false,
+    hypertension: false,
+    heartDisease: false,
+    asthma: false,
+    other: ""
+  });
+  const [patientVisit, setPatientVisit] = useState<PatientVisit>({
+    patientId: "",
+    visitDate: new Date().toISOString().split("T")[0],
     chiefComplaint: "",
     clinicalNotes: "",
+    status: "Open",
+  });
+
+  const [formData, setFormData] = useState({
     procedure: "",
     procedureValue: "",
     numberOfProcedures: "1",
     discount: "0",
-    medicalConditions: {
-      diabetes: false,
-      hypertension: false,
-      heartDisease: false,
-      asthma: false,
-      other: "",
-    },
   });
 
   const [xrayFile, setXrayFile] = useState<File | null>(null);
@@ -69,24 +74,6 @@ const NewPatient: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
-  // const [visits, setVisits] = useState<VisitsState[]>([]);
-  // const [treatmentRecords, setTreatmentRecords] = useState<TreatmentRecordsState[]>([]);
-  // const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTeethState[]>([]);
-  // const [invoice, setInvoice] = useState<InvoiceState>({
-  //   invoiceNumber: "",
-  //   subtotal: 0,
-  //   discount: 0,
-  //   totalAmount: 0,
-  //   paidAmount: 0,
-  //   outstandingAmount: 0,
-  //   status: "Unpaid",
-  // });
-  // const [invoiceItems, setInvoiceItems] = useState<InvoiceItemsState[]>([]);
-  // const [payments, setPayments] = useState<PaymentsState[]>([]);
-  // const [xrays, setXrays] = useState<XraysState[]>([]);
-  // const [appSettings, setAppSettings] = useState<AppSettingsState>({});
-  // const [backups, setBackups] = useState<BackupsState[]>([]);
-  // const [auditLogs, setAuditLogs] = useState<AuditLogState[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSelectedToothChange = (toothData?: ToothData) => {
@@ -129,11 +116,11 @@ const NewPatient: React.FC = () => {
       asthma: "Asthma",
     };
 
-    const selectedConditions = Object.entries(formData.medicalConditions)
+    const selectedConditions = Object.entries(medicalConditions)
       .filter(([key, value]) => key !== "other" && value === true)
       .map(([key]) => labels[key] ?? key);
 
-    const otherCondition = formData.medicalConditions.other?.trim();
+    const otherCondition = medicalConditions.other?.trim();
 
     if (otherCondition) {
       selectedConditions.push(otherCondition);
@@ -148,6 +135,13 @@ const NewPatient: React.FC = () => {
 
   const handleMedicationInputChange = (value: string) => {
     setMedicationInput(value);
+  };
+
+  const handlePatientVisitChange = (field: keyof PatientVisit, value: string) => {
+    setPatientVisit((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const getCurrencySymbol = (procedureName: string): string => {
@@ -282,6 +276,9 @@ const NewPatient: React.FC = () => {
         allergies: allergiesCsv || null,
         medications: medicationsCsv || null,
         medical_conditions: selectedMedicalConditions.length > 0 ? selectedMedicalConditions : null,
+        visit_date: patientVisit.visitDate || null,
+        chief_complaint: patientVisit.chiefComplaint.trim() || null,
+        clinical_notes: patientVisit.clinicalNotes.trim() || null,
       };
 
       const created = await api.patients.create(input);
@@ -463,10 +460,10 @@ const NewPatient: React.FC = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={formData.medicalConditions.diabetes}
+                      checked={medicalConditions.diabetes}
                       onChange={(e) =>
-                        handleChange("medicalConditions", {
-                          ...formData.medicalConditions,
+                        setMedicalConditions({
+                          ...medicalConditions,
                           diabetes: e.target.checked,
                         })
                       }
@@ -477,10 +474,10 @@ const NewPatient: React.FC = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={formData.medicalConditions.hypertension}
+                      checked={medicalConditions.hypertension}
                       onChange={(e) =>
-                        handleChange("medicalConditions", {
-                          ...formData.medicalConditions,
+                        setMedicalConditions({
+                          ...medicalConditions,
                           hypertension: e.target.checked,
                         })
                       }
@@ -491,10 +488,10 @@ const NewPatient: React.FC = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={formData.medicalConditions.heartDisease}
+                      checked={medicalConditions.heartDisease}
                       onChange={(e) =>
-                        handleChange("medicalConditions", {
-                          ...formData.medicalConditions,
+                        setMedicalConditions({
+                          ...medicalConditions,
                           heartDisease: e.target.checked,
                         })
                       }
@@ -505,10 +502,10 @@ const NewPatient: React.FC = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={formData.medicalConditions.asthma}
+                      checked={medicalConditions.asthma}
                       onChange={(e) =>
-                        handleChange("medicalConditions", {
-                          ...formData.medicalConditions,
+                        setMedicalConditions({
+                          ...medicalConditions,
                           asthma: e.target.checked,
                         })
                       }
@@ -525,12 +522,12 @@ const NewPatient: React.FC = () => {
                         "e.g. Epilepsy, Thyroid Issues, etc.",
                         )}
                         onChange={(e) =>
-                        handleChange("medicalConditions", {
-                          ...formData.medicalConditions,
+                        setMedicalConditions({
+                          ...medicalConditions,
                           other: e.target.value,
                         })
                       }
-                        value={formData.medicalConditions.other || ""}
+                        value={medicalConditions.other || ""}
                         disabled={isSubmitting}
                       />
                     </FormField>
@@ -565,9 +562,9 @@ const NewPatient: React.FC = () => {
                 <FormTextarea
                   placeholder={t("newPatient.chiefComplaintPlaceholder")}
                   onChange={(e) =>
-                    handleChange("chiefComplaint", e.target.value)
+                    handlePatientVisitChange("chiefComplaint", e.target.value)
                   }
-                  value={formData.chiefComplaint}
+                  value={patientVisit.chiefComplaint}
                   className="h-20"
                   disabled={isSubmitting}
                 />
@@ -577,9 +574,9 @@ const NewPatient: React.FC = () => {
                 <FormTextarea
                   placeholder={t("newPatient.clinicalNotesPlaceholder")}
                   onChange={(e) =>
-                    handleChange("clinicalNotes", e.target.value)
+                    handlePatientVisitChange("clinicalNotes", e.target.value)
                   }
-                  value={formData.clinicalNotes}
+                  value={patientVisit.clinicalNotes}
                   className="h-20"
                   disabled={isSubmitting}
                 />
@@ -627,8 +624,8 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <option value="">{t("newPatient.selectProcedure")}</option>
-                  {procedures.map((procedure) => (
-                    <option key={procedure.name} value={procedure.name}>
+                  {procedures.map((procedure, index) => (
+                    <option key={index} value={procedure.name}>
                       {procedure.name} - {procedure.price}{" "}
                       {getCurrencySymbol(procedure.name)}
                     </option>

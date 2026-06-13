@@ -32,15 +32,6 @@ CREATE TABLE IF NOT EXISTS medical_conditions (
     UNIQUE(patient_id, condition_name)
 );
 
-CREATE TABLE IF NOT EXISTS procedures (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    additional_note TEXT,
-    price REAL NOT NULL CHECK (price >= 0),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS visits (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
@@ -48,6 +39,15 @@ CREATE TABLE IF NOT EXISTS visits (
     chief_complaint TEXT DEFAULT '',
     clinical_notes TEXT DEFAULT '',
     status TEXT DEFAULT 'Open' CHECK(status IN ('Open','Completed','Cancelled')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS procedures (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    additional_note TEXT,
+    price REAL NOT NULL CHECK (price >= 0),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

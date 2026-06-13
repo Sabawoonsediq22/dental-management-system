@@ -153,6 +153,15 @@ impl PatientService {
         Self::insert_allergies(&mut tx, &id, input.allergies.as_deref()).await?;
         Self::insert_medications(&mut tx, &id, input.medications.as_deref()).await?;
         Self::insert_medical_conditions(&mut tx, &id, input.medical_conditions.as_deref()).await?;
+        Self::insert_visit(
+            &mut tx,
+            &id,
+            input.visit_date.as_deref(),
+            input.chief_complaint.as_deref(),
+            input.clinical_notes.as_deref(),
+            &now,
+        )
+        .await?;
 
         tx.commit().await?;
 
@@ -222,6 +231,40 @@ impl PatientService {
         Ok(())
     }
 
+    async fn insert_visit(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        patient_id: &str,
+        visit_date: Option<&str>,
+        chief_complaint: Option<&str>,
+        clinical_notes: Option<&str>,
+        now: &str,
+    ) -> AppResult<()> {
+        let visit_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM visits")
+            .fetch_one(&mut **tx)
+            .await?;
+        let visit_id = format!("V-{}-{:06}", Utc::now().format("%Y%m%d"), visit_count + 1);
+        let visit_date = Self::trimmed_optional(visit_date).unwrap_or_else(|| now.to_string());
+        let chief_complaint = Self::trimmed_optional(chief_complaint);
+        let clinical_notes = Self::trimmed_optional(clinical_notes);
+
+        sqlx::query(
+            "INSERT INTO visits (id, patient_id, visit_date, chief_complaint, clinical_notes, status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        .bind(visit_id)
+        .bind(patient_id)
+        .bind(visit_date)
+        .bind(chief_complaint)
+        .bind(clinical_notes)
+        .bind("Open")
+        .bind(now)
+        .bind(now)
+        .execute(&mut **tx)
+        .await?;
+
+        Ok(())
+    }
+
     fn split_csv(value: Option<&str>) -> Vec<String> {
         let mut result = Vec::new();
 
@@ -259,6 +302,12 @@ impl PatientService {
         }
 
         result
+    }
+
+    fn trimmed_optional(value: Option<&str>) -> Option<String> {
+        value
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
     }
 
     pub async fn update(

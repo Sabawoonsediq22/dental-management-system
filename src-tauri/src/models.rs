@@ -193,6 +193,8 @@ pub struct CreatePatientInput {
     pub allergies: Option<String>,
     pub medications: Option<String>,
     pub medical_conditions: Option<Vec<String>>,
+    pub visit_date: Option<String>,
+    pub chief_complaint: Option<String>,
     pub clinical_notes: Option<String>,
 }
 
