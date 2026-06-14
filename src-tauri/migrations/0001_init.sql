@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     procedure_id TEXT NOT NULL REFERENCES procedures(id),
-    quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0), -- number of times the procedure was performed
+    number_of_procedures INTEGER NOT NULL DEFAULT 1 CHECK(number_of_procedures > 0), -- number of times the procedure was performed
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -143,7 +143,6 @@ CREATE INDEX idx_patients_phone ON patients(phone);
 CREATE INDEX idx_patients_name ON patients(full_name);
 CREATE INDEX idx_visits_patient ON visits(patient_id);
 CREATE INDEX idx_visits_date ON visits(visit_date);
-CREATE INDEX idx_procedures_visit ON procedures(visit_id);
 CREATE INDEX idx_backups_status ON backups(status);
 CREATE INDEX idx_backups_created_at ON backups(created_at);
 CREATE INDEX idx_backups_type_status ON backups(backup_type, status);

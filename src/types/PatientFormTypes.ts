@@ -1,4 +1,4 @@
-export interface PatientState {
+export interface Patient {
   id?: string;
   fullName: string;
   gender: "Male" | "Female" | "Other" | "";
@@ -9,13 +9,13 @@ export interface PatientState {
   updatedAt?: string;
 }
 
-export interface PatientAllergiesState {
+export interface PatientAllergies {
   id?: number;
   patientId: string;
   allergyName: string;
 }
 
-export interface PatientMedicationsState {
+export interface PatientMedications {
   id?: number;
   patientId: string;
   medicationName: string;
@@ -29,7 +29,7 @@ export interface medicalConditions {
   other?: string;
 }
 
-export interface MedicalConditionsState {
+export interface MedicalConditions {
   id?: number;
   patientId: string;
   conditionName: medicalConditions;
@@ -37,15 +37,16 @@ export interface MedicalConditionsState {
 }
 
 export interface PatientVisit {
-  id?: string;
-  patientId: string;
-  visitDate: string;
-  chiefComplaint: string;
-  clinicalNotes: string;
-  status: "Open" | "Completed" | "Canceled";
-  createdAt?: string;
-  updatedAt?: string;
-}
+   id?: string;
+   patientId: string;
+   visitDate: string;
+   chiefComplaint: string;
+   clinicalNotes: string;
+   status: "Open" | "Completed" | "Canceled";
+   discount?: number;
+   createdAt?: string;
+   updatedAt?: string;
+ }
 
 export interface PatientProcedure {
   id?: string;
@@ -55,6 +56,21 @@ export interface PatientProcedure {
   procedurePrice: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface TreatmentRecord {
+  id?: string;
+  visitId: string;
+  procedureId: string;
+  numberOfProcedures: number;
+  performedAt?: string;
+}
+
+export interface TreatmentTeeth {
+   id?: number;
+   treatmentRecordId?: string;
+   toothNumber: number;
+   toothQuadrant: string;
 }
 
 export interface FormErrors {
