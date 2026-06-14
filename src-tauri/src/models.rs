@@ -196,6 +196,9 @@ pub struct CreatePatientInput {
     pub visit_date: Option<String>,
     pub chief_complaint: Option<String>,
     pub clinical_notes: Option<String>,
+    pub procedure_name: Option<String>,
+    pub procedure_additional_note: Option<String>,
+    pub procedure_price: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

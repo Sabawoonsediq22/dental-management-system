@@ -38,6 +38,9 @@ export interface CreatePatientInput {
   visit_date?: string | null;
   chief_complaint?: string | null;
   clinical_notes?: string | null;
+  procedure_name?: string | null;
+  procedure_additional_note?: string | null;
+  procedure_price?: number | null;
 }
 
 export interface CreatePatientIntakeInput {

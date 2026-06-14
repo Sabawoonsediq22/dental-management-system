@@ -49,9 +49,9 @@ export interface PatientVisit {
 
 export interface PatientProcedure {
   id?: string;
-  name: string;
+  procedureName: string;
   additionalNotes?: string | null;
-  price: number;
+  procedurePrice: number;
   createdAt?: string;
   updatedAt?: string;
 }

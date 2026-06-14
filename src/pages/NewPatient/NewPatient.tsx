@@ -27,7 +27,7 @@ import { api } from "../../lib/api";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
-import { FormErrors, medicalConditions, PatientState, PatientVisit } from "../../types/PatientFormTypes";
+import { FormErrors, medicalConditions, PatientProcedure, PatientState, PatientVisit } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
@@ -58,6 +58,11 @@ const NewPatient: React.FC = () => {
     chiefComplaint: "",
     clinicalNotes: "",
     status: "Open",
+  });
+  const [patientProcedure, setPatientProcedure] = useState<PatientProcedure>({
+    procedureName: "",
+    additionalNotes: "",
+    procedurePrice: 0,
   });
 
   const [formData, setFormData] = useState({
@@ -137,6 +142,16 @@ const NewPatient: React.FC = () => {
 
   const handlePatientVisitChange = (field: keyof PatientVisit, value: string) => {
     setPatientVisit((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handlePatientProcedureChange = (
+    field: keyof PatientProcedure,
+    value: string | number,
+  ) => {
+    setPatientProcedure((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -277,6 +292,9 @@ const NewPatient: React.FC = () => {
         visit_date: patientVisit.visitDate || null,
         chief_complaint: patientVisit.chiefComplaint.trim() || null,
         clinical_notes: patientVisit.clinicalNotes.trim() || null,
+        procedure_name: patientProcedure.procedureName.trim() || null,
+        procedure_additional_note: patientProcedure.additionalNotes?.trim() || null,
+        procedure_price: patientProcedure.procedurePrice > 0 ? patientProcedure.procedurePrice : null,
       };
 
       const created = await api.patients.create(input);
@@ -544,7 +562,7 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </FormField>
-              </form>
+            </form>
             </div>
           </div>
 
@@ -617,6 +635,11 @@ const NewPatient: React.FC = () => {
                         ? selectedProcedure.price.toString()
                         : "",
                     }));
+                    setPatientProcedure((prev) => ({
+                      ...prev,
+                      procedureName: selectedProcedureName,
+                      procedurePrice: selectedProcedure?.price ?? 0,
+                    }));
                   }}
                   className="cursor-pointer"
                   disabled={isSubmitting}
@@ -629,6 +652,21 @@ const NewPatient: React.FC = () => {
                     </option>
                   ))}
                 </Select>
+              </FormField>
+
+              <FormField label={t("newPatient.additionalNotes")}>
+                <FormTextarea
+                  placeholder={t(
+                    "newPatient.additionalNotesPlaceholder",
+                    "Add procedure notes",
+                  )}
+                  onChange={(e) =>
+                    handlePatientProcedureChange("additionalNotes", e.target.value)
+                  }
+                  value={patientProcedure.additionalNotes ?? ""}
+                  className="h-20"
+                  disabled={isSubmitting}
+                />
               </FormField>
             </form>
 

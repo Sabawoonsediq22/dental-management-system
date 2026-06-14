@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS visits (
 
 CREATE TABLE IF NOT EXISTS procedures (
     id TEXT PRIMARY KEY,
+    visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     additional_note TEXT,
     price REAL NOT NULL CHECK (price >= 0),
@@ -143,6 +144,7 @@ CREATE INDEX idx_patients_phone ON patients(phone);
 CREATE INDEX idx_patients_name ON patients(full_name);
 CREATE INDEX idx_visits_patient ON visits(patient_id);
 CREATE INDEX idx_visits_date ON visits(visit_date);
+CREATE INDEX idx_procedures_visit ON procedures(visit_id);
 CREATE INDEX idx_backups_status ON backups(status);
 CREATE INDEX idx_backups_created_at ON backups(created_at);
 CREATE INDEX idx_backups_type_status ON backups(backup_type, status);

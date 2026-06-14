@@ -2,6 +2,7 @@ use crate::models::*;
 use crate::services::errors::AppResult;
 use chrono::Utc;
 use sqlx::{SqlitePool, Transaction};
+use uuid::Uuid;
 
 pub struct PatientService;
 
@@ -153,12 +154,21 @@ impl PatientService {
         Self::insert_allergies(&mut tx, &id, input.allergies.as_deref()).await?;
         Self::insert_medications(&mut tx, &id, input.medications.as_deref()).await?;
         Self::insert_medical_conditions(&mut tx, &id, input.medical_conditions.as_deref()).await?;
-        Self::insert_visit(
+        let visit_id = Self::insert_visit(
             &mut tx,
             &id,
             input.visit_date.as_deref(),
             input.chief_complaint.as_deref(),
             input.clinical_notes.as_deref(),
+            &now,
+        )
+        .await?;
+        Self::insert_procedure(
+            &mut tx,
+            &visit_id,
+            input.procedure_name.as_deref(),
+            input.procedure_additional_note.as_deref(),
+            input.procedure_price,
             &now,
         )
         .await?;
@@ -238,7 +248,7 @@ impl PatientService {
         chief_complaint: Option<&str>,
         clinical_notes: Option<&str>,
         now: &str,
-    ) -> AppResult<()> {
+    ) -> AppResult<String> {
         let visit_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM visits")
             .fetch_one(&mut **tx)
             .await?;
@@ -251,12 +261,44 @@ impl PatientService {
             "INSERT INTO visits (id, patient_id, visit_date, chief_complaint, clinical_notes, status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
-        .bind(visit_id)
+        .bind(&visit_id)
         .bind(patient_id)
         .bind(visit_date)
         .bind(chief_complaint)
         .bind(clinical_notes)
         .bind("Open")
+        .bind(now)
+        .bind(now)
+        .execute(&mut **tx)
+        .await?;
+
+        Ok(visit_id)
+    }
+
+    async fn insert_procedure(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        visit_id: &str,
+        name: Option<&str>,
+        additional_note: Option<&str>,
+        price: Option<f64>,
+        now: &str,
+    ) -> AppResult<()> {
+        let Some(name) = Self::trimmed_optional(name) else {
+            return Ok(());
+        };
+        let price = price.filter(|price| *price >= 0.0).unwrap_or(0.0);
+        let additional_note = Self::trimmed_optional(additional_note);
+        let id = format!("PROC-{}", Uuid::new_v4().simple());
+
+        sqlx::query(
+            "INSERT INTO procedures (id, visit_id, name, additional_note, price, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(id)
+        .bind(visit_id)
+        .bind(name)
+        .bind(additional_note)
+        .bind(price)
         .bind(now)
         .bind(now)
         .execute(&mut **tx)
