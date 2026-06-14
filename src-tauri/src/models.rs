@@ -70,7 +70,7 @@ pub struct TreatmentRecord {
     pub visit_id: String,
     pub procedure_id: String,
     pub tooth_quadrant: Option<String>,
-    pub quantity: i32,
+    pub number_of_procedures: i32,
     pub procedure_price: f64,
     pub performed_at: String,
 }
@@ -199,6 +199,9 @@ pub struct CreatePatientInput {
     pub procedure_name: Option<String>,
     pub procedure_additional_note: Option<String>,
     pub procedure_price: Option<f64>,
+    pub number_of_procedures: Option<i32>,
+    pub tooth_numbers: Option<Vec<i32>>,
+    pub tooth_quadrant: Option<String>,
 }
 
 
@@ -228,7 +231,7 @@ pub struct CreateTreatmentRecordInput {
     pub procedure_id: String,
     pub tooth_quadrant: Option<String>,
     pub tooth_numbers: Vec<i32>,
-    pub quantity: i32,
+    pub number_of_procedures: i32,
     pub procedure_price: f64,
 }
 

@@ -27,21 +27,23 @@ export interface PatientListParams {
 }
 
 export interface CreatePatientInput {
-  full_name: string;
-  phone: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  address?: string | null;
-  allergies?: string | null;
-  medications?: string | null;
-  medical_conditions?: string[] | null;
-  visit_date?: string | null;
-  chief_complaint?: string | null;
-  clinical_notes?: string | null;
-  procedure_name?: string | null;
-  procedure_additional_note?: string | null;
-  procedure_price?: number | null;
-}
+   full_name: string;
+   phone: string;
+   age: number;
+   gender: "Male" | "Female" | "Other";
+   address?: string | null;
+   allergies?: string | null;
+   medications?: string | null;
+   medical_conditions?: string[] | null;
+   visit_date?: string | null;
+   chief_complaint?: string | null;
+   clinical_notes?: string | null;
+   procedure_name?: string | null;
+   procedure_additional_note?: string | null;
+   procedure_price?: number | null;
+   tooth_numbers?: number[] | null;
+   number_of_procedures?: number;
+ }
 
 
 export interface UpdatePatientInput {
@@ -74,23 +76,19 @@ export interface CreateVisitInput {
 }
 
 export interface TreatmentRecord {
-  id: string;
-  visit_id: string;
-  procedure_id: string;
-  tooth_quadrant?: string | null;
-  quantity: number;
-  procedure_price: number;
-  performed_at: string;
-}
+   id: string;
+   visit_id: string;
+   procedure_id: string;
+   number_of_procedures: number;
+   performed_at: string;
+ }
 
-export interface CreateTreatmentRecordInput {
-  visit_id: string;
-  procedure_id: string;
-  tooth_quadrant?: string | null;
-  tooth_numbers: number[];
-  quantity: number;
-  procedure_price: number;
-}
+ export interface CreateTreatmentRecordInput {
+   visit_id: string;
+   procedure_id: string;
+   tooth_numbers: number[];
+   number_of_procedures: number;
+ }
 
 export interface Procedure {
   id: string;

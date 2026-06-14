@@ -163,12 +163,15 @@ impl PatientService {
             &now,
         )
         .await?;
-        Self::insert_procedure(
+        let procedure_id = Self::insert_procedure(
             &mut tx,
             &visit_id,
             input.procedure_name.as_deref(),
             input.procedure_additional_note.as_deref(),
             input.procedure_price,
+            input.tooth_numbers.as_deref(),
+            input.tooth_quadrant.as_deref(),
+            input.number_of_procedures,
             &now,
         )
         .await?;

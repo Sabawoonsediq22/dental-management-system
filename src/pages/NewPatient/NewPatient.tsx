@@ -27,7 +27,7 @@ import { api } from "../../lib/api";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
-import { FormErrors, medicalConditions, PatientProcedure, PatientState, PatientVisit } from "../../types/PatientFormTypes";
+import { FormErrors, medicalConditions, PatientProcedure, Patient, PatientVisit, TreatmentRecord, TreatmentTeeth } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
@@ -36,7 +36,7 @@ const NewPatient: React.FC = () => {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [patient, setPatient] = useState<PatientState>({
+  const [patient, setPatient] = useState<Patient>({
     fullName: "",
     gender: "",
     phoneNumber: "",
@@ -63,6 +63,15 @@ const NewPatient: React.FC = () => {
     procedureName: "",
     additionalNotes: "",
     procedurePrice: 0,
+  });
+  const [treatmentRecord, setTreatmentRecord] = useState<TreatmentRecord>({
+    visitId: "",
+    procedureId: "",
+    numberOfProcedures: 1,
+  });
+  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTeeth>({
+    toothNumber: 0,
+    toothQuadrant: ""
   });
 
   const [xrayFile, setXrayFile] = useState<File | null>(null);
@@ -163,7 +172,7 @@ const NewPatient: React.FC = () => {
   };
 
   const procValue = parseFloat(patientProcedure.procedurePrice.toString()) || 0;
-  const numProc = parseInt(patientVisit.numberOfProcedures) || 1;
+  const numProc = parseInt(treatmentRecord.numberOfProcedures.toString()) || 1;
   const discountAmount = parseFloat(patientVisit.discount) || 0;
   const subtotal = procValue * numProc;
   const totalDue = subtotal - discountAmount;
@@ -768,7 +777,7 @@ const NewPatient: React.FC = () => {
                     onChange={(e) =>
                       handleChange("numberOfProcedures", e.target.value)
                     }
-                    value={""}
+                    value={treatmentRecord.numberOfProcedures?.toString() || ""}
                     className="w-28 mr-12"
                     disabled={isSubmitting}
                   />
