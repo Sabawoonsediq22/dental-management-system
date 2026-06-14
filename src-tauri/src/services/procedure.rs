@@ -7,7 +7,7 @@ pub struct ProcedureService;
 impl ProcedureService {
     pub async fn list(pool: &SqlitePool) -> AppResult<Vec<Procedure>> {
         let procedures = sqlx::query_as(
-            "SELECT id, name, additional_note, price, created_at, updated_at FROM procedures ORDER BY name"
+            "SELECT id, name, additional_note, procedure_price, created_at, updated_at FROM procedures ORDER BY name"
         )
         .fetch_all(pool)
         .await?;
@@ -17,7 +17,7 @@ impl ProcedureService {
 
     pub async fn find_by_name(pool: &SqlitePool, name: &str) -> AppResult<Option<Procedure>> {
         let procedure = sqlx::query_as(
-            "SELECT id, name, additional_note, price, created_at, updated_at FROM procedures WHERE name = ?"
+            "SELECT id, name, additional_note, procedure_price, created_at, updated_at FROM procedures WHERE name = ?"
         )
         .bind(name)
         .fetch_optional(pool)

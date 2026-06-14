@@ -12,18 +12,15 @@ impl InvoiceService {
 
         let now = Utc::now().to_rfc3339();
 
-        // Calculate subtotal from treatment records for this visit
-        let treatment_records: Vec<TreatmentRecord> = sqlx::query_as(
-            "SELECT id, visit_id, procedure_id, tooth_quadrant, number_of_procedures, procedure_price, performed_at FROM treatment_records WHERE visit_id = ?"
+        let subtotal: f64 = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(p.procedure_price * tr.number_of_procedures), 0)
+             FROM treatment_records tr
+             JOIN procedures p ON p.id = tr.procedure_id
+             WHERE tr.visit_id = ?",
         )
         .bind(&input.visit_id)
-        .fetch_all(pool)
+        .fetch_one(pool)
         .await?;
-
-        let subtotal: f64 = treatment_records
-            .iter()
-            .map(|t| t.procedure_price * t.number_of_procedures as f64)
-            .sum();
         let total_amount = subtotal - input.discount;
 
         let invoice = sqlx::query_as::<_, Invoice>(

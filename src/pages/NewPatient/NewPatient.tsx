@@ -27,7 +27,7 @@ import { api } from "../../lib/api";
 import type {
   CreatePatientInput,
 } from "../../types/ApiTypes";
-import { FormErrors, medicalConditions, PatientProcedure, Patient, PatientVisit, TreatmentRecord, TreatmentTeeth } from "../../types/PatientFormTypes";
+import { FormErrors, medicalConditions, PatientProcedure, Patient, PatientVisit, TreatmentRecord, TreatmentTooth } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 
 const NewPatient: React.FC = () => {
@@ -69,10 +69,7 @@ const NewPatient: React.FC = () => {
     procedureId: "",
     numberOfProcedures: 1,
   });
-  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTeeth>({
-    toothNumber: 0,
-    toothQuadrant: ""
-  });
+  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTooth[]>([]);
 
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
@@ -88,6 +85,23 @@ const NewPatient: React.FC = () => {
         return prev.filter((id) => id !== toothData.id);
       }
       return [...prev, toothData.id];
+    });
+    setTreatmentTeeth((prev) => {
+      const toothNumber = parseInt(toothData.id, 10);
+      const toothQuadrant = toothData.quadrant || getToothQuadrant(toothData.id);
+
+      if (prev.some((tooth) => tooth.toothNumber === toothNumber)) {
+        return prev.filter((tooth) => tooth.toothNumber !== toothNumber);
+      }
+
+      return [
+        ...prev,
+        {
+          treatmentRecordId: "",
+          toothNumber,
+          toothQuadrant,
+        },
+      ];
     });
     setSealedTeeth((prev) => {
       const next = [
@@ -111,6 +125,26 @@ const NewPatient: React.FC = () => {
           .filter(Boolean),
       ),
     ).join(", ");
+  };
+
+  const getToothQuadrant = (toothId: string) => {
+    const fdiNumber = parseInt(toothId, 10);
+
+    if (fdiNumber >= 11 && fdiNumber <= 17) return "Upper Right";
+    if (fdiNumber >= 21 && fdiNumber <= 27) return "Upper Left";
+    if (fdiNumber >= 31 && fdiNumber <= 37) return "Lower Left";
+    if (fdiNumber >= 41 && fdiNumber <= 47) return "Lower Right";
+
+    return "";
+  };
+
+  const getTreatmentTeethInput = () => {
+    return treatmentTeeth
+      .filter((tooth) => tooth.toothNumber > 0 && tooth.toothQuadrant.trim())
+      .map((tooth) => ({
+        tooth_number: tooth.toothNumber,
+        tooth_quadrant: tooth.toothQuadrant.trim(),
+      }));
   };
 
   const getSelectedMedicalConditions = () => {
@@ -142,7 +176,7 @@ const NewPatient: React.FC = () => {
     setMedicationInput(value);
   };
 
-  const handlePatientVisitChange = (field: keyof PatientVisit, value: string) => {
+  const handlePatientVisitChange = (field: keyof PatientVisit, value: string | number) => {
     setPatientVisit((prev) => ({
       ...prev,
       [field]: value,
@@ -173,7 +207,7 @@ const NewPatient: React.FC = () => {
 
   const procValue = parseFloat(patientProcedure.procedurePrice.toString()) || 0;
   const numProc = parseInt(treatmentRecord.numberOfProcedures.toString()) || 1;
-  const discountAmount = parseFloat(patientVisit.discount) || 0;
+  const discountAmount = parseFloat(patientVisit.discount?.toString() || "0") || 0;
   const subtotal = procValue * numProc;
   const totalDue = subtotal - discountAmount;
   const currencySymbol = getCurrencySymbol(patientProcedure.procedureName);
@@ -208,21 +242,14 @@ const NewPatient: React.FC = () => {
     setXrayPreview(null);
   };
 
-  const handleChange = (
-    field: string,
-    value: string | boolean | medicalConditions | string[],
+  const handleTreatmentRecordChange = (
+    field: keyof TreatmentRecord,
+    value: string | number,
   ) => {
-    setPatientProcedure((prev) => ({
+    setTreatmentRecord((prev) => ({
       ...prev,
       [field]: value,
     }));
-
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }));
-    }
   };
 
   const handlePatientChange = (field: string, value: string | boolean) => {
@@ -282,6 +309,7 @@ const NewPatient: React.FC = () => {
       const allergiesCsv = formatCsvList(allergyInput);
       const medicationsCsv = formatCsvList(medicationInput);
       const selectedMedicalConditions = getSelectedMedicalConditions();
+      const treatmentTeethInput = getTreatmentTeethInput();
       const input: CreatePatientInput = {
         full_name: patient.fullName.trim(),
         phone: patient.phoneNumber.trim(),
@@ -297,6 +325,8 @@ const NewPatient: React.FC = () => {
         procedure_name: patientProcedure.procedureName.trim() || null,
         procedure_additional_note: patientProcedure.additionalNotes?.trim() || null,
         procedure_price: patientProcedure.procedurePrice > 0 ? patientProcedure.procedurePrice : null,
+        number_of_procedures: parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 1,
+        treatment_teeth: treatmentTeethInput.length > 0 ? treatmentTeethInput : null,
       };
 
       const created = await api.patients.create(input);
@@ -748,7 +778,7 @@ const NewPatient: React.FC = () => {
                         "Enter Value",
                       )}
                       onChange={(e) =>
-                        handleChange("procedurePrice", e.target.value)
+                        handlePatientProcedureChange("procedurePrice", e.target.value)
                       }
                       value={patientProcedure.procedurePrice || ""}
                       className="w-full text-right pr-12"
@@ -775,7 +805,7 @@ const NewPatient: React.FC = () => {
                       "Enter Value",
                     )}
                     onChange={(e) =>
-                      handleChange("numberOfProcedures", e.target.value)
+                      handleTreatmentRecordChange("numberOfProcedures", e.target.value)
                     }
                     value={treatmentRecord.numberOfProcedures?.toString() || ""}
                     className="w-28 mr-12"
@@ -798,7 +828,7 @@ const NewPatient: React.FC = () => {
                         "newPatient.discountPlaceholder",
                         "Enter Value",
                       )}
-                      onChange={(e) => handleChange("discount", e.target.value)}
+                      onChange={(e) => handlePatientVisitChange("discount", e.target.value)}
                       value={""}
                       className="w-full text-right pr-12"
                       disabled={isSubmitting}

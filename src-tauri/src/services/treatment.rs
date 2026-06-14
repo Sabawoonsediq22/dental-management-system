@@ -31,6 +31,8 @@ impl TreatmentRecordService {
         let id = format!("TR-{}", Uuid::new_v4().simple());
         let now = Utc::now().to_rfc3339();
 
+        let number_of_procedures = input.number_of_procedures.max(1);
+
         let treatment_record = sqlx::query_as::<_, TreatmentRecord>(
             "INSERT INTO treatment_records (id, visit_id, procedure_id, number_of_procedures, performed_at)
              VALUES (?, ?, ?, ?, ?)
@@ -39,18 +41,18 @@ impl TreatmentRecordService {
         .bind(&id)
         .bind(&input.visit_id)
         .bind(&input.procedure_id)
-        .bind(input.number_of_procedures)
+        .bind(number_of_procedures)
         .bind(&now)
         .fetch_one(&mut **tx)
         .await?;
 
-        for tooth_number in &input.tooth_numbers {
+        for tooth in input.treatment_teeth.iter().filter(|tooth| tooth.tooth_number > 0) {
             sqlx::query(
-                "INSERT INTO treatment_teeth (treatment_record_id, tooth_number, tooth_quadrant) VALUES (?, ?, ?)",
+                "INSERT INTO treatment_tooth (id, treatment_record_id, tooth_number, tooth_quadrant) VALUES (NULL, ?, ?, ?)",
             )
             .bind(&id)
-            .bind(tooth_number)
-            .bind(&input.tooth_quadrant)
+            .bind(tooth.tooth_number)
+            .bind(tooth.tooth_quadrant.trim())
             .execute(&mut **tx)
             .await?;
         }

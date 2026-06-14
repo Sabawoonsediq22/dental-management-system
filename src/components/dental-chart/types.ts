@@ -1,6 +1,7 @@
 export interface ToothData {
   id: string;
   number: number;
+  quadrant?: string;
 
   mb?: number;
   b?: number;

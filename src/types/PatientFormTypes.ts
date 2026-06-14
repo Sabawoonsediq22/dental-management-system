@@ -9,6 +9,8 @@ export interface Patient {
   updatedAt?: string;
 }
 
+export type PatientState = Patient;
+
 export interface PatientAllergies {
   id?: number;
   patientId: string;
@@ -66,7 +68,7 @@ export interface TreatmentRecord {
   performedAt?: string;
 }
 
-export interface TreatmentTeeth {
+export interface TreatmentTooth {
    id?: number;
    treatmentRecordId?: string;
    toothNumber: number;

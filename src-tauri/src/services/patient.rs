@@ -1,5 +1,6 @@
 use crate::models::*;
 use crate::services::errors::AppResult;
+use crate::services::treatment::TreatmentRecordService;
 use chrono::Utc;
 use sqlx::{SqlitePool, Transaction};
 use uuid::Uuid;
@@ -17,12 +18,10 @@ impl PatientService {
         let offset = ((page.max(1) - 1) * per_page) as i64;
         let per_page_i64 = per_page as i64;
 
-        // Get total count
         let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
             .fetch_one(pool)
             .await?;
 
-        // Build query with optional filtering
         let items: Vec<Patient> = if let Some(q_str) = query {
             if !q_str.trim().is_empty() {
                 let like = format!("%{}%", q_str.trim());
@@ -163,18 +162,26 @@ impl PatientService {
             &now,
         )
         .await?;
-        let procedure_id = Self::insert_procedure(
+
+        if let Some(procedure_id) = Self::insert_procedure(
             &mut tx,
             &visit_id,
             input.procedure_name.as_deref(),
             input.procedure_additional_note.as_deref(),
             input.procedure_price,
-            input.tooth_numbers.as_deref(),
-            input.tooth_quadrant.as_deref(),
-            input.number_of_procedures,
             &now,
         )
-        .await?;
+        .await?
+        {
+            Self::insert_treatment_record(
+                &mut tx,
+                &visit_id,
+                &procedure_id,
+                input.number_of_procedures,
+                input.treatment_teeth.as_deref(),
+            )
+            .await?;
+        }
 
         tx.commit().await?;
 
@@ -285,26 +292,58 @@ impl PatientService {
         additional_note: Option<&str>,
         price: Option<f64>,
         now: &str,
-    ) -> AppResult<()> {
+    ) -> AppResult<Option<String>> {
         let Some(name) = Self::trimmed_optional(name) else {
-            return Ok(());
+            return Ok(None);
         };
         let price = price.filter(|price| *price >= 0.0).unwrap_or(0.0);
         let additional_note = Self::trimmed_optional(additional_note);
         let id = format!("PROC-{}", Uuid::new_v4().simple());
 
         sqlx::query(
-            "INSERT INTO procedures (id, visit_id, name, additional_note, price, created_at, updated_at)
+            "INSERT INTO procedures (id, visit_id, name, additional_note, procedure_price, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
-        .bind(id)
+        .bind(&id)
         .bind(visit_id)
-        .bind(name)
+        .bind(&name)
         .bind(additional_note)
         .bind(price)
         .bind(now)
         .bind(now)
         .execute(&mut **tx)
+        .await?;
+
+        Ok(Some(id))
+    }
+
+    async fn insert_treatment_record(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        visit_id: &str,
+        procedure_id: &str,
+        number_of_procedures: Option<i32>,
+        treatment_teeth: Option<&[TreatmentToothInput]>,
+    ) -> AppResult<()> {
+        let number_of_procedures = number_of_procedures.unwrap_or(1).max(1);
+        let treatment_teeth = treatment_teeth
+            .unwrap_or(&[])
+            .iter()
+            .map(|tooth| TreatmentToothInput {
+                tooth_number: tooth.tooth_number,
+                tooth_quadrant: tooth.tooth_quadrant.trim().to_string(),
+            })
+            .filter(|tooth| tooth.tooth_number > 0 && !tooth.tooth_quadrant.is_empty())
+            .collect::<Vec<_>>();
+
+        TreatmentRecordService::insert_in_transaction(
+            tx,
+            CreateTreatmentRecordInput {
+                visit_id: visit_id.to_string(),
+                procedure_id: procedure_id.to_string(),
+                treatment_teeth,
+                number_of_procedures,
+            },
+        )
         .await?;
 
         Ok(())

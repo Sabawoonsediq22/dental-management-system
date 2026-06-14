@@ -69,9 +69,7 @@ pub struct TreatmentRecord {
     pub id: String,
     pub visit_id: String,
     pub procedure_id: String,
-    pub tooth_quadrant: Option<String>,
     pub number_of_procedures: i32,
-    pub procedure_price: f64,
     pub performed_at: String,
 }
 
@@ -80,7 +78,8 @@ pub struct TreatmentRecord {
 pub struct TreatmentTooth {
     pub id: i64,
     pub treatment_record_id: String,
-    pub tooth_number: Option<i32>,
+    pub tooth_number: i32,
+    pub tooth_quadrant: String,
 }
 
 // Procedure
@@ -89,7 +88,8 @@ pub struct Procedure {
     pub id: String,
     pub name: String,
     pub additional_note: Option<String>,
-    pub price: f64,
+    #[serde(rename = "price")]
+    pub procedure_price: f64,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -200,10 +200,8 @@ pub struct CreatePatientInput {
     pub procedure_additional_note: Option<String>,
     pub procedure_price: Option<f64>,
     pub number_of_procedures: Option<i32>,
-    pub tooth_numbers: Option<Vec<i32>>,
-    pub tooth_quadrant: Option<String>,
+    pub treatment_teeth: Option<Vec<TreatmentToothInput>>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdatePatientInput {
@@ -229,10 +227,14 @@ pub struct CreateVisitInput {
 pub struct CreateTreatmentRecordInput {
     pub visit_id: String,
     pub procedure_id: String,
-    pub tooth_quadrant: Option<String>,
-    pub tooth_numbers: Vec<i32>,
+    pub treatment_teeth: Vec<TreatmentToothInput>,
     pub number_of_procedures: i32,
-    pub procedure_price: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TreatmentToothInput {
+    pub tooth_number: i32,
+    pub tooth_quadrant: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

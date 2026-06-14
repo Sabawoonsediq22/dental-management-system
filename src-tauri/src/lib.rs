@@ -39,7 +39,7 @@ async fn create_patient(
         .map_err(|e| e.to_string())
 }
 
-
+#[tauri::command]
 async fn get_patient(state: State<'_, AppState>, id: String) -> Result<Patient, String> {
     PatientService::find(&state.db, &id)
         .await
