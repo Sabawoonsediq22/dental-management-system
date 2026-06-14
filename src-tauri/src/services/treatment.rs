@@ -32,15 +32,14 @@ impl TreatmentRecordService {
         let now = Utc::now().to_rfc3339();
 
         let treatment_record = sqlx::query_as::<_, TreatmentRecord>(
-            "INSERT INTO treatment_records (id, visit_id, procedure_id, quantity, procedure_price, performed_at)
-             VALUES (?, ?, ?, ?, ?, ?)
-             RETURNING id, visit_id, procedure_id, quantity, procedure_price, performed_at",
+            "INSERT INTO treatment_records (id, visit_id, procedure_id, number_of_procedures, performed_at)
+             VALUES (?, ?, ?, ?, ?)
+             RETURNING id, visit_id, procedure_id, number_of_procedures, performed_at",
         )
         .bind(&id)
         .bind(&input.visit_id)
         .bind(&input.procedure_id)
         .bind(input.number_of_procedures)
-        .bind(input.procedure_price)
         .bind(&now)
         .fetch_one(&mut **tx)
         .await?;
@@ -65,7 +64,7 @@ impl TreatmentRecordService {
         visit_id: &str,
     ) -> AppResult<Vec<TreatmentRecord>> {
         let records = sqlx::query_as(
-            "SELECT id, visit_id, procedure_id, quantity, procedure_price, performed_at FROM treatment_records WHERE visit_id = ? ORDER BY performed_at DESC",
+            "SELECT id, visit_id, procedure_id, number_of_procedures, performed_at FROM treatment_records WHERE visit_id = ? ORDER BY performed_at DESC",
         )
         .bind(visit_id)
         .fetch_all(pool)
