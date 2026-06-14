@@ -201,35 +201,6 @@ pub struct CreatePatientInput {
     pub procedure_price: Option<f64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreatePatientIntakeInput {
-    pub full_name: String,
-    pub phone: String,
-    pub age: i32,
-    pub gender: Gender,
-    pub address: Option<String>,
-    pub allergies: Option<String>,
-    pub medications: Option<String>,
-    pub medical_conditions: Vec<String>,
-    pub chief_complaint: Option<String>,
-    pub clinical_notes: Option<String>,
-    pub procedure_name: Option<String>,
-    pub procedure_price_override: Option<f64>,
-    pub tooth_numbers: Vec<i32>,
-    pub quantity: i32,
-    pub discount: f64,
-    pub xray_filename: Option<String>,
-    pub xray_bytes: Option<Vec<u8>>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PatientIntakeResult {
-    pub patient: Patient,
-    pub visit: Visit,
-    pub treatment_record: Option<TreatmentRecord>,
-    pub invoice: Invoice,
-    pub xray: Option<Xray>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdatePatientInput {

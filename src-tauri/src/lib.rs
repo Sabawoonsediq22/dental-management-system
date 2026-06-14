@@ -39,18 +39,7 @@ async fn create_patient(
         .map_err(|e| e.to_string())
 }
 
-#[tauri::command]
-async fn create_patient_intake(
-    app: tauri::AppHandle,
-    state: State<'_, AppState>,
-    input: CreatePatientIntakeInput,
-) -> Result<PatientIntakeResult, String> {
-    NewPatientIntakeService::create(&state.db, &app, input)
-        .await
-        .map_err(|e| e.to_string())
-}
 
-#[tauri::command]
 async fn get_patient(state: State<'_, AppState>, id: String) -> Result<Patient, String> {
     PatientService::find(&state.db, &id)
         .await
@@ -262,7 +251,6 @@ pub fn run() {
             greet,
             list_patients,
             create_patient,
-            create_patient_intake,
             get_patient,
             update_patient,
             delete_patient,

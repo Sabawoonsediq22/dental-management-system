@@ -49,6 +49,7 @@ export interface PatientVisit {
 
 export interface PatientProcedure {
   id?: string;
+  visitId?: string;
   procedureName: string;
   additionalNotes?: string | null;
   procedurePrice: number;

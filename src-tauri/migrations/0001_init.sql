@@ -57,16 +57,15 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     procedure_id TEXT NOT NULL REFERENCES procedures(id),
-    tooth_quadrant TEXT,
-    quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0),
-    procedure_price REAL NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0), -- number of times the procedure was performed
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS treatment_teeth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     treatment_record_id TEXT NOT NULL REFERENCES treatment_records(id) ON DELETE CASCADE,
-    tooth_number INTEGER
+    tooth_number INTEGER NOT NULL,
+    tooth_quadrant TEXT NOT NULL,
 );
 
 CREATE TABLE IF NOT EXISTS invoices (

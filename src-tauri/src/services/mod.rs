@@ -1,6 +1,5 @@
 pub mod errors;
 pub mod invoice;
-pub mod new_patient;
 pub mod patient;
 pub mod payment;
 pub mod procedure;
@@ -11,7 +10,6 @@ pub mod visit;
 pub mod xray;
 
 pub use invoice::InvoiceService;
-pub use new_patient::NewPatientIntakeService;
 pub use patient::PatientService;
 pub use payment::PaymentService;
 pub use procedure::ProcedureService;

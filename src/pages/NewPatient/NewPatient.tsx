@@ -65,13 +65,6 @@ const NewPatient: React.FC = () => {
     procedurePrice: 0,
   });
 
-  const [formData, setFormData] = useState({
-    procedure: "",
-    procedureValue: "",
-    numberOfProcedures: "1",
-    discount: "0",
-  });
-
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -169,12 +162,12 @@ const NewPatient: React.FC = () => {
     return dollarProcedures.includes(procedureName) ? "$" : "AFN";
   };
 
-  const procValue = parseFloat(formData.procedureValue) || 0;
-  const numProc = parseInt(formData.numberOfProcedures) || 1;
-  const discountAmount = parseFloat(formData.discount) || 0;
+  const procValue = parseFloat(patientProcedure.procedurePrice.toString()) || 0;
+  const numProc = parseInt(patientVisit.numberOfProcedures) || 1;
+  const discountAmount = parseFloat(patientVisit.discount) || 0;
   const subtotal = procValue * numProc;
   const totalDue = subtotal - discountAmount;
-  const currencySymbol = getCurrencySymbol(formData.procedure);
+  const currencySymbol = getCurrencySymbol(patientProcedure.procedureName);
 
   const handleToothMeasurements = (toothId: string) => {
     setSealedTeeth((prev) => {
@@ -210,7 +203,7 @@ const NewPatient: React.FC = () => {
     field: string,
     value: string | boolean | medicalConditions | string[],
   ) => {
-    setFormData((prev) => ({
+    setPatientProcedure((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -622,19 +615,12 @@ const NewPatient: React.FC = () => {
             <form onSubmit={handleProcedures}>
               <FormField label={t("newPatient.procedure")}>
                 <Select
-                  value={formData.procedure}
+                  value={patientProcedure.procedureName}
                   onChange={(e) => {
                     const selectedProcedureName = e.target.value;
                     const selectedProcedure = PROCEDURES.find(
                       (p) => p.name === selectedProcedureName,
                     );
-                    setFormData((prev) => ({
-                      ...prev,
-                      procedure: selectedProcedureName,
-                      procedureValue: selectedProcedure
-                        ? selectedProcedure.price.toString()
-                        : "",
-                    }));
                     setPatientProcedure((prev) => ({
                       ...prev,
                       procedureName: selectedProcedureName,
@@ -742,7 +728,7 @@ const NewPatient: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {formData.procedure || t("newPatient.selectedProcedure")}
+                      {patientProcedure.procedureName || t("newPatient.selectedProcedure")}
                     </p>
                   </div>
                   <div className="relative w-40">
@@ -753,9 +739,9 @@ const NewPatient: React.FC = () => {
                         "Enter Value",
                       )}
                       onChange={(e) =>
-                        handleChange("procedureValue", e.target.value)
+                        handleChange("procedurePrice", e.target.value)
                       }
-                      value={formData.procedureValue || ""}
+                      value={patientProcedure.procedurePrice || ""}
                       className="w-full text-right pr-12"
                       disabled={isSubmitting}
                     />
@@ -782,7 +768,7 @@ const NewPatient: React.FC = () => {
                     onChange={(e) =>
                       handleChange("numberOfProcedures", e.target.value)
                     }
-                    value={formData.numberOfProcedures || ""}
+                    value={""}
                     className="w-28 mr-12"
                     disabled={isSubmitting}
                   />
@@ -804,7 +790,7 @@ const NewPatient: React.FC = () => {
                         "Enter Value",
                       )}
                       onChange={(e) => handleChange("discount", e.target.value)}
-                      value={formData.discount || ""}
+                      value={""}
                       className="w-full text-right pr-12"
                       disabled={isSubmitting}
                     />

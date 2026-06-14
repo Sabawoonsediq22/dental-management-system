@@ -43,33 +43,6 @@ export interface CreatePatientInput {
   procedure_price?: number | null;
 }
 
-export interface CreatePatientIntakeInput {
-  full_name: string;
-  phone: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  address?: string | null;
-  allergies?: string | null;
-  medications?: string | null;
-  medical_conditions: string[];
-  chief_complaint?: string | null;
-  clinical_notes?: string | null;
-  procedure_name?: string | null;
-  procedure_price_override?: number | null;
-  tooth_numbers: number[];
-  quantity: number;
-  discount: number;
-  xray_filename?: string | null;
-  xray_bytes?: number[] | null;
-}
-
-export interface PatientIntakeResult {
-  patient: Patient;
-  visit: Visit;
-  treatment_record: TreatmentRecord | null;
-  invoice: Invoice;
-  xray: Xray | null;
-}
 
 export interface UpdatePatientInput {
   full_name?: string;
