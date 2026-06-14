@@ -4,10 +4,10 @@ mod models;
 mod services;
 mod utils;
 
-use tauri::State;
-use tauri::Manager;
 use crate::models::*;
 use crate::services::*;
+use tauri::Manager;
+use tauri::State;
 
 #[tauri::command]
 async fn greet(name: &str) -> Result<String, String> {
@@ -76,7 +76,11 @@ async fn delete_patient(state: State<'_, AppState>, id: String) -> Result<(), St
 }
 
 #[tauri::command]
-async fn add_medical_condition(state: State<'_, AppState>, patient_id: String, condition_name: String) -> Result<(), String> {
+async fn add_medical_condition(
+    state: State<'_, AppState>,
+    patient_id: String,
+    condition_name: String,
+) -> Result<(), String> {
     PatientService::add_medical_condition(&state.db, &patient_id, &condition_name)
         .await
         .map_err(|e| e.to_string())
@@ -97,7 +101,10 @@ async fn upload_xray(
 
 // Visit commands
 #[tauri::command]
-async fn create_visit(state: State<'_, AppState>, input: CreateVisitInput) -> Result<Visit, String> {
+async fn create_visit(
+    state: State<'_, AppState>,
+    input: CreateVisitInput,
+) -> Result<Visit, String> {
     VisitService::create(&state.db, input)
         .await
         .map_err(|e| e.to_string())
@@ -137,7 +144,10 @@ async fn add_treatment_record(
 
 // Invoice commands
 #[tauri::command]
-async fn create_invoice(state: State<'_, AppState>, input: CreateInvoiceInput) -> Result<Invoice, String> {
+async fn create_invoice(
+    state: State<'_, AppState>,
+    input: CreateInvoiceInput,
+) -> Result<Invoice, String> {
     InvoiceService::create(&state.db, input)
         .await
         .map_err(|e| e.to_string())
@@ -154,7 +164,10 @@ async fn get_visit_invoice(
 }
 
 #[tauri::command]
-async fn add_payment(state: State<'_, AppState>, input: AddPaymentInput) -> Result<Payment, String> {
+async fn add_payment(
+    state: State<'_, AppState>,
+    input: AddPaymentInput,
+) -> Result<Payment, String> {
     PaymentService::add(&state.db, input)
         .await
         .map_err(|e| e.to_string())
@@ -174,6 +187,24 @@ async fn get_invoice_payments(
 #[tauri::command]
 async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary, String> {
     ReportService::summary(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Procedure commands
+#[tauri::command]
+async fn list_procedures(state: State<'_, AppState>) -> Result<Vec<Procedure>, String> {
+    ProcedureService::list(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn find_procedure_by_name(
+    state: State<'_, AppState>,
+    name: String,
+) -> Result<Option<Procedure>, String> {
+    ProcedureService::find_by_name(&state.db, &name)
         .await
         .map_err(|e| e.to_string())
 }
@@ -208,9 +239,9 @@ pub fn run() {
                 .join("dental_clinic.db")
                 .to_string_lossy()
                 .to_string();
-            
+
             println!("Database path: {}", db_path);
-            
+
             let pool = tauri::async_runtime::block_on(db::init_pool(&db_path));
             match pool {
                 Ok(pool) => {
@@ -224,7 +255,7 @@ pub fn run() {
                     return Err(e.into());
                 }
             }
-            
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -245,6 +276,8 @@ pub fn run() {
             get_visit_invoice,
             add_payment,
             get_invoice_payments,
+            list_procedures,
+            find_procedure_by_name,
             get_report_summary,
             get_settings,
             update_settings,

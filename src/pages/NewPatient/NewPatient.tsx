@@ -654,7 +654,7 @@ const NewPatient: React.FC = () => {
                 </Select>
               </FormField>
 
-              <FormField label={t("newPatient.additionalNotes")}>
+              <FormField className="mt-3">
                 <FormTextarea
                   placeholder={t(
                     "newPatient.additionalNotesPlaceholder",

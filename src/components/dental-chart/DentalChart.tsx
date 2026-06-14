@@ -10,7 +10,7 @@ interface DentalChartProps {
 
 export default function DentalChart({ onToothSelect, onMeasurementChange, selectedToothIds = [], teethData }: DentalChartProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mt-6">
       {/* Upper Arch */}
       <div className="mb-4">
         <DentalArch
