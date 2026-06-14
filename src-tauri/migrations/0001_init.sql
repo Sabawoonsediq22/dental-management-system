@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS procedures (
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     additional_note TEXT,
-    price REAL NOT NULL CHECK (price >= 0),
+    procedure_price REAL NOT NULL CHECK (procedure_price >= 0),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -61,11 +61,11 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS treatment_teeth (
+CREATE TABLE IF NOT EXISTS treatment_tooth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     treatment_record_id TEXT NOT NULL REFERENCES treatment_records(id) ON DELETE CASCADE,
     tooth_number INTEGER NOT NULL,
-    tooth_quadrant TEXT NOT NULL,
+    tooth_quadrant TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS invoices (
@@ -146,3 +146,5 @@ CREATE INDEX idx_visits_date ON visits(visit_date);
 CREATE INDEX idx_backups_status ON backups(status);
 CREATE INDEX idx_backups_created_at ON backups(created_at);
 CREATE INDEX idx_backups_type_status ON backups(backup_type, status);
+CREATE INDEX IF NOT EXISTS idx_treatment_tooth_record ON treatment_tooth(treatment_record_id);
+CREATE INDEX IF NOT EXISTS idx_treatment_records_visit ON treatment_records(visit_id);
