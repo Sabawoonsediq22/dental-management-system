@@ -201,6 +201,8 @@ pub struct CreatePatientInput {
     pub procedure_price: Option<f64>,
     pub number_of_procedures: Option<i32>,
     pub treatment_teeth: Option<Vec<TreatmentToothInput>>,
+    pub discount: Option<f64>,
+    pub paid_amount: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -240,7 +242,9 @@ pub struct TreatmentToothInput {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateInvoiceInput {
     pub visit_id: String,
+    pub subtotal: f64,
     pub discount: f64,
+    pub paid_amount: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

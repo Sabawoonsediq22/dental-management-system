@@ -183,6 +183,14 @@ impl PatientService {
             .await?;
         }
 
+        Self::insert_invoice(
+            &mut tx,
+            &visit_id,
+            input.discount.unwrap_or(0.0),
+            input.paid_amount.unwrap_or(0.0),
+        )
+        .await?;
+
         tx.commit().await?;
 
         Ok(Patient {
@@ -344,6 +352,60 @@ impl PatientService {
                 number_of_procedures,
             },
         )
+        .await?;
+
+        Ok(())
+    }
+
+    async fn insert_invoice(
+        tx: &mut Transaction<'_, sqlx::Sqlite>,
+        visit_id: &str,
+        discount: f64,
+        paid_amount: f64,
+    ) -> AppResult<()> {
+        let subtotal: f64 = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(p.procedure_price * tr.number_of_procedures), 0)
+             FROM treatment_records tr
+             JOIN procedures p ON p.id = tr.procedure_id
+             WHERE tr.visit_id = ?",
+        )
+        .bind(visit_id)
+        .fetch_one(&mut **tx)
+        .await?;
+
+        let total_amount = subtotal - discount;
+        let outstanding_amount = total_amount - paid_amount;
+        let status = if outstanding_amount == 0.0 {
+            InvoiceStatus::Paid
+        } else if paid_amount > 0.0 {
+            InvoiceStatus::Partial
+        } else {
+            InvoiceStatus::Unpaid
+        };
+
+        let invoice_id = format!("INV-{}", uuid::Uuid::new_v4().simple());
+        let invoice_number = format!("INV-{}", Utc::now().timestamp_millis());
+        let now = Utc::now().to_rfc3339();
+
+        sqlx::query(
+            "INSERT INTO invoices (id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&invoice_id)
+        .bind(visit_id)
+        .bind(&invoice_number)
+        .bind(subtotal)
+        .bind(discount)
+        .bind(total_amount)
+        .bind(paid_amount)
+        .bind(outstanding_amount)
+        .bind(match status {
+            InvoiceStatus::Unpaid => "Unpaid",
+            InvoiceStatus::Partial => "Partial",
+            InvoiceStatus::Paid => "Paid",
+        })
+        .bind(&now)
+        .execute(&mut **tx)
         .await?;
 
         Ok(())

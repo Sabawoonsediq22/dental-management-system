@@ -122,12 +122,16 @@
     "browseFiles": "فایل‌ها را مرور کنید",
     "remove": "حذف کنید",
     "xRayDescription": "X-Ray تصاویر، اندرلالي دندان صورټونه یا د لوټول",
-    "billing": "بilling",
+"billing": "بilling",
     "molar": "مولر",
     "numberOfProcedures": "شمیر",
     "subtotal": "فرعي مجموعه",
-"discount": "تخفیف",
-    "totalDue": "مجموعی بیل"
+    "discount": "تخفیف",
+    "discountPlaceholder": "Enter افتتان",
+    "paidAmount": "ورکړل شوي پور",
+    "paidAmountPlaceholder": "د پور مقدار هېښ کړئ",
+    "outstanding": "باقي",
+    "totalDue": "مجموعي پور"
    },
   "common": {
     "cancel": "لغوه",

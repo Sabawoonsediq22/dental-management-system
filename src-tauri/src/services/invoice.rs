@@ -5,6 +5,16 @@ use sqlx::SqlitePool;
 
 pub struct InvoiceService;
 
+fn calculate_invoice_status(outstanding_amount: f64, paid_amount: f64) -> InvoiceStatus {
+    if outstanding_amount == 0.0 {
+        InvoiceStatus::Paid
+    } else if paid_amount > 0.0 {
+        InvoiceStatus::Partial
+    } else {
+        InvoiceStatus::Unpaid
+    }
+}
+
 impl InvoiceService {
     pub async fn create(pool: &SqlitePool, input: CreateInvoiceInput) -> AppResult<Invoice> {
         let id = format!("INV-{}", uuid::Uuid::new_v4().simple());
@@ -21,7 +31,10 @@ impl InvoiceService {
         .bind(&input.visit_id)
         .fetch_one(pool)
         .await?;
+
         let total_amount = subtotal - input.discount;
+        let outstanding_amount = total_amount - input.paid_amount;
+        let status = calculate_invoice_status(outstanding_amount, input.paid_amount);
 
         let invoice = sqlx::query_as::<_, Invoice>(
             "INSERT INTO invoices (id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at)
@@ -34,9 +47,13 @@ impl InvoiceService {
         .bind(subtotal)
         .bind(input.discount)
         .bind(total_amount)
-        .bind(0.0)
-        .bind(total_amount)
-        .bind("Unpaid")
+        .bind(input.paid_amount)
+        .bind(outstanding_amount)
+        .bind(match status {
+            InvoiceStatus::Unpaid => "Unpaid",
+            InvoiceStatus::Partial => "Partial",
+            InvoiceStatus::Paid => "Paid",
+        })
         .bind(&now)
         .fetch_one(pool)
         .await?;

@@ -46,6 +46,7 @@ export interface PatientVisit {
    clinicalNotes: string;
    status: "Open" | "Completed" | "Canceled";
    discount?: number;
+   paidAmount?: number;
    createdAt?: string;
    updatedAt?: string;
  }
@@ -73,6 +74,19 @@ export interface TreatmentTooth {
    treatmentRecordId?: string;
    toothNumber: number;
    toothQuadrant: string;
+}
+
+export interface invoice {
+  id?: string;
+  visitId: string;
+  invoiceNumber: string;
+  subtotal: number;
+  discount?: number;
+  totalAmount: number;
+  PaidAmount: number;
+  outstandingAmount: number;
+  status: "Unpaid" | "Partial" | "Paid";
+  issuedAt?: string;
 }
 
 export interface FormErrors {

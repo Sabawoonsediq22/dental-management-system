@@ -135,6 +135,10 @@
     "numberOfProcedures": "Number of Procedures",
     "subtotal": "Subtotal",
     "discount": "Discount",
+    "discountPlaceholder": "Enter discount",
+    "paidAmount": "Paid Amount",
+    "paidAmountPlaceholder": "Enter paid amount",
+    "outstanding": "Outstanding",
     "totalDue": "Total Due",
     "discardDraft": "Discard Draft",
     "saveAndPrintInvoice": "Save & Print Invoice"

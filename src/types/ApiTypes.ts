@@ -43,6 +43,8 @@ export interface CreatePatientInput {
   procedure_price?: number | null;
   number_of_procedures?: number;
   treatment_teeth?: TreatmentToothInput[] | null;
+  discount?: number | null;
+  paid_amount?: number | null;
 }
 
 
@@ -118,8 +120,10 @@ export interface Invoice {
 }
 
 export interface CreateInvoiceInput {
-  visit_id: string;
-  discount: number;
+    visit_id: string;
+    subtotal: number;
+    discount: number;
+    paid_amount: number;
 }
 
 export interface Payment {
