@@ -100,6 +100,7 @@
     "currentMedicationsPlaceholder": "List any medications currently being taken",
     "clinicalNotes": "Clinical Notes",
     "clinicalNotesPlaceholder": "Doctor's initial observations...",
+    "procedureAdditionalNotes": "Additional Notes",
     "medicalConditions": "Medical Conditions",
     "diabetes": "Diabetes",
     "hypertension": "Hypertension",

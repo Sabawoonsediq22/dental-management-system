@@ -99,7 +99,6 @@ const NewPatient: React.FC = () => {
   // X-ray, drag-drop, and dental chart state are independent from the main patient form.
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -302,11 +301,6 @@ const NewPatient: React.FC = () => {
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
   const removeXray = () => {
     setXrayFile(null);
     setXrayPreview(null);
@@ -354,30 +348,6 @@ const NewPatient: React.FC = () => {
         ...prev,
         [field]: undefined,
       }));
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith("image/")) {
-        setXrayFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setXrayPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert("Please upload an image file");
-      }
     }
   };
 
@@ -741,8 +711,8 @@ const NewPatient: React.FC = () => {
             </h3>
           </div>
           <div className="flex flex-col md:flex-row gap-6 px-4 pb-4">
-            <div className="space-y-4">
-              <div className="flex flex-col md:flex-row md:gap-4">
+            <div className="space-y-4 border dark:border-gray-700 py-4 px-2 rounded-lg">
+              <div className="flex flex-col md:flex-row md:gap-4 items-center justify-between">
                 <FormField label={t("newPatient.procedure")} className="flex-1">
                   <Select
                     value={patientProcedure.procedureName}
@@ -770,7 +740,7 @@ const NewPatient: React.FC = () => {
                   </Select>
                 </FormField>
 
-                <FormField className="flex-1">
+                <FormField className="flex-1" label={t("newPatient.procedureAdditionalNotes")}>
                   <FormInput
                     placeholder={t(
                       "newPatient.additionalNotesPlaceholder",
@@ -797,17 +767,10 @@ const NewPatient: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-2">
+            <div className="flex-2 space-y-4 w-full h-full">
               <FormField label={t("newPatient.xray")}>
                 <div
-                  className={`border border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 ${
-                    isDragging
-                      ? "border-primary bg-primary/5 dark:bg-primary/10"
-                      : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
+                  className="border border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {xrayPreview ? (
@@ -815,11 +778,12 @@ const NewPatient: React.FC = () => {
                       <img
                         src={xrayPreview}
                         alt="X-ray preview"
-                        className="max-w-full h-80 rounded-lg border border-gray-200 dark:border-gray-700"
+                        className=" w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
                       />
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {xrayFile?.name}
+                          {xrayFile?.size && ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
                         </p>
                         <Button
                           variant="outline"
@@ -833,7 +797,7 @@ const NewPatient: React.FC = () => {
                       </div>
                     </div>
                   ) : (
-                    <div>
+                    <div className="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 w-full h-full">
                       <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
                       <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                         {t("newPatient.uploadXray")}
