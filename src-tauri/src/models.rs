@@ -10,6 +10,7 @@ pub struct Patient {
     pub age: i32,
     pub gender: Gender,
     pub address: Option<String>,
+    pub last_visit: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }

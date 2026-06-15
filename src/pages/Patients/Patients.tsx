@@ -49,23 +49,6 @@ const Patients: React.FC = () => {
     console.log("Edit patient:", patient);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <LoadingSpinner className="mr-4" />
-        <div className="text-lg">Loading patients...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-lg text-red-500">Error loading patients: {String(error)}</div>
-      </div>
-    );
-  }
-
   const patients = data?.items ?? [];
 
   return (
@@ -80,16 +63,27 @@ const Patients: React.FC = () => {
       />
 
       <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <PatientTable
-          patients={patients}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          totalItems={data?.total ?? 0}
-          totalPages={data?.total_pages ?? 1}
-          onPageChange={handlePageChange}
-          onItemsPerPageChange={handleItemsPerPageChange}
-          onEditPatient={handleEditPatient}
-        />
+          {isLoading ? (
+            <div className="flex h-full items-center justify-center">
+              <LoadingSpinner className="mr-4" />
+              <div className="text-lg">Loading patients...</div>
+            </div>
+          ) : error ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="text-lg text-red-500">Error loading patients: {String(error)}</div>
+            </div>
+          ) : (
+            <PatientTable
+              patients={patients}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={data?.total ?? 0}
+              totalPages={data?.total_pages ?? 1}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              onEditPatient={handleEditPatient}
+              />
+          )}
       </div>
 
       <Pagination

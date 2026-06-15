@@ -26,7 +26,7 @@ impl PatientService {
             if !q_str.trim().is_empty() {
                 let like = format!("%{}%", q_str.trim());
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(&like)
                 .bind(&like)
@@ -38,7 +38,7 @@ impl PatientService {
             } else if let Some(g) = gender {
                 if g != "All" {
                     sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                        "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(g)
                     .bind(per_page_i64)
@@ -47,7 +47,7 @@ impl PatientService {
                     .await?
                 } else {
                     sqlx::query_as(
-                        "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                        "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(per_page_i64)
                     .bind(offset)
@@ -56,7 +56,7 @@ impl PatientService {
                 }
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -66,7 +66,7 @@ impl PatientService {
         } else if let Some(g) = gender {
             if g != "All" {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(g)
                 .bind(per_page_i64)
@@ -75,7 +75,7 @@ impl PatientService {
                 .await?
             } else {
                 sqlx::query_as(
-                    "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                    "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
@@ -84,7 +84,7 @@ impl PatientService {
             }
         } else {
             sqlx::query_as(
-                "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
+                "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
             )
             .bind(per_page_i64)
             .bind(offset)
@@ -105,7 +105,7 @@ impl PatientService {
 
     pub async fn find(pool: &SqlitePool, id: &str) -> AppResult<Patient> {
         let patient = sqlx::query_as(
-            "SELECT id, full_name, phone, age, gender, address, created_at, updated_at FROM patients WHERE id = ?"
+            "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE id = ?"
         )
         .bind(id)
         .fetch_optional(pool)
@@ -200,6 +200,7 @@ impl PatientService {
             age: input.age,
             gender: input.gender,
             address: input.address,
+            last_visit: input.visit_date,
             created_at: now.clone(),
             updated_at: now,
         })
@@ -499,6 +500,7 @@ impl PatientService {
             age,
             gender,
             address,
+            last_visit: existing.last_visit,
             created_at: existing.created_at,
             updated_at: now,
         })

@@ -41,7 +41,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
           <thead>
             <tr className="border-b bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
               <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
-                ID
+                NO.
               </th>
               <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
                 FULL NAME
@@ -64,13 +64,13 @@ const PatientTable: React.FC<PatientTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
-            {patients.map((patient) => (
+            {patients.map((patient, index) => (
               <tr
                 key={patient.id}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
               >
                 <td className="py-3 px-4 text-sm font-mono text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                  {patient.id.split("-").slice(0, 2).join("-")}
+                  {index + 1}
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
