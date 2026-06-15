@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -277,8 +277,10 @@ const NewPatient: React.FC = () => {
   const numProc = parseInt(treatmentRecord.numberOfProcedures.toString()) || 1;
   const discountAmount =
     parseFloat(patientVisit.discount?.toString() || "0") || 0;
+  const paidAmount = parseFloat(patientVisit.paidAmount?.toString() || "0") || 0;
   const subtotal = procValue * numProc;
   const totalDue = subtotal - discountAmount;
+  const outstandingAmount = totalDue - paidAmount;
   const currencySymbol = getCurrencySymbol(patientProcedure.procedureName);
 
   const handleToothMeasurements = (toothId: string) => {
@@ -907,7 +909,7 @@ const NewPatient: React.FC = () => {
                       onChange={(e) =>
                         handlePatientVisitChange("discount", e.target.value)
                       }
-                      value={""}
+                      value={patientVisit.discount ?? ""}
                       className="w-full text-right pr-12"
                       disabled={isSubmitting}
                     />
@@ -915,11 +917,39 @@ const NewPatient: React.FC = () => {
                       {currencySymbol}
                     </span>
                   </div>
-                </div>
-              </div>
-            </div>
+</div>
+               </div>
+               <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                 <div className="flex items-center justify-between gap-4">
+                   <div className="flex items-center gap-2">
+                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                     <p className="text-sm text-gray-500 dark:text-gray-400">
+                       {t("newPatient.paidAmount")}
+                     </p>
+                   </div>
+                   <div className="relative w-40">
+                     <FormInput
+                       type="number"
+                       placeholder={t(
+                         "newPatient.paidAmountPlaceholder",
+                         "Enter Amount",
+                       )}
+                       onChange={(e) =>
+                         handlePatientVisitChange("paidAmount", e.target.value)
+                       }
+                       value={patientVisit.paidAmount ?? ""}
+                       className="w-full text-right pr-12"
+                       disabled={isSubmitting}
+                     />
+                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                       {currencySymbol}
+                     </span>
+                   </div>
+                 </div>
+               </div>
+             </div>
 
-            <div className="space-y-4 flex-2">
+             <div className="space-y-4 flex-2">
               <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-blue-100 dark:bg-gray-700/50 h-full flex flex-col justify-center gap-2">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-700 dark:text-gray-200">
@@ -937,12 +967,28 @@ const NewPatient: React.FC = () => {
                     {formatCurrency(discountAmount)} {currencySymbol}
                   </p>
                 </div>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-gray-700 dark:text-gray-200">
+                    {t("newPatient.paidAmount")}
+                  </p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {formatCurrency(paidAmount)} {currencySymbol}
+                  </p>
+                </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-300 dark:border-gray-600">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {t("newPatient.totalDue")}
                   </p>
                   <p className="text-xl font-bold text-primary dark:text-white">
                     {formatCurrency(totalDue)} {currencySymbol}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t-2 border-primary dark:border-gray-400 mt-2">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    {t("newPatient.outstanding")}
+                  </p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(outstandingAmount)} {currencySymbol}
                   </p>
                 </div>
               </div>
