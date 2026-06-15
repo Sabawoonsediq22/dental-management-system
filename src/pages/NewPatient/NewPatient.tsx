@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+﻿import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,6 +10,7 @@ import {
   ImageIcon,
   BillingIcon,
   CheckCircleIcon,
+  CrossCircleIcon,
 } from "../../shared/icons/icons";
 import { Button } from "../../components/ui";
 import {
@@ -282,6 +283,22 @@ const NewPatient: React.FC = () => {
   const totalDue = subtotal - discountAmount;
   const outstandingAmount = totalDue - paidAmount;
   const currencySymbol = getCurrencySymbol(patientProcedure.procedureName);
+  const numberOfProcedures =
+    parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 0;
+  const BillingStatusIcon: React.FC<{
+    isActive: boolean;
+    className?: string;
+  }> = ({ isActive, className = "" }) => {
+    const Icon = isActive ? CheckCircleIcon : CrossCircleIcon;
+
+    return (
+      <Icon
+        className={`w-4 h-4 ${
+          isActive ? "text-green-500" : "text-red-500"
+        } ${className}`}
+      />
+    );
+  };
 
   const handleToothMeasurements = (toothId: string) => {
     setSealedTeeth((prev) => {
@@ -835,7 +852,9 @@ const NewPatient: React.FC = () => {
               <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    <BillingStatusIcon
+                      isActive={Boolean(patientProcedure.procedureName.trim())}
+                    />
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {patientProcedure.procedureName ||
                         t("newPatient.selectedProcedure")}
@@ -868,7 +887,7 @@ const NewPatient: React.FC = () => {
               <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    <BillingStatusIcon isActive={numberOfProcedures > 0} />
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {t("newPatient.numberOfProcedures")}
                     </p>
@@ -885,7 +904,11 @@ const NewPatient: React.FC = () => {
                         e.target.value,
                       )
                     }
-                    value={treatmentRecord.numberOfProcedures?.toString() || ""}
+                    value={
+                      treatmentRecord.numberOfProcedures > 0
+                        ? treatmentRecord.numberOfProcedures.toString()
+                        : ""
+                    }
                     className="w-28 mr-12"
                     disabled={isSubmitting}
                   />
@@ -894,7 +917,7 @@ const NewPatient: React.FC = () => {
               <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    <BillingStatusIcon isActive={discountAmount > 0} />
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {t("newPatient.discount")}
                     </p>
@@ -917,39 +940,39 @@ const NewPatient: React.FC = () => {
                       {currencySymbol}
                     </span>
                   </div>
-</div>
-               </div>
-               <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                 <div className="flex items-center justify-between gap-4">
-                   <div className="flex items-center gap-2">
-                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
-                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                       {t("newPatient.paidAmount")}
-                     </p>
-                   </div>
-                   <div className="relative w-40">
-                     <FormInput
-                       type="number"
-                       placeholder={t(
-                         "newPatient.paidAmountPlaceholder",
-                         "Enter Amount",
-                       )}
-                       onChange={(e) =>
-                         handlePatientVisitChange("paidAmount", e.target.value)
-                       }
-                       value={patientVisit.paidAmount ?? ""}
-                       className="w-full text-right pr-12"
-                       disabled={isSubmitting}
-                     />
-                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
-                       {currencySymbol}
-                     </span>
-                   </div>
-                 </div>
-               </div>
-             </div>
+                </div>
+              </div>
+              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <BillingStatusIcon isActive={paidAmount > 0} />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t("newPatient.paidAmount")}
+                      </p>
+                    </div>
+                  <div className="relative w-40">
+                    <FormInput
+                      type="number"
+                      placeholder={t(
+                        "newPatient.paidAmountPlaceholder",
+                        "Enter Amount",
+                      )}
+                      onChange={(e) =>
+                        handlePatientVisitChange("paidAmount", e.target.value)
+                      }
+                      value={patientVisit.paidAmount ?? ""}
+                      className="w-full text-right pr-12"
+                      disabled={isSubmitting}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      {currencySymbol}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-             <div className="space-y-4 flex-2">
+            <div className="space-y-4 flex-2">
               <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-blue-100 dark:bg-gray-700/50 h-full flex flex-col justify-center gap-2">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-700 dark:text-gray-200">

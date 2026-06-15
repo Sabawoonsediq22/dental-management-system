@@ -587,6 +587,26 @@ export const CheckCircleIcon: React.FC<IconProps> = ({
   </svg>
 );
 
+/** Cancel / not completed */
+export const CrossCircleIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 9l6 6m0-6l-6 6m3 7a9 9 0 100-18 9 9 0 000 18z"
+    />
+  </svg>
+);
+
 /** Error / problem tooth — right-pointing warning triangle */
 export const ErrorTriangleIcon: React.FC<IconProps> = ({
   className = "",
