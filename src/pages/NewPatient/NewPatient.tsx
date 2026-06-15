@@ -242,6 +242,19 @@ const NewPatient: React.FC = () => {
     setXrayPreview(null);
   };
 
+  const fileToUint8Array = (file: File): Promise<number[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const buffer = reader.result as ArrayBuffer;
+        const uint8 = new Uint8Array(buffer);
+        resolve(Array.from(uint8));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
   const handleTreatmentRecordChange = (
     field: keyof TreatmentRecord,
     value: string | number,
@@ -331,6 +344,19 @@ const NewPatient: React.FC = () => {
 
       const created = await api.patients.create(input);
 
+      if (xrayFile && created.id) {
+        try {
+          if (!api.patients.upload_xray) {
+            throw new Error("upload_xray command is not available");
+          }
+          const bytes = await fileToUint8Array(xrayFile);
+          await api.patients.upload_xray(created.id, xrayFile.name, bytes);
+        } catch (xrayError) {
+          console.error("X-ray upload failed:", xrayError);
+          toast.error({ title: "X-ray upload failed", description: String(xrayError) });
+        }
+      }
+
       toast.success({ title: "Patient created successfully" });
       navigate(`/patients/${created.id}`);
     } catch (error) {
@@ -341,24 +367,8 @@ const NewPatient: React.FC = () => {
     }
   };
 
-  const handlePatientAllergies = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handlePatientMedication = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handleVisitDetails = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handleProcedures = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
   return (
-    <div className="space-y-6">
+    <form onSubmit={handlePatient} className="space-y-6">
       <div className="mb-6 flex justify-between">
         <div>
           <div className="flex items-center gap-3">
@@ -400,10 +410,7 @@ const NewPatient: React.FC = () => {
               {t("newPatient.personalInfo")}
             </h3>
           </div>
-          <form
-            className="space-y-4 px-4 pb-6"
-            onSubmit={handlePatient}
-          >
+          <div className="space-y-4 px-4 pb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 label={t("newPatient.fullName")}
@@ -474,7 +481,7 @@ const NewPatient: React.FC = () => {
                 />
               </FormField>
             </div>
-          </form>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -486,7 +493,7 @@ const NewPatient: React.FC = () => {
               </h3>
             </div>
             <div className="space-y-4 px-4 pb-4">
-            <form onSubmit={handlePatientAllergies}>
+            <div>
               <FormField label={t("newPatient.allergies")}>
                 <FormInput
                   placeholder={t(
@@ -498,7 +505,7 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </FormField>
-            </form>
+            </div>
 
               <div className="space-y-3 my-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
                 <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
@@ -581,7 +588,6 @@ const NewPatient: React.FC = () => {
                     </FormField>
                   </div>
               </div>
-              <form onSubmit={handlePatientMedication}>
               <FormField label={t("newPatient.currentMedications")}>
                 <FormTextarea
                   placeholder={t(
@@ -594,7 +600,6 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </FormField>
-            </form>
             </div>
           </div>
 
@@ -605,7 +610,7 @@ const NewPatient: React.FC = () => {
                 {t("newPatient.visitDetails")}
               </h3>
             </div>
-            <form onSubmit={handleVisitDetails} className="space-y-4 px-4 pb-4">
+            <div className="space-y-4 px-4 pb-4">
               <FormField label={t("newPatient.chiefComplaint")}>
                 <FormTextarea
                   placeholder={t("newPatient.chiefComplaintPlaceholder")}
@@ -629,7 +634,7 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </FormField>
-            </form>
+            </div>
           </div>
         </div>
 
@@ -651,7 +656,7 @@ const NewPatient: React.FC = () => {
             </div>
 
             <div className="space-y-4 flex-2">
-            <form onSubmit={handleProcedures}>
+            <div>
               <FormField label={t("newPatient.procedure")}>
                 <Select
                   value={patientProcedure.procedureName}
@@ -693,7 +698,7 @@ const NewPatient: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </FormField>
-            </form>
+            </div>
 
               <FormField label={t("newPatient.xray")}>
                 <div
@@ -883,8 +888,7 @@ const NewPatient: React.FC = () => {
           </Button>
           <Button
             variant="default"
-            type="button"
-            onClick={handlePatient}
+            type="submit"
             className="px-6 py-2 bg-primary hover:bg-primary/90 text-white transition-colors cursor-pointer"
             disabled={isSubmitting}
           >
@@ -894,7 +898,7 @@ const NewPatient: React.FC = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 
