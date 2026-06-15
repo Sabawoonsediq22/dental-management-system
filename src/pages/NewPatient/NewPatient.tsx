@@ -382,33 +382,35 @@ const NewPatient: React.FC = () => {
       const medicationsCsv = formatCsvList(medicationInput);
       const selectedMedicalConditions = getSelectedMedicalConditions();
       const treatmentTeethInput = getTreatmentTeethInput();
-      const input: CreatePatientInput = {
-        full_name: patient.fullName.trim(),
-        phone: patient.phoneNumber.trim(),
-        age: patient.age,
-        gender,
-        address: patient.address?.trim() || null,
-        allergies: allergiesCsv || null,
-        medications: medicationsCsv || null,
-        medical_conditions:
-          selectedMedicalConditions.length > 0
-            ? selectedMedicalConditions
-            : null,
-        visit_date: patientVisit.visitDate || null,
-        chief_complaint: patientVisit.chiefComplaint.trim() || null,
-        clinical_notes: patientVisit.clinicalNotes.trim() || null,
-        procedure_name: patientProcedure.procedureName.trim() || null,
-        procedure_additional_note:
-          patientProcedure.additionalNotes?.trim() || null,
-        procedure_price:
-          patientProcedure.procedurePrice > 0
-            ? patientProcedure.procedurePrice
-            : null,
-        number_of_procedures:
-          parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 1,
-        treatment_teeth:
-          treatmentTeethInput.length > 0 ? treatmentTeethInput : null,
-      };
+const input: CreatePatientInput = {
+          full_name: patient.fullName.trim(),
+          phone: patient.phoneNumber.trim(),
+          age: patient.age,
+          gender,
+          address: patient.address?.trim() || null,
+          allergies: allergiesCsv || null,
+          medications: medicationsCsv || null,
+          medical_conditions:
+            selectedMedicalConditions.length > 0
+              ? selectedMedicalConditions
+              : null,
+          visit_date: patientVisit.visitDate || null,
+          chief_complaint: patientVisit.chiefComplaint.trim() || null,
+          clinical_notes: patientVisit.clinicalNotes.trim() || null,
+          procedure_name: patientProcedure.procedureName.trim() || null,
+          procedure_additional_note:
+            patientProcedure.additionalNotes?.trim() || null,
+          procedure_price:
+            patientProcedure.procedurePrice > 0
+              ? patientProcedure.procedurePrice
+              : null,
+          number_of_procedures:
+            parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 1,
+          treatment_teeth:
+            treatmentTeethInput.length > 0 ? treatmentTeethInput : null,
+          discount: discountAmount > 0 ? discountAmount : null,
+          paid_amount: paidAmount > 0 ? paidAmount : null,
+        };
 
       const created = await api.patients.create(input);
 
@@ -730,7 +732,7 @@ const NewPatient: React.FC = () => {
             </h3>
           </div>
           <div className="flex flex-col md:flex-row gap-6 px-4 pb-4">
-            <div className="space-y-4 border dark:border-gray-700 py-4 px-2 rounded-lg">
+            <div className="space-y-4">
               <div className="flex flex-col md:flex-row md:gap-4 items-center justify-between">
                 <FormField label={t("newPatient.procedure")} className="flex-1">
                   <Select
