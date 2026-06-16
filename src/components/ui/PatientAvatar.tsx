@@ -2,7 +2,7 @@ import React from "react";
 
 interface PatientAvatarProps {
   name: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "xxl";
   className?: string;
 }
 
@@ -34,6 +34,7 @@ const sizeClasses = {
   md: "w-10 h-10 text-sm",
   lg: "w-12 h-12 text-base",
   xl: "w-16 h-16 text-lg",
+  xxl: "w-20 h-20 text-xl",
 };
 
 const PatientAvatar: React.FC<PatientAvatarProps> = ({

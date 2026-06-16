@@ -41,3 +41,53 @@ export interface SearchBarProps {
   onChange: (value: string) => void;
   placeholder?: string;
 }
+
+export interface PatientHeaderInfo {
+  id: string;
+  full_name: string;
+  location: string;
+  registered_date: string;
+}
+
+export interface PatientStatistics {
+  total_spent: number;
+  total_spent_status: "Fully Paid" | "Partially Paid" | "Overdue";
+  last_visit_date: string;
+  last_visit_procedure: string;
+  outstanding_balance: number;
+}
+
+export interface PersonalDetail {
+  label: string;
+  label_localized?: string;
+  value: string;
+  icon: React.ReactNode;
+}
+
+export interface AllergyAlert {
+  label: string;
+  value: string;
+}
+
+export interface TreatmentEntry {
+  id: string;
+  title: string;
+  tooth_number?: number;
+  date: string;
+  time: string;
+  cost: number;
+  status: "Completed" | "In Progress" | "Cancelled" | "Scheduled";
+  notes?: string;
+  images?: string[];
+}
+
+export interface PatientProfileProps {
+  patient: PatientHeaderInfo;
+  statistics: PatientStatistics;
+  personalDetails: PersonalDetail[];
+  allergiesAlerts: AllergyAlert[];
+  treatmentHistory: TreatmentEntry[];
+  onEditPersonalInfo?: () => void;
+  onDeletePatient?: () => void;
+  onNewVisit?: () => void;
+}

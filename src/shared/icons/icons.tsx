@@ -907,7 +907,7 @@ export const MoreHorizontalIcon: React.FC<IconProps> = ({
 );
 
 /** Home icon for breadcrumbs */
-export const HomeBreadcrumbIcon: React.FC<IconProps> = ({
+export const HomeIcon: React.FC<IconProps> = ({
   className = "",
   size = "md",
 }) => (
@@ -921,9 +921,8 @@ export const HomeBreadcrumbIcon: React.FC<IconProps> = ({
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
-      d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
     />
-    <polyline points="9,22 9,12 15,12 15,22" />
   </svg>
 );
 
@@ -973,6 +972,104 @@ export const ImageIcon: React.FC<IconProps> = ({
       strokeLinejoin="round"
       strokeWidth={2}
       d="M21 15l-5-5L5 21"
+    />
+  </svg>
+);
+
+/** phone icon */
+export const PhoneIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.443a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 006.105 6.105l1.13-2.257a1 1 0 011.21-.502l4.443 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+    />
+  </svg>
+);
+
+/** location icon */
+export const LocationIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg className={`${sizeClasses[size]} ${className}`}
+   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+      />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+  </svg>
+);
+
+/** Plus icon */
+export const PlusIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg className={`${sizeClasses[size]} ${className}`} 
+    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 4v16m8-8H4"
+      />
+  </svg>
+);
+
+/** Download icon */
+export const DownloadIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+    />
+  </svg>
+);
+
+/** TechMark icon */
+export const TechMarkIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M5 13l4 4L19 7"
     />
   </svg>
 );

@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { PatientAvatar } from "../ui";
 import { EditIcon } from "../../shared/icons/icons";
 import { PatientTableProps } from "../../types/PatientTypes";
@@ -18,8 +19,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
   onEditPatient,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const getGenderLabel = (gender: string) =>
     t(`patients.filters.${gender.toLowerCase()}`, gender);
+
   if (patients.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800">
@@ -68,6 +71,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <tr
                 key={patient.id}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
+                onClick={() => navigate(`/patients/${patient.id}`)}
               >
                 <td className="py-3 px-4 text-sm font-mono text-gray-600 dark:text-gray-300 whitespace-nowrap">
                   {index + 1}
@@ -96,7 +100,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </td>
                 <td className="py-3 px-4">
                   <button
-                    onClick={() => onEditPatient?.(patient)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditPatient?.(patient);
+                    }}
                     className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 transition-colors"
                     aria-label={`Edit ${patient.full_name}`}
                   >
@@ -114,7 +121,8 @@ const PatientTable: React.FC<PatientTableProps> = ({
         {patients.map((patient) => (
           <div
             key={patient.id}
-            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
+            onClick={() => navigate(`/patients/${patient.id}`)}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -129,7 +137,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => onEditPatient?.(patient)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditPatient?.(patient);
+                }}
                 className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 shrink-0 transition-colors"
                 aria-label={`Edit ${patient.full_name}`}
               >

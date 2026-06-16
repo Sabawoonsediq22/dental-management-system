@@ -39,6 +39,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
             "patients.searchPlaceholder",
             "Search by name, phone, or Patient ID",
           )}
+          className="w-full sm:w-lg"
         />
         <Button onClick={onAddNewPatient} className="cursor-pointer">
           <AddIcon size="sm" />

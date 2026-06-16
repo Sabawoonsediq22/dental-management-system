@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  HomeBreadcrumbIcon,
+  HomeIcon,
 } from "../../shared/icons/icons";
 
 export interface BreadcrumbItem {
@@ -65,7 +65,7 @@ const Breadcrumbs = React.forwardRef<HTMLElement, BreadcrumbsProps>(
                       aria-current="page"
                     >
                       {isFirst && (
-                        <HomeBreadcrumbIcon
+                        <HomeIcon
                           className={cn(
                             "h-4 w-4 inline-block",
                             iconMargin,
@@ -88,7 +88,7 @@ const Breadcrumbs = React.forwardRef<HTMLElement, BreadcrumbsProps>(
                       )}
                     >
                       {isFirst && (
-                        <HomeBreadcrumbIcon
+                        <HomeIcon
                           className={cn("h-4 w-4", iconMargin, "-mt-0.5")}
                         />
                       )}
