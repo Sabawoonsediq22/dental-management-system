@@ -594,4 +594,58 @@ impl PatientService {
             outstanding_balance,
         })
     }
+
+    pub async fn update_medical_info(
+        pool: &SqlitePool,
+        patient_id: &str,
+        input: UpdatePatientMedicalInfoInput,
+    ) -> AppResult<()> {
+        let mut tx = pool.begin().await?;
+
+        // Clear existing records
+        sqlx::query("DELETE FROM patient_allergies WHERE patient_id = ?")
+            .bind(patient_id)
+            .execute(&mut *tx)
+            .await?;
+
+        sqlx::query("DELETE FROM patient_medications WHERE patient_id = ?")
+            .bind(patient_id)
+            .execute(&mut *tx)
+            .await?;
+
+        sqlx::query("DELETE FROM medical_conditions WHERE patient_id = ?")
+            .bind(patient_id)
+            .execute(&mut *tx)
+            .await?;
+
+        // Insert new allergies
+        for allergy in Self::split_csv(input.allergies.as_deref()) {
+            sqlx::query("INSERT INTO patient_allergies (patient_id, allergy_name) VALUES (?, ?)")
+                .bind(patient_id)
+                .bind(&allergy)
+                .execute(&mut *tx)
+                .await?;
+        }
+
+        // Insert new medications
+        for medication in Self::split_csv(input.medications.as_deref()) {
+            sqlx::query("INSERT INTO patient_medications (patient_id, medication_name) VALUES (?, ?)")
+                .bind(patient_id)
+                .bind(&medication)
+                .execute(&mut *tx)
+                .await?;
+        }
+
+        // Insert new conditions
+        for condition in Self::dedupe_strings(input.medical_conditions.as_deref().unwrap_or(&[])) {
+            sqlx::query("INSERT INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)")
+                .bind(patient_id)
+                .bind(&condition)
+                .execute(&mut *tx)
+                .await?;
+        }
+
+        tx.commit().await?;
+        Ok(())
+    }
 }

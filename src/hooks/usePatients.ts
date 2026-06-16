@@ -63,6 +63,17 @@ export function useUpdatePatient() {
   });
 }
 
+export function useUpdatePatientMedicalInfo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ patient_id, input }: { patient_id: string; input: Parameters<typeof api.patients.updateMedicalInfo>[1] }) =>
+      api.patients.updateMedicalInfo(patient_id, input),
+    onSuccess: (_, { patient_id }) => {
+      qc.invalidateQueries({ queryKey: ["patients", patient_id, "medical-info"] });
+    },
+  });
+}
+
 export function useDeletePatient() {
   const qc = useQueryClient();
   return useMutation({

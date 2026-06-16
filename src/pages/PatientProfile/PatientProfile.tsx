@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Modal, LoadingSpinner } from "../../components/ui";
-import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient } from "../../hooks/usePatients";
+import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient, useUpdatePatientMedicalInfo } from "../../hooks/usePatients";
 import { useVisits } from "../../hooks/useVisits";
 import { useQueryClient } from "@tanstack/react-query";
 import { AllergyAlert, TreatmentEntry } from "../../types/PatientTypes";
@@ -153,8 +153,24 @@ const PatientProfile: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const updateMedicalInfoMutation = useUpdatePatientMedicalInfo();
+
   const handleSaveAllergies = () => {
-    console.log("Saving allergies:", allergiesFormData);
+    if (patient) {
+      const conditionsArray = allergiesFormData.medical_conditions
+        .split(",")
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
+
+      updateMedicalInfoMutation.mutate({
+        patient_id: patient.id,
+        input: {
+          allergies: allergiesFormData.allergies || null,
+          medications: allergiesFormData.medications || null,
+          medical_conditions: conditionsArray.length > 0 ? conditionsArray : null,
+        },
+      });
+    }
     setShowAllergiesModal(false);
   };
 
@@ -173,7 +189,7 @@ const PatientProfile: React.FC = () => {
   if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading patient information..." />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

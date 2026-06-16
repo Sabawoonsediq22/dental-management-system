@@ -234,6 +234,13 @@ pub struct UpdatePatientInput {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct UpdatePatientMedicalInfoInput {
+    pub allergies: Option<String>,
+    pub medications: Option<String>,
+    pub medical_conditions: Option<Vec<String>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateVisitInput {
     pub patient_id: String,
     pub visit_date: Option<String>,

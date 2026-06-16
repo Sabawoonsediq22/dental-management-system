@@ -24,6 +24,12 @@ export interface PatientStatisticsInfo {
   outstanding_balance: number;
 }
 
+export interface UpdatePatientMedicalInfoInput {
+  allergies: string | null;
+  medications: string | null;
+  medical_conditions: string[] | null;
+}
+
 export interface PatientPageResult {
   items: Patient[];
   total: number;
