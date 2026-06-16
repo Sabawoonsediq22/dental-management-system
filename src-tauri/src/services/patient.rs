@@ -532,4 +532,66 @@ impl PatientService {
             .await?;
         Ok(())
     }
+
+    pub async fn get_medical_info(pool: &SqlitePool, id: &str) -> AppResult<PatientMedicalInfoResponse> {
+        let allergies: Vec<String> = sqlx::query_scalar("SELECT allergy_name FROM patient_allergies WHERE patient_id = ?")
+            .bind(id)
+            .fetch_all(pool)
+            .await?
+            .into_iter()
+            .map(|r: String| r)
+            .collect();
+
+        let medications: Vec<String> = sqlx::query_scalar("SELECT medication_name FROM patient_medications WHERE patient_id = ?")
+            .bind(id)
+            .fetch_all(pool)
+            .await?
+            .into_iter()
+            .map(|r: String| r)
+            .collect();
+
+        let conditions: Vec<String> = sqlx::query_scalar("SELECT condition_name FROM medical_conditions WHERE patient_id = ?")
+            .bind(id)
+            .fetch_all(pool)
+            .await?
+            .into_iter()
+            .map(|r: String| r)
+            .collect();
+
+        Ok(PatientMedicalInfoResponse {
+            allergies,
+            medications,
+            medical_conditions: conditions,
+        })
+    }
+
+    pub async fn get_statistics(pool: &SqlitePool, id: &str) -> AppResult<PatientStatisticsResponse> {
+        let total_spent: f64 = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(i.total_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?"
+        )
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+        let outstanding_balance: f64 = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(i.outstanding_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?"
+        )
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+        let last_visit: Option<(String, String)> = sqlx::query_as(
+            "SELECT v.visit_date, p.name FROM visits v JOIN invoices i ON i.visit_id = v.id JOIN procedures p ON p.visit_id = v.id WHERE v.patient_id = ? ORDER BY v.visit_date DESC LIMIT 1"
+        )
+        .bind(id)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(PatientStatisticsResponse {
+            total_spent,
+            last_visit_date: last_visit.as_ref().map(|(d, _)| d.clone()),
+            last_visit_procedure: last_visit.map(|(_, p)| p),
+            outstanding_balance,
+        })
+    }
 }

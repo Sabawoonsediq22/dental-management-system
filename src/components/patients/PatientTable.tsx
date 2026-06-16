@@ -73,7 +73,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
                 onClick={() => navigate(`/patients/${patient.id}`)}
               >
-                <td className="py-3 px-4 text-sm font-mono text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                <td className="py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                   {index + 1}
                 </td>
                 <td className="py-3 px-4">

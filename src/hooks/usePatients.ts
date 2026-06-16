@@ -25,6 +25,22 @@ export function usePatient(id: string) {
   });
 }
 
+export function usePatientMedicalInfo(id: string) {
+  return useQuery({
+    queryKey: ["patients", id, "medical-info"],
+    queryFn: () => api.patients.getMedicalInfo(id),
+    enabled: !!id,
+  });
+}
+
+export function usePatientStatistics(id: string) {
+  return useQuery({
+    queryKey: ["patients", id, "statistics"],
+    queryFn: () => api.patients.getStatistics(id),
+    enabled: !!id,
+  });
+}
+
 export function useCreatePatient() {
   const qc = useQueryClient();
   return useMutation({
@@ -41,6 +57,8 @@ export function useUpdatePatient() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["patients"] });
       qc.invalidateQueries({ queryKey: ["patients", data.id] });
+      qc.invalidateQueries({ queryKey: ["patients", data.id, "medical-info"] });
+      qc.invalidateQueries({ queryKey: ["patients", data.id, "statistics"] });
     },
   });
 }

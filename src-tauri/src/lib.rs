@@ -76,6 +76,26 @@ async fn add_medical_condition(
 }
 
 #[tauri::command]
+async fn get_patient_medical_info(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<PatientMedicalInfoResponse, String> {
+    PatientService::get_medical_info(&state.db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_patient_statistics(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<PatientStatisticsResponse, String> {
+    PatientService::get_statistics(&state.db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn upload_xray(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -255,6 +275,8 @@ pub fn run() {
             update_patient,
             delete_patient,
             add_medical_condition,
+            get_patient_medical_info,
+            get_patient_statistics,
             upload_xray,
             create_visit,
             update_visit_status,

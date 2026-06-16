@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
-import { FilterIcon, ChevronDownIcon, ChevronUpIcon, EditIcon, DownloadIcon, TechMarkIcon } from "../../shared/icons/icons";
+import { FilterIcon, ChevronDownIcon, ChevronUpIcon, EditIcon } from "../../shared/icons/icons";
 import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
 
@@ -17,6 +17,10 @@ const statusConfig: Record<string, { bg: string; text: string }> = {
   Completed: {
     bg: "bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50",
     text: "text-green-700 dark:text-green-400",
+  },
+  Open: {
+    bg: "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50",
+    text: "text-blue-700 dark:text-blue-400",
   },
   "In Progress": {
     bg: "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50",
@@ -69,19 +73,21 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
               Treatment History
             </CardTitle>
             <div className="flex items-center gap-2">
-              <button
-                className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                aria-label="Filter treatments cursor-pointer"
-              >
-                <FilterIcon size="md" />
-              </button>
-              <button
-                className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                aria-label="Export treatments"
-              >
-                <DownloadIcon size="md" />
-              </button>
-            </div>
+               <button
+                 className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                 aria-label="Filter treatments"
+               >
+                 <FilterIcon size="md" />
+               </button>
+               <button
+                 className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                 aria-label="Export treatments"
+               >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                 </svg>
+               </button>
+             </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -96,10 +102,12 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
 
                 return (
                   <div key={treatment.id} className="relative flex gap-4">
-                    {/* Timeline node */}
-                    <div className="absolute left-0 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center z-10">
-                      <TechMarkIcon size="sm" className="text-white" />
-                    </div>
+{/* Timeline node */}
+                     <div className="absolute left-0 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center z-10">
+                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                       </svg>
+                     </div>
 
                     {/* Content */}
                     <div className="ml-12 flex-1">

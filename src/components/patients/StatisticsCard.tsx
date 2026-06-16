@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "../../lib/utils";
-import { CheckCircleIcon, ClockIcon } from "../../shared/icons/icons";
+import { CheckCircleIcon, ClockIcon, CurrencyIcon } from "../../shared/icons/icons";
 
 export type StatisticsCardVariant = "success" | "info" | "warning" | "destructive";
 
@@ -9,7 +9,7 @@ export interface StatisticsCardProps {
   value: string | number;
   subtitle?: string;
   variant?: StatisticsCardVariant;
-  icon?: "check" | "clock" | "custom";
+  icon?: "check" | "clock" | "currency" | "custom";
   className?: string;
 }
 
@@ -58,6 +58,13 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
       return (
         <div className={cn("p-2 rounded-lg", config.iconBg)}>
           <ClockIcon className={cn("w-5 h-5", config.text)} />
+        </div>
+      );
+    }
+    if (icon === "currency") {
+      return (
+        <div className={cn("p-2 rounded-lg", config.iconBg)}>
+          <CurrencyIcon className={cn("w-5 h-5", config.text)} />
         </div>
       );
     }

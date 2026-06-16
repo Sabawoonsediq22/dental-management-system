@@ -17,6 +17,8 @@ import type {
   AppSettings,
   UpdateSettingsInput,
   Xray,
+  PatientMedicalInfo,
+  PatientStatisticsInfo,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -24,6 +26,8 @@ export const api = {
     list: (params: { query?: string; gender?: string; page?: number; perPage?: number }) =>
       invoke<PatientPageResult>("list_patients", { params }),
     get: (id: string) => invoke<Patient>("get_patient", { id }),
+    getMedicalInfo: (id: string) => invoke<PatientMedicalInfo>("get_patient_medical_info", { id }),
+    getStatistics: (id: string) => invoke<PatientStatisticsInfo>("get_patient_statistics", { id }),
     create: (input: CreatePatientInput) => invoke<Patient>("create_patient", { input }),
     update: (id: string, input: UpdatePatientInput) => invoke<Patient>("update_patient", { id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),

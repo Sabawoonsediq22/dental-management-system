@@ -11,6 +11,19 @@ export interface Patient {
   last_visit?: string | null;
 }
 
+export interface PatientMedicalInfo {
+  allergies: string[];
+  medications: string[];
+  medical_conditions: string[];
+}
+
+export interface PatientStatisticsInfo {
+  total_spent: number;
+  last_visit_date: string | null;
+  last_visit_procedure: string | null;
+  outstanding_balance: number;
+}
+
 export interface PatientPageResult {
   items: Patient[];
   total: number;

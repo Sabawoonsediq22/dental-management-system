@@ -1073,3 +1073,22 @@ export const TechMarkIcon: React.FC<IconProps> = ({
     />
   </svg>
 );
+
+export const CurrencyIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 6v2m0 8v2M6 12h2m8 0h2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-4-6l4-4m0 0l4-4m-4 4l-4-4m4 4l4 4"
+    />
+  </svg>
+);

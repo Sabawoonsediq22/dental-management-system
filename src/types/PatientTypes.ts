@@ -76,7 +76,7 @@ export interface TreatmentEntry {
   date: string;
   time: string;
   cost: number;
-  status: "Completed" | "In Progress" | "Cancelled" | "Scheduled";
+  status: "Open" | "Completed" | "Cancelled" | "Scheduled";
   notes?: string;
   images?: string[];
 }

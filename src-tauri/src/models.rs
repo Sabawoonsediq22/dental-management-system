@@ -34,6 +34,21 @@ pub struct PatientMedicalInfo {
     pub updated_at: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PatientMedicalInfoResponse {
+    pub allergies: Vec<String>,
+    pub medications: Vec<String>,
+    pub medical_conditions: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PatientStatisticsResponse {
+    pub total_spent: f64,
+    pub last_visit_date: Option<String>,
+    pub last_visit_procedure: Option<String>,
+    pub outstanding_balance: f64,
+}
+
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 #[allow(dead_code)]
 pub struct MedicalCondition {
