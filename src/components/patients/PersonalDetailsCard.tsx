@@ -43,11 +43,6 @@ const PersonalDetailsCard: React.FC<PersonalDetailsCardProps> = ({
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   {detail.label}
-                  {detail.label_localized && (
-                    <span className="text-gray-400 dark:text-gray-500 ml-1">
-                      ({detail.label_localized})
-                    </span>
-                  )}
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
                   {detail.value}

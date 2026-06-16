@@ -21,6 +21,7 @@ export interface LoadingSpinnerProps extends VariantProps<
   typeof spinnerVariants
 > {
   className?: string;
+  text?: string;
 }
 
 const LoadingSpinner = React.forwardRef<SVGSVGElement, LoadingSpinnerProps>(

@@ -62,7 +62,7 @@ const Patients: React.FC = () => {
         onAddNewPatient={handleAddNewPatient}
       />
 
-      <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 mb-3">
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <LoadingSpinner className="mr-4" />

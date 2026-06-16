@@ -1074,6 +1074,7 @@ export const TechMarkIcon: React.FC<IconProps> = ({
   </svg>
 );
 
+// Currency / billing icon - dollar sign in a circle
 export const CurrencyIcon: React.FC<IconProps> = ({
   className = "",
   size = "md",

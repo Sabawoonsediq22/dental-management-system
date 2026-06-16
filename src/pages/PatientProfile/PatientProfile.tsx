@@ -1,17 +1,18 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { Button } from "../../components/ui";
-import { AllergyAlert, TreatmentEntry } from "../../types/PatientTypes";
-import { usePatient, usePatientMedicalInfo, usePatientStatistics } from "../../hooks/usePatients";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button, Modal, LoadingSpinner } from "../../components/ui";
+import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient } from "../../hooks/usePatients";
 import { useVisits } from "../../hooks/useVisits";
+import { useQueryClient } from "@tanstack/react-query";
+import { AllergyAlert, TreatmentEntry } from "../../types/PatientTypes";
 import AllergiesMedicalAlertsCard from "../../components/patients/AllergiesMedicalAlertsCard";
 import TreatmentHistoryTimeline from "../../components/patients/TreatmentHistoryTimeline";
 import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWithStatus";
 import StatisticsCard from "../../components/patients/StatisticsCard";
 import PersonalDetailsCard from "../../components/patients/PersonalDetailsCard";
-import { LoadingSpinner } from "../../components/ui";
+import { PatientIcon, PhoneIcon, HomeIcon, PlusIcon, DeleteIcon } from "../../shared/icons/icons";
 import type { Visit } from "../../types/ApiTypes";
-import { DeleteIcon, HomeIcon, LocationIcon, PatientIcon, PhoneIcon, PlusIcon } from "../../shared/icons/icons";
+import { toast } from "sonner";
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return "-";
@@ -32,38 +33,131 @@ const formatTime = (dateStr: string | null | undefined): string => {
 
 const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const patientQuery = usePatient(id || "");
   const medicalInfoQuery = usePatientMedicalInfo(id || "");
   const statisticsQuery = usePatientStatistics(id || "");
   const visitsQuery = useVisits(id || "");
+  const updatePatientMutation = useUpdatePatient();
+  const deletePatientMutation = useDeletePatient();
 
   const patient = patientQuery.data;
   const medicalInfo = medicalInfoQuery.data;
   const statistics = statisticsQuery.data;
   const visits = visitsQuery.data;
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAllergiesModal, setShowAllergiesModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    full_name: "",
+    phone: "",
+    age: 0,
+    gender: "Male" as "Male" | "Female" | "Other",
+    address: "",
+  });
+  const [allergiesFormData, setAllergiesFormData] = useState({
+    allergies: "",
+    medical_conditions: "",
+    medications: "",
+  });
+
+  React.useEffect(() => {
+    if (patient) {
+      setEditFormData({
+        full_name: patient.full_name,
+        phone: patient.phone,
+        age: patient.age,
+        gender: patient.gender,
+        address: patient.address || "",
+      });
+    }
+    if (medicalInfo) {
+      setAllergiesFormData({
+        allergies: medicalInfo.allergies?.join(", ") || "",
+        medical_conditions: medicalInfo.medical_conditions?.join(", ") || "",
+        medications: medicalInfo.medications?.join(", ") || "",
+      });
+    }
+  }, [patient, medicalInfo]);
+
   const handleEditPersonalInfo = () => {
-    console.log("Edit personal info for patient:", id);
+    setShowEditModal(true);
+  };
+
+  const handleSavePersonalInfo = () => {
+    if (patient) {
+      updatePatientMutation.mutate({
+        id: patient.id,
+        input: {
+          full_name: editFormData.full_name,
+          phone: editFormData.phone,
+          age: editFormData.age,
+          gender: editFormData.gender,
+          address: editFormData.address || null,
+        },
+      });
+    }
+    setShowEditModal(false);
   };
 
   const handleDeletePatient = () => {
-    console.log("Delete patient:", id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (patient) {
+      deletePatientMutation.mutate(patient.id, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+          navigate("/patients");
+          toast.success("Patient deleted successfully");
+        },
+      });
+    }
+    setShowDeleteConfirm(false);
   };
 
   const handleNewVisit = () => {
-    console.log("New visit for patient:", id);
+    if (patient) {
+      navigate(`/patients/${patient.id}/visits/new`);
+    }
   };
 
   const handleViewAllVisits = () => {
-    console.log("View all visits for patient:", id);
+    if (patient) {
+      navigate(`/patients/${patient.id}/visits`);
+    }
   };
 
   const handleEditTreatment = (treatment: TreatmentEntry) => {
     console.log("Edit treatment:", treatment);
   };
 
-  // Transform visits to treatment entries
+  const handleExportHistory = () => {
+    const csvContent = [
+      ["Date", "Time", "Procedure", "Status", "Notes"],
+      ...(treatmentHistory.map(t => [t.date, t.time, t.title, t.status, t.notes || ""])),
+    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `treatment-history-${patient?.id || "unknown"}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSaveAllergies = () => {
+    console.log("Saving allergies:", allergiesFormData);
+    setShowAllergiesModal(false);
+  };
+
   const treatmentHistory: TreatmentEntry[] = visits?.map((visit: Visit) => ({
     id: visit.id,
     title: visit.chief_complaint || "Visit",
@@ -79,7 +173,7 @@ const PatientProfile: React.FC = () => {
   if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="md" />
+        <LoadingSpinner size="lg" text="Loading patient information..." />
       </div>
     );
   }
@@ -97,21 +191,21 @@ const PatientProfile: React.FC = () => {
       label: "Age / Gender",
       value: `${patient.age} Years • ${patient.gender}`,
       icon: (
-        <PatientIcon className="w-5 h-5 text-blue-600" />
+        <PatientIcon className="w-5 h-5" />
       ),
     },
     {
       label: "Phone Number",
       value: patient.phone,
       icon: (
-        <PhoneIcon className="w-5 h-5 text-blue-600" />
+        <PhoneIcon className="w-5 h-5" />
       ),
     },
     {
       label: "Home Address",
       value: patient.address || "Not provided",
       icon: (
-        <HomeIcon className="w-5 h-5 text-blue-600" />
+        <HomeIcon className="w-5 h-5" />
       ),
     },
   ];
@@ -146,8 +240,11 @@ const PatientProfile: React.FC = () => {
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
-                  <LocationIcon className="w-4 h-4 text-gray-400" />
-                    {patient.address ? patient.address : "Address not provided"} &nbsp; •
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {patient.address ? patient.address : "Address not provided"}   •
                 </span>
                 <span>Registered since {registeredDate}</span>
               </div>
@@ -157,19 +254,20 @@ const PatientProfile: React.FC = () => {
           {/* Right Side - Action Buttons */}
           <div className="flex items-center gap-3">
             <Button
+              variant="outline"
+              onClick={handleNewVisit}
+              className="cursor-pointer"
+            >
+              <PlusIcon className="w-4 h-4" />
+              <span>New Visit</span>
+            </Button>
+            <Button
               variant="destructive"
               onClick={handleDeletePatient}
               className="cursor-pointer"
             >
               <DeleteIcon className="w-4 h-4" />
-              <span>Delete Patient</span>
-            </Button>
-            <Button
-              onClick={handleNewVisit}
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-            >
-              <PlusIcon className="w-4 h-4" />
-              <span>New Visit</span>
+              <span>Delete</span>
             </Button>
           </div>
         </div>
@@ -194,8 +292,8 @@ const PatientProfile: React.FC = () => {
         <StatisticsCard
           label="Outstanding Balance"
           value={`${(statistics?.outstanding_balance || 0).toLocaleString()} AFN`}
-          variant="destructive"
-          icon="currency"
+          variant={statistics?.outstanding_balance && statistics.outstanding_balance > 0 ? "warning" : "success"}
+          icon="check"
         />
       </div>
 
@@ -207,7 +305,7 @@ const PatientProfile: React.FC = () => {
         />
         <AllergiesMedicalAlertsCard
           alerts={allergiesAlerts}
-          onEdit={() => console.log("Edit allergies")}
+          onEdit={() => setShowAllergiesModal(true)}
         />
       </div>
 
@@ -217,8 +315,144 @@ const PatientProfile: React.FC = () => {
           treatments={treatmentHistory}
           onViewAll={handleViewAllVisits}
           onEditTreatment={handleEditTreatment}
+          onExport={handleExportHistory}
         />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Delete Patient"
+        description={`Are you sure you want to delete ${patient.full_name}? This action cannot be undone.`}
+      >
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleConfirmDelete}>
+            Delete Patient
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Edit Personal Info Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Personal Information"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <input
+              type="text"
+              value={editFormData.full_name}
+              onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <input
+              type="tel"
+              value={editFormData.phone}
+              onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Age</label>
+              <input
+                type="number"
+                value={editFormData.age}
+                onChange={(e) => setEditFormData({ ...editFormData, age: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Gender</label>
+              <select
+                value={editFormData.gender}
+                onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value as "Male" | "Female" | "Other" })}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <textarea
+              value={editFormData.address}
+              onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md"
+              rows={3}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowEditModal(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSavePersonalInfo}>
+            Save Changes
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Allergies & Medical Alerts Modal */}
+      <Modal
+        isOpen={showAllergiesModal}
+        onClose={() => setShowAllergiesModal(false)}
+        title="Allergies & Medical Alerts"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Allergies (comma separated)</label>
+            <input
+              type="text"
+              value={allergiesFormData.allergies}
+              onChange={(e) => setAllergiesFormData({ ...allergiesFormData, allergies: e.target.value })}
+              placeholder="e.g., Penicillin, Latex"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Medical Conditions (comma separated)</label>
+            <input
+              type="text"
+              value={allergiesFormData.medical_conditions}
+              onChange={(e) => setAllergiesFormData({ ...allergiesFormData, medical_conditions: e.target.value })}
+              placeholder="e.g., Diabetes, Hypertension"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Current Medications (comma separated)</label>
+            <input
+              type="text"
+              value={allergiesFormData.medications}
+              onChange={(e) => setAllergiesFormData({ ...allergiesFormData, medications: e.target.value })}
+              placeholder="e.g., Metformin, Lisinopril"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowAllergiesModal(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveAllergies}>
+            Save Changes
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };
