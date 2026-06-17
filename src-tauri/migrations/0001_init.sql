@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS treatment_records (
 
 CREATE TABLE IF NOT EXISTS treatment_tooth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    treatment_record_id TEXT NOT NULL REFERENCES treatment_records(id) ON DELETE CASCADE,
+    treatment_record_id TEXT REFERENCES treatment_records(id) ON DELETE CASCADE,
     tooth_number INTEGER NOT NULL,
     tooth_quadrant TEXT NOT NULL
 );
@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS payments (
 CREATE TABLE IF NOT EXISTS xrays (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    treatment_record_id TEXT REFERENCES treatment_records(id) ON DELETE CASCADE,
     file_path TEXT NOT NULL,
     is_primary BOOLEAN DEFAULT FALSE,
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -148,3 +149,5 @@ CREATE INDEX idx_backups_created_at ON backups(created_at);
 CREATE INDEX idx_backups_type_status ON backups(backup_type, status);
 CREATE INDEX IF NOT EXISTS idx_treatment_tooth_record ON treatment_tooth(treatment_record_id);
 CREATE INDEX IF NOT EXISTS idx_treatment_records_visit ON treatment_records(visit_id);
+CREATE INDEX IF NOT EXISTS idx_xrays_treatment_record ON xrays(treatment_record_id);
+

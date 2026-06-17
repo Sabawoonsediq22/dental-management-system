@@ -81,3 +81,11 @@ export function useDeletePatient() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"] }),
   });
 }
+
+export function usePatientXrays(patientId: string) {
+  return useQuery({
+    queryKey: ["patients", patientId, "xrays"],
+    queryFn: () => api.patients.getXrays(patientId),
+    enabled: !!patientId,
+  });
+}

@@ -3,8 +3,10 @@ import type { Patient } from "./ApiTypes";
 export interface Procedure {
   id: string;
   name: string;
-  additional_note: string | null;
+  additional_note?: string | null;
   price: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PatientStats {

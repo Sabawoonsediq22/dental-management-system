@@ -66,7 +66,6 @@ export interface CreatePatientInput {
   paid_amount?: number | null;
 }
 
-
 export interface UpdatePatientInput {
   full_name?: string;
   phone?: string;
@@ -120,6 +119,7 @@ export interface TreatmentProcedure {
   total_price: number;
   performed_at: string;
   teeth: TreatmentTooth[];
+  xrays: string[];
 }
 
 export interface PatientVisitWithTreatments {
@@ -190,6 +190,7 @@ export interface AddPaymentInput {
 export interface Xray {
   id: string;
   patient_id: string;
+  treatment_record_id: string | null;
   file_path: string;
   is_primary: boolean;
   uploaded_at: string;

@@ -35,7 +35,8 @@ export const api = {
     updateMedicalInfo: (patient_id: string, input: UpdatePatientMedicalInfoInput) => invoke<void>("update_patient_medical_info", { patientId: patient_id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),
     add_medical_condition: (patient_id: string, condition_name: string) => invoke<void>("add_medical_condition", { patientId: patient_id, conditionName: condition_name }),
-    upload_xray: (patient_id: string, filename: string, bytes: number[]) => invoke<Xray>("upload_xray", { patientId: patient_id, filename, bytes }),
+    upload_xray: (patient_id: string, treatment_record_id: string | null, filename: string, bytes: number[]) => invoke<Xray>("upload_xray", { patientId: patient_id, treatmentRecordId: treatment_record_id, filename, bytes }),
+    getXrays: (patient_id: string) => invoke<Xray[]>("get_patient_xrays", { patientId: patient_id }),
   },
   visits: {
     create: (input: CreateVisitInput) => invoke<Visit>("create_visit", { input }),

@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -420,7 +420,7 @@ const input: CreatePatientInput = {
             throw new Error("upload_xray command is not available");
           }
           const bytes = await fileToUint8Array(xrayFile);
-          await api.patients.upload_xray(created.id, xrayFile.name, bytes);
+          await api.patients.upload_xray(created.id, null, xrayFile.name, bytes);
         } catch (xrayError) {
           console.error("X-ray upload failed:", xrayError);
           toast.error({
@@ -1047,3 +1047,4 @@ const input: CreatePatientInput = {
 };
 
 export default NewPatient;
+

@@ -107,6 +107,7 @@ pub struct TreatmentProcedure {
     pub total_price: f64,
     pub performed_at: String,
     pub teeth: Vec<TreatmentTooth>,
+    pub xrays: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -176,7 +177,6 @@ pub struct Payment {
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
-#[sqlx(rename_all = "lowercase")]
 pub enum PaymentMethod {
     Cash,
     Card,
@@ -190,6 +190,7 @@ pub enum PaymentMethod {
 pub struct Xray {
     pub id: String,
     pub patient_id: String,
+    pub treatment_record_id: Option<String>,
     pub file_path: String,
     pub is_primary: bool,
     pub uploaded_at: String,

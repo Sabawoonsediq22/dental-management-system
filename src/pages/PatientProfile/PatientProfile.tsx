@@ -56,18 +56,14 @@ const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntr
     const procedureNames = procedures.map((procedure) => procedure.name).join(", ");
     const toothNumbers = procedures.flatMap((procedure) => procedure.tooth_numbers || []);
     const procedureNotes = procedures
-      .map((procedure) => {
-        const toothText = procedure.tooth_numbers && procedure.tooth_numbers.length > 0
-          ? ` Teeth: ${procedure.tooth_numbers.join(", ")}`
-          : "";
-        return procedure.additional_note
-          ? `${procedure.name}: ${procedure.additional_note}${toothText}`
-          : toothText
-            ? `${procedure.name}${toothText}`
-            : undefined;
-      })
+      .map((procedure) => procedure.additional_note)
       .filter((note): note is string => Boolean(note))
       .join("\n");
+    
+    const images = visit.procedures
+      .flatMap((procedure) => procedure.xrays || [])
+      .filter(Boolean);
+    
     return {
       id: visit.visit_id,
       title: visit.chief_complaint?.trim() || procedureNames || "Treatment",
@@ -80,6 +76,7 @@ const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntr
         : "Open",
       notes: [visit.clinical_notes, procedureNotes].filter(Boolean).join("\n\n") || undefined,
       procedures,
+      images: images.length > 0 ? images : undefined,
     };
   });
 

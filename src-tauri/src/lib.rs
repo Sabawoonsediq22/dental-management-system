@@ -107,14 +107,25 @@ async fn update_patient_medical_info(
 }
 
 #[tauri::command]
+async fn get_patient_xrays(
+    state: State<'_, AppState>,
+    patient_id: String,
+) -> Result<Vec<Xray>, String> {
+    XrayService::list_for_patient(&state.db, &patient_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn upload_xray(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
     patient_id: String,
+    treatment_record_id: Option<String>,
     filename: String,
     bytes: Vec<u8>,
 ) -> Result<Xray, String> {
-    XrayService::upload(&state.db, &app, &patient_id, &filename, &bytes)
+    XrayService::upload(&state.db, &app, &patient_id, treatment_record_id.as_deref(), &filename, &bytes)
         .await
         .map_err(|e| e.to_string())
 }
@@ -299,6 +310,7 @@ pub fn run() {
             update_patient_medical_info,
             get_patient_medical_info,
             get_patient_statistics,
+            get_patient_xrays,
             upload_xray,
             create_visit,
             update_visit_status,

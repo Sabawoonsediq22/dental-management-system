@@ -123,12 +123,22 @@ impl VisitService {
             let mut treatment_procedures: Vec<TreatmentProcedure> = Vec::new();
             for row in rows {
                 let treatment_record_id = row.treatment_record_id.clone();
+                
                 let teeth = sqlx::query_as::<_, TreatmentTooth>(
                     "SELECT id, treatment_record_id, tooth_number, tooth_quadrant FROM treatment_tooth WHERE treatment_record_id = ?"
                 )
                 .bind(&treatment_record_id)
                 .fetch_all(pool)
                 .await?.into_iter().collect();
+
+                let xrays: Vec<String> = sqlx::query_scalar(
+                    "SELECT file_path FROM xrays WHERE treatment_record_id = ? ORDER BY uploaded_at DESC"
+                )
+                .bind(&treatment_record_id)
+                .fetch_all(pool)
+                .await?
+                .into_iter()
+                .collect();
 
                 let procedure_name = match row.procedure_additional_note.as_deref().map(str::trim).filter(|note| !note.is_empty()) {
                     Some(note) => format!("{} - {}", row.procedure_name, note),
@@ -144,6 +154,7 @@ impl VisitService {
                     total_price: row.total_price,
                     performed_at: row.performed_at,
                     teeth,
+                    xrays,
                 });
             }
 

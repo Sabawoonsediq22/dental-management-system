@@ -6,6 +6,7 @@ import { FilterIcon, ChevronDownIcon, ChevronUpIcon } from "../../shared/icons/i
 import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
 import i18n from "../../i18n";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface TreatmentHistoryTimelineProps {
   treatments: TreatmentEntry[];
@@ -57,6 +58,10 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
       day: "2-digit",
       year: "numeric",
     });
+  };
+
+  const getImageUrl = (filePath: string): string => {
+    return convertFileSrc(filePath);
   };
 
   type TreatmentProcedureEntry = NonNullable<TreatmentEntry["procedures"]>[number];
@@ -137,102 +142,102 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                        </svg>
                      </div>
 
-                    {/* Content */}
-                    <div className="ml-12 flex-1">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {getTreatmentTitle(treatment)}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {formatDate(treatment.date)} • {treatment.time}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <p className={`text-sm font-bold text-gray-900 dark:text-white ${isRTL ? "ml-4" : "mr-4"}`}>
-                            {treatment.cost.toLocaleString()} AFN
-                          </p>
-                          <Badge className={cn(statusStyle.bg, statusStyle.text)}>
-                            {treatment.status.toUpperCase()}
-                          </Badge>
-                          <button
-                            onClick={() => toggleExpand(treatment.id)}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer focus:outline-none"
-                            aria-label={isExpanded ? "Collapse" : "Expand"}
-                          >
-                            {isExpanded ? (
-                              <ChevronUpIcon size="md" />
-                            ) : (
-                              <ChevronDownIcon size="md" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                     {/* Content */}
+                     <div className="ml-12 flex-1">
+                       <div className="flex items-start justify-between">
+                         <div className="flex-1">
+                           <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                             {getTreatmentTitle(treatment)}
+                           </h4>
+                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                             {formatDate(treatment.date)} • {treatment.time}
+                           </p>
+                         </div>
+                         <div className="flex items-center gap-4">
+                           <p className={`text-sm font-bold text-gray-900 dark:text-white ${isRTL ? "ml-4" : "mr-4"}`}>
+                             {treatment.cost.toLocaleString()} AFN
+                           </p>
+                           <Badge className={cn(statusStyle.bg, statusStyle.text)}>
+                             {treatment.status.toUpperCase()}
+                           </Badge>
+                           <button
+                             onClick={() => toggleExpand(treatment.id)}
+                             className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer focus:outline-none"
+                             aria-label={isExpanded ? "Collapse" : "Expand"}
+                           >
+                             {isExpanded ? (
+                               <ChevronUpIcon size="md" />
+                             ) : (
+                               <ChevronDownIcon size="md" />
+                             )}
+                           </button>
+                         </div>
+                       </div>
 
-                      {isExpanded && (
-                        <div className="mt-4 space-y-3">
-                          {treatment.procedures && treatment.procedures.length > 0 && (
-                            <div className="space-y-3">
-                              {treatment.procedures.map((procedure, procedureIndex) => (
-                                <div
-                                  key={`${treatment.id}-procedure-${procedureIndex}`}
-                                  className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
-                                >
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    {treatment.notes && (
-                                      <div>
-                                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                          Notes:{" "}
-                                        </span>
-                                        <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                          {treatment.notes}
-                                        </span>
-                                      </div>
-                                      )}
-                                  </div>
-                                  <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>
-                                      Number of procedures: {procedure.quantity}
-                                    </span>
-                                    <span>
-                                      Unit: {procedure.unit_price.toLocaleString()} AFN
-                                    </span>
-                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      Total: {procedure.total_price.toLocaleString()} AFN
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                       {isExpanded && (
+                         <div className="mt-4 space-y-3">
+                           {treatment.procedures && treatment.procedures.length > 0 && (
+                             <div className="space-y-3">
+                               {treatment.procedures.map((procedure, procedureIndex) => (
+                                 <div
+                                   key={`${treatment.id}-procedure-${procedureIndex}`}
+                                   className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
+                                 >
+                                   <div className="flex flex-wrap items-center justify-between gap-2">
+                                     {treatment.notes && (
+                                       <div>
+                                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                           Notes:{" "}
+                                         </span>
+                                         <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                           {treatment.notes}
+                                         </span>
+                                       </div>
+                                       )}
+                                   </div>
+                                   <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                     <span>
+                                       Number of procedures: {procedure.quantity}
+                                     </span>
+                                     <span>
+                                       Unit: {procedure.unit_price.toLocaleString()} AFN
+                                     </span>
+                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                       Total: {procedure.total_price.toLocaleString()} AFN
+                                     </span>
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
 
-                          {treatment.images && treatment.images.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                Treatment Images
-                              </p>
-                              <div className="flex gap-2 flex-wrap">
-                                {treatment.images.map((img, imgIndex) => (
-                                  <button
-                                    key={imgIndex}
-                                    onClick={() => setPreviewImage(img)}
-                                    className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
-                                  >
-                                    <img
-                                      src={img}
-                                      alt={`Treatment image ${imgIndex + 1}`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className="h-px bg-gray-200 dark:bg-gray-700 mt-4" />
-                    </div>
-                  </div>
+                           {treatment.images && treatment.images.length > 0 && (
+                             <div className="mt-3">
+                               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                 Treatment Images
+                               </p>
+                               <div className="flex gap-2 flex-wrap">
+                                 {treatment.images.map((img, imgIndex) => (
+                                   <button
+                                     key={imgIndex}
+                                     onClick={() => setPreviewImage(img)}
+                                     className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
+                                   >
+                                     <img
+                                       src={getImageUrl(img)}
+                                       alt={`Treatment image ${imgIndex + 1}`}
+                                       className="w-full h-full object-cover"
+                                     />
+                                   </button>
+                                 ))}
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                       )}
+                       <div className="h-px bg-gray-200 dark:bg-gray-700 mt-4" />
+                     </div>
+                   </div>
                 );
               })}
             </div>
@@ -263,7 +268,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         {previewImage && (
           <div className="flex items-center justify-center p-4">
             <img
-              src={previewImage}
+              src={getImageUrl(previewImage)}
               alt="Treatment preview"
               className="max-w-full max-h-[70vh] object-contain rounded-lg"
             />
