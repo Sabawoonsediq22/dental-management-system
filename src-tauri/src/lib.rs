@@ -151,6 +151,16 @@ async fn get_patient_visits(
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn get_patient_treatment_history(
+    state: State<'_, AppState>,
+    patient_id: String,
+) -> Result<Vec<PatientVisitWithTreatments>, String> {
+    VisitService::get_with_treatments(&state.db, &patient_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 // Treatment commands
 #[tauri::command]
 async fn add_treatment_record(
@@ -293,6 +303,7 @@ pub fn run() {
             create_visit,
             update_visit_status,
             get_patient_visits,
+            get_patient_treatment_history,
             add_treatment_record,
             create_invoice,
             get_visit_invoice,

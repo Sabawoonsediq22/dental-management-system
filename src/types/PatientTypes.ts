@@ -79,6 +79,14 @@ export interface TreatmentEntry {
   status: "Open" | "Completed" | "Cancelled" | "Scheduled";
   notes?: string;
   images?: string[];
+  procedures?: {
+    name: string;
+    additional_note?: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    tooth_numbers?: number[];
+  }[];
 }
 
 export interface PatientProfileProps {

@@ -72,7 +72,6 @@ pub struct Visit {
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
-#[sqlx(rename_all = "lowercase")]
 pub enum VisitStatus {
     Open,
     Completed,
@@ -89,13 +88,35 @@ pub struct TreatmentRecord {
     pub performed_at: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
 #[allow(dead_code)]
 pub struct TreatmentTooth {
     pub id: i64,
     pub treatment_record_id: String,
     pub tooth_number: i32,
     pub tooth_quadrant: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TreatmentProcedure {
+    pub treatment_record_id: String,
+    pub procedure_name: String,
+    pub procedure_additional_note: Option<String>,
+    pub number_of_procedures: i32,
+    pub unit_price: f64,
+    pub total_price: f64,
+    pub performed_at: String,
+    pub teeth: Vec<TreatmentTooth>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PatientVisitWithTreatments {
+    pub visit_id: String,
+    pub visit_date: String,
+    pub chief_complaint: Option<String>,
+    pub clinical_notes: Option<String>,
+    pub status: VisitStatus,
+    pub procedures: Vec<TreatmentProcedure>,
 }
 
 // Procedure
@@ -126,7 +147,6 @@ pub struct Invoice {
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
-#[sqlx(rename_all = "lowercase")]
 pub enum InvoiceStatus {
     Unpaid,
     Partial,

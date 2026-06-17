@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { cn } from "../../lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
 import { FilterIcon, ChevronDownIcon, ChevronUpIcon, EditIcon } from "../../shared/icons/icons";
 import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
+import i18n from "../../i18n";
 
 interface TreatmentHistoryTimelineProps {
   treatments: TreatmentEntry[];
@@ -36,6 +37,7 @@ const statusConfig: Record<string, { bg: string; text: string }> = {
     text: "text-yellow-700 dark:text-yellow-400",
   },
 };
+const isRTL = i18n.language === "ps";
 
 const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   treatments,
@@ -60,6 +62,10 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   };
 
   const getTreatmentTitle = (t: TreatmentEntry) => {
+    const procedureNames = t.procedures?.map((p) => p.name).join(", ");
+    if (procedureNames) {
+      return procedureNames;
+    }
     if (t.tooth_number) {
       return `${t.title} (Tooth ${t.tooth_number})`;
     }
@@ -81,7 +87,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                >
                  <FilterIcon size="md" />
                </button>
-<button
+               <button
                   onClick={onExport}
                   className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   aria-label="Export treatments"
@@ -99,13 +105,24 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
             <div className="space-y-6">
-              {treatments.map((treatment) => {
+              {treatments.length === 0 ? (
+                <div className="relative flex gap-4">
+                  <div className="absolute left-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center z-10">
+                    <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <div className="ml-12 flex-1 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-sm text-gray-500 dark:text-gray-400">
+                    No treatment history recorded yet.
+                  </div>
+                </div>
+              ) : treatments.map((treatment) => {
                 const isExpanded = expandedId === treatment.id;
                 const statusStyle = statusConfig[treatment.status] || statusConfig.Completed;
 
                 return (
                   <div key={treatment.id} className="relative flex gap-4">
-{/* Timeline node */}
+                    {/* Timeline node */}
                      <div className="absolute left-0 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center z-10">
                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -122,11 +139,11 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {formatDate(treatment.date)} • {treatment.time}
                           </p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white mt-1.5">
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <p className={`text-sm font-bold text-gray-900 dark:text-white ${isRTL ? "ml-4" : "mr-4"}`}>
                             {treatment.cost.toLocaleString()} AFN
                           </p>
-                        </div>
-                        <div className="flex items-center gap-2">
                           <Badge className={cn(statusStyle.bg, statusStyle.text)}>
                             {treatment.status.toUpperCase()}
                           </Badge>
@@ -153,16 +170,53 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                         </div>
                       </div>
 
-                      {/* Expanded content */}
-                      {isExpanded && treatment.notes && (
-                        <div className="mt-4">
-                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                              {treatment.notes}
-                            </p>
-                          </div>
+                      {isExpanded && (
+                        <div className="mt-4 space-y-3">
+                          {treatment.procedures && treatment.procedures.length > 0 && (
+                            <div className="space-y-3">
+                              {treatment.procedures.map((procedure, procedureIndex) => (
+                                <div
+                                  key={`${treatment.id}-procedure-${procedureIndex}`}
+                                  className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="font-medium text-gray-900 dark:text-white">
+                                      {procedure.name}
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {procedure.total_price.toLocaleString()} AFN
+                                    </p>
+                                  </div>
+                                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>Number of procedures: {procedure.quantity}</span>
+                                    <span>Unit: {procedure.unit_price.toLocaleString()} AFN</span>
+                                    {procedure.tooth_numbers && procedure.tooth_numbers.length > 0 && (
+                                      <span className="col-span-2">
+                                        Teeth: {procedure.tooth_numbers.join(", ")}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {procedure.additional_note && (
+                                    <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                      {procedure.additional_note}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
-                          {/* Treatment images */}
+                          {treatment.notes && (
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                Notes
+                              </p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                {treatment.notes}
+                              </p>
+                            </div>
+                          )}
+
                           {treatment.images && treatment.images.length > 0 && (
                             <div className="mt-3">
                               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
@@ -197,12 +251,13 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
             {/* View All link */}
             {onViewAll && (
               <div className="flex justify-center mt-6">
-                <button
+                <Button
+                  variant="link"
                   onClick={onViewAll}
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                 >
                   View All Visit Records →
-                </button>
+                </Button>
               </div>
             )}
           </div>

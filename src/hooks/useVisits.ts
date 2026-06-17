@@ -13,7 +13,10 @@ export function useCreateVisit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.visits.create,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["visits"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["visits"] });
+      qc.invalidateQueries({ queryKey: ["treatment-history"] });
+    },
   });
 }
 
@@ -24,6 +27,7 @@ export function useUpdateVisitStatus() {
       api.visits.updateStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["visits"] });
+      qc.invalidateQueries({ queryKey: ["treatment-history"] });
     },
   });
 }
@@ -35,11 +39,22 @@ export function useTreatments() {
   });
 }
 
+export function usePatientTreatmentHistory(patientId: string) {
+  return useQuery({
+    queryKey: ["treatment-history", patientId],
+    queryFn: () => api.visits.getWithTreatments(patientId),
+    enabled: !!patientId,
+  });
+}
+
 export function useAddTreatmentRecord() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.treatments.add,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["treatments"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["treatments"] });
+      qc.invalidateQueries({ queryKey: ["treatment-history"] });
+    },
   });
 }
 

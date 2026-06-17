@@ -20,6 +20,7 @@ import type {
   Xray,
   PatientMedicalInfo,
   PatientStatisticsInfo,
+  PatientVisitWithTreatments,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -40,6 +41,7 @@ export const api = {
     create: (input: CreateVisitInput) => invoke<Visit>("create_visit", { input }),
     updateStatus: (id: string, status: Visit["status"]) => invoke<Visit>("update_visit_status", { id, status }),
     list: (patientId: string) => invoke<Visit[]>("get_patient_visits", { patientId }),
+    getWithTreatments: (patientId: string) => invoke<PatientVisitWithTreatments[]>("get_patient_treatment_history", { patientId }),
   },
   treatments: {
     add: (input: CreateTreatmentRecordInput) => invoke<TreatmentRecord>("add_treatment_record", { input }),

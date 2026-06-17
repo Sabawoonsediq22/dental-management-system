@@ -104,6 +104,33 @@ export interface TreatmentRecord {
   performed_at: string;
 }
 
+export interface TreatmentTooth {
+  id: number;
+  treatment_record_id: string;
+  tooth_number: number;
+  tooth_quadrant: string;
+}
+
+export interface TreatmentProcedure {
+  treatment_record_id: string;
+  procedure_name: string;
+  procedure_additional_note: string | null;
+  number_of_procedures: number;
+  unit_price: number;
+  total_price: number;
+  performed_at: string;
+  teeth: TreatmentTooth[];
+}
+
+export interface PatientVisitWithTreatments {
+  visit_id: string;
+  visit_date: string;
+  chief_complaint: string | null;
+  clinical_notes: string | null;
+  status: "Open" | "Completed" | "Cancelled";
+  procedures: TreatmentProcedure[];
+}
+
 export interface TreatmentToothInput {
   tooth_number: number;
   tooth_quadrant: string;

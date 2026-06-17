@@ -4,6 +4,17 @@ use crate::services::errors::{AppError, AppResult};
 use chrono::Utc;
 // use uuid::Uuid;
 
+#[derive(Debug, sqlx::FromRow)]
+struct ProcedureRow {
+    treatment_record_id: String,
+    procedure_name: String,
+    procedure_additional_note: Option<String>,
+    number_of_procedures: i32,
+    unit_price: f64,
+    total_price: f64,
+    performed_at: String,
+}
+
 pub struct VisitService;
 
 impl VisitService {
@@ -79,5 +90,68 @@ impl VisitService {
         .ok_or_else(|| AppError::NotFound(format!("Visit {} not found", id)))?;
 
         Ok(visit)
+    }
+
+    pub async fn get_with_treatments(pool: &SqlitePool, patient_id: &str) -> AppResult<Vec<PatientVisitWithTreatments>> {
+        let visits = sqlx::query_as::<_, Visit>(
+            "SELECT id, patient_id, visit_date, chief_complaint, clinical_notes, status, created_at, updated_at FROM visits WHERE patient_id = ? ORDER BY visit_date DESC"
+        )
+        .bind(patient_id)
+        .fetch_all(pool)
+        .await?;
+
+        let mut result = Vec::new();
+
+        for visit in visits {
+            let rows: Vec<ProcedureRow> = sqlx::query_as(
+                "SELECT tr.id as treatment_record_id,
+                        p.name as procedure_name,
+                        p.additional_note as procedure_additional_note,
+                        tr.number_of_procedures,
+                        p.procedure_price as unit_price,
+                        (p.procedure_price * tr.number_of_procedures) as total_price,
+                        tr.performed_at
+                 FROM treatment_records tr
+                 JOIN procedures p ON p.id = tr.procedure_id
+                 WHERE tr.visit_id = ?
+                 ORDER BY tr.performed_at DESC"
+            )
+            .bind(&visit.id)
+            .fetch_all(pool)
+            .await?;
+
+            let mut treatment_procedures: Vec<TreatmentProcedure> = Vec::new();
+            for row in rows {
+                let treatment_record_id = row.treatment_record_id.clone();
+                let teeth = sqlx::query_as::<_, TreatmentTooth>(
+                    "SELECT id, treatment_record_id, tooth_number, tooth_quadrant FROM treatment_tooth WHERE treatment_record_id = ?"
+                )
+                .bind(&treatment_record_id)
+                .fetch_all(pool)
+                .await?.into_iter().collect();
+
+                treatment_procedures.push(TreatmentProcedure {
+                    treatment_record_id,
+                    procedure_name: row.procedure_name,
+                    procedure_additional_note: row.procedure_additional_note,
+                    number_of_procedures: row.number_of_procedures,
+                    unit_price: row.unit_price,
+                    total_price: row.total_price,
+                    performed_at: row.performed_at,
+                    teeth,
+                });
+            }
+
+            result.push(PatientVisitWithTreatments {
+                visit_id: visit.id,
+                visit_date: visit.visit_date,
+                chief_complaint: visit.chief_complaint,
+                clinical_notes: visit.clinical_notes,
+                status: visit.status,
+                procedures: treatment_procedures,
+            });
+        }
+
+        Ok(result)
     }
 }

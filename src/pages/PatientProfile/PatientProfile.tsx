@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Modal, LoadingSpinner } from "../../components/ui";
 import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient, useUpdatePatientMedicalInfo } from "../../hooks/usePatients";
-import { useVisits } from "../../hooks/useVisits";
+import { usePatientTreatmentHistory } from "../../hooks/useVisits";
 import { useQueryClient } from "@tanstack/react-query";
 import { AllergyAlert, TreatmentEntry } from "../../types/PatientTypes";
 import AllergiesMedicalAlertsCard from "../../components/patients/AllergiesMedicalAlertsCard";
@@ -11,8 +11,8 @@ import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWith
 import StatisticsCard from "../../components/patients/StatisticsCard";
 import PersonalDetailsCard from "../../components/patients/PersonalDetailsCard";
 import { PatientIcon, PhoneIcon, HomeIcon, PlusIcon, DeleteIcon } from "../../shared/icons/icons";
-import type { Visit } from "../../types/ApiTypes";
 import { toast } from "sonner";
+import type { PatientVisitWithTreatments } from "../../types/ApiTypes";
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return "-";
@@ -42,6 +42,47 @@ const parseCsv = (value: string): string[] => Array.from(
 
 const formatCsv = (values: string[]): string => values.join(", ");
 
+const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntry[] => visits
+  .filter((visit) => visit.procedures.length > 0)
+  .map((visit) => {
+    const procedures = visit.procedures.map((procedure) => ({
+      name: procedure.procedure_name,
+      additional_note: procedure.procedure_additional_note ?? undefined,
+      quantity: procedure.number_of_procedures,
+      unit_price: procedure.unit_price,
+      total_price: procedure.total_price,
+      tooth_numbers: procedure.teeth.map((tooth) => tooth.tooth_number),
+    }));
+    const procedureNames = procedures.map((procedure) => procedure.name).join(", ");
+    const toothNumbers = procedures.flatMap((procedure) => procedure.tooth_numbers || []);
+    const procedureNotes = procedures
+      .map((procedure) => {
+        const toothText = procedure.tooth_numbers && procedure.tooth_numbers.length > 0
+          ? ` Teeth: ${procedure.tooth_numbers.join(", ")}`
+          : "";
+        return procedure.additional_note
+          ? `${procedure.name}: ${procedure.additional_note}${toothText}`
+          : toothText
+            ? `${procedure.name}${toothText}`
+            : undefined;
+      })
+      .filter((note): note is string => Boolean(note))
+      .join("\n");
+    return {
+      id: visit.visit_id,
+      title: visit.chief_complaint?.trim() || procedureNames || "Treatment",
+      tooth_number: toothNumbers[0],
+      date: visit.visit_date,
+      time: formatTime(visit.procedures[0].performed_at || visit.visit_date),
+      cost: procedures.reduce((sum, procedure) => sum + procedure.total_price, 0),
+      status: visit.status === "Open" || visit.status === "Completed" || visit.status === "Cancelled"
+        ? visit.status
+        : "Open",
+      notes: [visit.clinical_notes, procedureNotes].filter(Boolean).join("\n\n") || undefined,
+      procedures,
+    };
+  });
+
 const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -50,14 +91,14 @@ const PatientProfile: React.FC = () => {
   const patientQuery = usePatient(id || "");
   const medicalInfoQuery = usePatientMedicalInfo(id || "");
   const statisticsQuery = usePatientStatistics(id || "");
-  const visitsQuery = useVisits(id || "");
+  const treatmentHistoryQuery = usePatientTreatmentHistory(id || "");
   const updatePatientMutation = useUpdatePatient();
   const deletePatientMutation = useDeletePatient();
 
   const patient = patientQuery.data;
   const medicalInfo = medicalInfoQuery.data;
   const statistics = statisticsQuery.data;
-  const visits = visitsQuery.data;
+  const treatmentHistory = toTreatmentEntries(treatmentHistoryQuery.data ?? []);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -204,19 +245,7 @@ const PatientProfile: React.FC = () => {
     });
   };
 
-  const treatmentHistory: TreatmentEntry[] = visits?.map((visit: Visit) => ({
-    id: visit.id,
-    title: visit.chief_complaint || "Visit",
-    date: visit.visit_date,
-    time: formatTime(visit.visit_date),
-    cost: 0,
-    status: visit.status === "Open" || visit.status === "Completed" || visit.status === "Cancelled"
-      ? visit.status
-      : "Open",
-    notes: visit.clinical_notes || undefined,
-  })) || [];
-
-  if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading) {
+  if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading || treatmentHistoryQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
@@ -226,9 +255,13 @@ const PatientProfile: React.FC = () => {
 
   if (patientQuery.error || !patient) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-lg text-red-500">Error loading patient: {String(patientQuery.error || "Not found")}</div>
-      </div>
+      toast.error(`Failed to load patient data: ${String(patientQuery.error)}`)
+    );
+  }
+
+  if (treatmentHistoryQuery.error) {
+    return (
+      toast.error(`Failed to load treatment history: ${String(treatmentHistoryQuery.error)}`)
     );
   }
 
