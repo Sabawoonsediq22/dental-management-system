@@ -31,6 +31,17 @@ const formatTime = (dateStr: string | null | undefined): string => {
   });
 };
 
+const parseCsv = (value: string): string[] => Array.from(
+  new Set(
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
+  ),
+);
+
+const formatCsv = (values: string[]): string => values.join(", ");
+
 const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -156,22 +167,41 @@ const PatientProfile: React.FC = () => {
   const updateMedicalInfoMutation = useUpdatePatientMedicalInfo();
 
   const handleSaveAllergies = () => {
-    if (patient) {
-      const conditionsArray = allergiesFormData.medical_conditions
-        .split(",")
-        .map(c => c.trim())
-        .filter(c => c.length > 0);
+    if (!patient) return;
 
-      updateMedicalInfoMutation.mutate({
-        patient_id: patient.id,
-        input: {
-          allergies: allergiesFormData.allergies || null,
-          medications: allergiesFormData.medications || null,
-          medical_conditions: conditionsArray.length > 0 ? conditionsArray : null,
-        },
-      });
-    }
-    setShowAllergiesModal(false);
+    const allergiesArray = parseCsv(allergiesFormData.allergies);
+    const medicationsArray = parseCsv(allergiesFormData.medications);
+    const conditionsArray = parseCsv(allergiesFormData.medical_conditions);
+    const medicalInfoKey = ["patients", patient.id, "medical-info"];
+    const optimisticMedicalInfo = {
+      allergies: allergiesArray,
+      medications: medicationsArray,
+      medical_conditions: conditionsArray,
+    };
+
+    updateMedicalInfoMutation.mutate({
+      patient_id: patient.id,
+      input: {
+        allergies: allergiesArray.length > 0 ? formatCsv(allergiesArray) : null,
+        medications: medicationsArray.length > 0 ? formatCsv(medicationsArray) : null,
+        medical_conditions: conditionsArray.length > 0 ? conditionsArray : null,
+      },
+    }, {
+      onSuccess: () => {
+        queryClient.setQueryData(medicalInfoKey, optimisticMedicalInfo);
+        queryClient.invalidateQueries({ queryKey: medicalInfoKey });
+        setAllergiesFormData({
+          allergies: formatCsv(allergiesArray),
+          medical_conditions: formatCsv(conditionsArray),
+          medications: formatCsv(medicationsArray),
+        });
+        setShowAllergiesModal(false);
+        toast.success("Medical information updated successfully");
+      },
+      onError: (error) => {
+        toast.error(`Failed to update medical information: ${String(error)}`);
+      },
+    });
   };
 
   const treatmentHistory: TreatmentEntry[] = visits?.map((visit: Visit) => ({
@@ -189,7 +219,7 @@ const PatientProfile: React.FC = () => {
   if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" text="Loading..." />
       </div>
     );
   }

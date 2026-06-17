@@ -31,23 +31,23 @@ export const api = {
     getStatistics: (id: string) => invoke<PatientStatisticsInfo>("get_patient_statistics", { id }),
     create: (input: CreatePatientInput) => invoke<Patient>("create_patient", { input }),
     update: (id: string, input: UpdatePatientInput) => invoke<Patient>("update_patient", { id, input }),
-    updateMedicalInfo: (patient_id: string, input: UpdatePatientMedicalInfoInput) => invoke<void>("update_patient_medical_info", { patient_id, input }),
+    updateMedicalInfo: (patient_id: string, input: UpdatePatientMedicalInfoInput) => invoke<void>("update_patient_medical_info", { patientId: patient_id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),
-    add_medical_condition: (patient_id: string, condition_name: string) => invoke<void>("add_medical_condition", { patient_id, condition_name }),
+    add_medical_condition: (patient_id: string, condition_name: string) => invoke<void>("add_medical_condition", { patientId: patient_id, conditionName: condition_name }),
     upload_xray: (patient_id: string, filename: string, bytes: number[]) => invoke<Xray>("upload_xray", { patientId: patient_id, filename, bytes }),
   },
   visits: {
     create: (input: CreateVisitInput) => invoke<Visit>("create_visit", { input }),
     updateStatus: (id: string, status: Visit["status"]) => invoke<Visit>("update_visit_status", { id, status }),
-    list: (patientId: string) => invoke<Visit[]>("get_patient_visits", { patient_id: patientId }),
+    list: (patientId: string) => invoke<Visit[]>("get_patient_visits", { patientId }),
   },
   treatments: {
     add: (input: CreateTreatmentRecordInput) => invoke<TreatmentRecord>("add_treatment_record", { input }),
   },
   invoices: {
     create: (input: CreateInvoiceInput) => invoke<Invoice>("create_invoice", { input }),
-    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visit_id: visitId }),
-    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoice_id: invoiceId }),
+    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visitId }),
+    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
   },
   payments: {
     add: (input: AddPaymentInput) => invoke<Payment>("add_payment", { input }),
