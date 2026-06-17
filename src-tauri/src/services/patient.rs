@@ -1,6 +1,5 @@
 use crate::models::*;
 use crate::services::errors::AppResult;
-use crate::services::treatment::TreatmentRecordService;
 use chrono::Utc;
 use sqlx::{SqlitePool, Transaction};
 use uuid::Uuid;
@@ -116,7 +115,7 @@ impl PatientService {
         })
     }
 
-    pub async fn create(pool: &SqlitePool, input: CreatePatientInput) -> AppResult<Patient> {
+    pub async fn create(pool: &SqlitePool, input: CreatePatientInput) -> AppResult<CreatedPatient> {
         let mut tx = pool.begin().await?;
         let patient_count: i32 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
             .fetch_one(&mut *tx)
@@ -163,6 +162,8 @@ impl PatientService {
         )
         .await?;
 
+        let mut treatment_record_id: Option<String> = None;
+
         if let Some(procedure_id) = Self::insert_procedure(
             &mut tx,
             &visit_id,
@@ -173,14 +174,14 @@ impl PatientService {
         )
         .await?
         {
-            Self::insert_treatment_record(
+            treatment_record_id = Some(Self::insert_treatment_record(
                 &mut tx,
                 &visit_id,
                 &procedure_id,
                 input.number_of_procedures,
                 input.treatment_teeth.as_deref(),
             )
-            .await?;
+            .await?);
         }
 
         Self::insert_invoice(
@@ -193,7 +194,7 @@ impl PatientService {
 
         tx.commit().await?;
 
-        Ok(Patient {
+        Ok(CreatedPatient {
             id,
             full_name: input.full_name,
             phone: input.phone,
@@ -203,6 +204,7 @@ impl PatientService {
             last_visit: input.visit_date,
             created_at: now.clone(),
             updated_at: now,
+            treatment_record_id,
         })
     }
 
@@ -231,7 +233,7 @@ impl PatientService {
     ) -> AppResult<()> {
         for medication in Self::split_csv(medications) {
             sqlx::query(
-                "INSERT OR IGNORE INTO patient_medications (patient_id, medication_name) VALUES (?, ?)"
+                "INSERT OR IGNORE INTO patient_medications (patient_id, medication_name) VALUES (?, ?)",
             )
             .bind(patient_id)
             .bind(medication)
@@ -249,7 +251,7 @@ impl PatientService {
     ) -> AppResult<()> {
         for condition in Self::dedupe_strings(medical_conditions.unwrap_or(&[])) {
             sqlx::query(
-                "INSERT OR IGNORE INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)"
+                "INSERT OR IGNORE INTO medical_conditions (patient_id, condition_name, is_active) VALUES (?, ?, TRUE)",
             )
             .bind(patient_id)
             .bind(condition)
@@ -278,7 +280,7 @@ impl PatientService {
 
         sqlx::query(
             "INSERT INTO visits (id, patient_id, visit_date, chief_complaint, clinical_notes, status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&visit_id)
         .bind(patient_id)
@@ -332,7 +334,7 @@ impl PatientService {
         procedure_id: &str,
         number_of_procedures: Option<i32>,
         treatment_teeth: Option<&[TreatmentToothInput]>,
-    ) -> AppResult<()> {
+    ) -> AppResult<String> {
         let number_of_procedures = number_of_procedures.unwrap_or(1).max(1);
         let treatment_teeth = treatment_teeth
             .unwrap_or(&[])
@@ -344,18 +346,33 @@ impl PatientService {
             .filter(|tooth| tooth.tooth_number > 0 && !tooth.tooth_quadrant.is_empty())
             .collect::<Vec<_>>();
 
-        TreatmentRecordService::insert_in_transaction(
-            tx,
-            CreateTreatmentRecordInput {
-                visit_id: visit_id.to_string(),
-                procedure_id: procedure_id.to_string(),
-                treatment_teeth,
-                number_of_procedures,
-            },
+        let id = format!("TR-{}", Uuid::new_v4().simple());
+        let now = Utc::now().to_rfc3339();
+
+        sqlx::query(
+            "INSERT INTO treatment_records (id, visit_id, procedure_id, number_of_procedures, performed_at)
+             VALUES (?, ?, ?, ?, ?)",
         )
+        .bind(&id)
+        .bind(visit_id)
+        .bind(procedure_id)
+        .bind(number_of_procedures)
+        .bind(&now)
+        .execute(&mut **tx)
         .await?;
 
-        Ok(())
+        for tooth in treatment_teeth.iter() {
+            sqlx::query(
+                "INSERT INTO treatment_tooth (id, treatment_record_id, tooth_number, tooth_quadrant) VALUES (NULL, ?, ?, ?)",
+            )
+            .bind(&id)
+            .bind(tooth.tooth_number)
+            .bind(tooth.tooth_quadrant.trim())
+            .execute(&mut **tx)
+            .await?;
+        }
+
+        Ok(id)
     }
 
     async fn insert_invoice(
@@ -481,7 +498,7 @@ impl PatientService {
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, updated_at=? WHERE id=?"
+            "UPDATE patients SET full_name=?, phone=?, age=?, gender=?, address=?, updated_at=? WHERE id=?",
         )
         .bind(&full_name)
         .bind(&phone)
@@ -567,21 +584,21 @@ impl PatientService {
 
     pub async fn get_statistics(pool: &SqlitePool, id: &str) -> AppResult<PatientStatisticsResponse> {
         let total_spent: f64 = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(i.total_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?"
+            "SELECT COALESCE(SUM(i.total_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?",
         )
         .bind(id)
         .fetch_one(pool)
         .await?;
 
         let outstanding_balance: f64 = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(i.outstanding_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?"
+            "SELECT COALESCE(SUM(i.outstanding_amount), 0) FROM invoices i JOIN visits v ON v.id = i.visit_id WHERE v.patient_id = ?",
         )
         .bind(id)
         .fetch_one(pool)
         .await?;
 
         let last_visit: Option<(String, String)> = sqlx::query_as(
-            "SELECT v.visit_date, p.name FROM visits v JOIN invoices i ON i.visit_id = v.id JOIN procedures p ON p.visit_id = v.id WHERE v.patient_id = ? ORDER BY v.visit_date DESC LIMIT 1"
+            "SELECT v.visit_date, p.name FROM visits v JOIN invoices i ON i.visit_id = v.id JOIN procedures p ON p.visit_id = v.id WHERE v.patient_id = ? ORDER BY v.visit_date DESC LIMIT 1",
         )
         .bind(id)
         .fetch_optional(pool)

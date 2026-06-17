@@ -33,7 +33,7 @@ async fn list_patients(
 async fn create_patient(
     state: State<'_, AppState>,
     input: CreatePatientInput,
-) -> Result<Patient, String> {
+) -> Result<CreatedPatient, String> {
     PatientService::create(&state.db, input)
         .await
         .map_err(|e| e.to_string())

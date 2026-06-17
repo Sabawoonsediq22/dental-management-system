@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   Patient,
+  CreatedPatient,
   PatientPageResult,
   CreatePatientInput,
   UpdatePatientInput,
@@ -30,7 +31,7 @@ export const api = {
     get: (id: string) => invoke<Patient>("get_patient", { id }),
     getMedicalInfo: (id: string) => invoke<PatientMedicalInfo>("get_patient_medical_info", { id }),
     getStatistics: (id: string) => invoke<PatientStatisticsInfo>("get_patient_statistics", { id }),
-    create: (input: CreatePatientInput) => invoke<Patient>("create_patient", { input }),
+    create: (input: CreatePatientInput) => invoke<CreatedPatient>("create_patient", { input }),
     update: (id: string, input: UpdatePatientInput) => invoke<Patient>("update_patient", { id, input }),
     updateMedicalInfo: (patient_id: string, input: UpdatePatientMedicalInfoInput) => invoke<void>("update_patient_medical_info", { patientId: patient_id, input }),
     delete: (id: string) => invoke<void>("delete_patient", { id }),

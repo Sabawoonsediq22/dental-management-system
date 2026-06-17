@@ -11,6 +11,19 @@ export interface Patient {
   last_visit?: string | null;
 }
 
+export interface CreatedPatient {
+  id: string;
+  full_name: string;
+  phone: string;
+  age: number;
+  gender: "Male" | "Female" | "Other";
+  address: string | null;
+  created_at: string;
+  updated_at: string;
+  last_visit?: string | null;
+  treatment_record_id: string | null;
+}
+
 export interface PatientMedicalInfo {
   allergies: string[];
   medications: string[];

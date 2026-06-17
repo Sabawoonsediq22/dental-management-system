@@ -15,6 +15,20 @@ pub struct Patient {
     pub updated_at: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
+pub struct CreatedPatient {
+    pub id: String,
+    pub full_name: String,
+    pub phone: String,
+    pub age: i32,
+    pub gender: Gender,
+    pub address: Option<String>,
+    pub last_visit: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub treatment_record_id: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
 pub enum Gender {
     Male,

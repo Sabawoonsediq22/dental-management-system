@@ -420,7 +420,7 @@ const input: CreatePatientInput = {
             throw new Error("upload_xray command is not available");
           }
           const bytes = await fileToUint8Array(xrayFile);
-          await api.patients.upload_xray(created.id, null, xrayFile.name, bytes);
+          await api.patients.upload_xray(created.id, created.treatment_record_id, xrayFile.name, bytes);
         } catch (xrayError) {
           console.error("X-ray upload failed:", xrayError);
           toast.error({

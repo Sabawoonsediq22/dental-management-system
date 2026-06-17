@@ -17,6 +17,7 @@ impl TreatmentRecordService {
         Ok(record)
     }
 
+    #[allow(dead_code)]
     pub async fn insert_in_transaction(
         tx: &mut Transaction<'_, sqlx::Sqlite>,
         input: CreateTreatmentRecordInput,
