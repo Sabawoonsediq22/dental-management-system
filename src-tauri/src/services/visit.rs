@@ -130,10 +130,15 @@ impl VisitService {
                 .fetch_all(pool)
                 .await?.into_iter().collect();
 
+                let procedure_name = match row.procedure_additional_note.as_deref().map(str::trim).filter(|note| !note.is_empty()) {
+                    Some(note) => format!("{} - {}", row.procedure_name, note),
+                    None => row.procedure_name,
+                };
+
                 treatment_procedures.push(TreatmentProcedure {
                     treatment_record_id,
-                    procedure_name: row.procedure_name,
-                    procedure_additional_note: row.procedure_additional_note,
+                    procedure_name,
+                    procedure_additional_note: None,
                     number_of_procedures: row.number_of_procedures,
                     unit_price: row.unit_price,
                     total_price: row.total_price,

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
-import { FilterIcon, ChevronDownIcon, ChevronUpIcon, EditIcon } from "../../shared/icons/icons";
+import { FilterIcon, ChevronDownIcon, ChevronUpIcon } from "../../shared/icons/icons";
 import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
 import i18n from "../../i18n";
@@ -10,7 +10,6 @@ import i18n from "../../i18n";
 interface TreatmentHistoryTimelineProps {
   treatments: TreatmentEntry[];
   onViewAll?: () => void;
-  onEditTreatment?: (treatment: TreatmentEntry) => void;
   onExport?: () => void;
   className?: string;
 }
@@ -42,7 +41,6 @@ const isRTL = i18n.language === "ps";
 const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   treatments,
   onViewAll,
-  onEditTreatment,
   onExport,
   className,
 }) => {
@@ -61,8 +59,18 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
     });
   };
 
+  type TreatmentProcedureEntry = NonNullable<TreatmentEntry["procedures"]>[number];
+
+  const getProcedureTitle = (procedure: TreatmentProcedureEntry) => {
+    const toothNumbers = procedure.tooth_numbers?.filter((tooth) => tooth > 0);
+    if (!toothNumbers || toothNumbers.length === 0) {
+      return procedure.name;
+    }
+    return `${procedure.name} (Tooth: ${toothNumbers.join(", ")})`;
+  };
+
   const getTreatmentTitle = (t: TreatmentEntry) => {
-    const procedureNames = t.procedures?.map((p) => p.name).join(", ");
+    const procedureNames = t.procedures?.map((p) => getProcedureTitle(p)).join(", ");
     if (procedureNames) {
       return procedureNames;
     }
@@ -147,15 +155,6 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                           <Badge className={cn(statusStyle.bg, statusStyle.text)}>
                             {treatment.status.toUpperCase()}
                           </Badge>
-                          {onEditTreatment && (
-                            <button
-                              onClick={() => onEditTreatment(treatment)}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer focus:outline-none"
-                              aria-label={`Edit ${treatment.title}`}
-                            >
-                              <EditIcon size="md" />
-                            </button>
-                          )}
                           <button
                             onClick={() => toggleExpand(treatment.id)}
                             className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer focus:outline-none"
@@ -180,40 +179,30 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                   className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                                 >
                                   <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <p className="font-medium text-gray-900 dark:text-white">
-                                      {procedure.name}
-                                    </p>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      {procedure.total_price.toLocaleString()} AFN
-                                    </p>
+                                    {treatment.notes && (
+                                      <div>
+                                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                          Notes:{" "}
+                                        </span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                          {treatment.notes}
+                                        </span>
+                                      </div>
+                                      )}
                                   </div>
-                                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>Number of procedures: {procedure.quantity}</span>
-                                    <span>Unit: {procedure.unit_price.toLocaleString()} AFN</span>
-                                    {procedure.tooth_numbers && procedure.tooth_numbers.length > 0 && (
-                                      <span className="col-span-2">
-                                        Teeth: {procedure.tooth_numbers.join(", ")}
-                                      </span>
-                                    )}
+                                  <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>
+                                      Number of procedures: {procedure.quantity}
+                                    </span>
+                                    <span>
+                                      Unit: {procedure.unit_price.toLocaleString()} AFN
+                                    </span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      Total: {procedure.total_price.toLocaleString()} AFN
+                                    </span>
                                   </div>
-                                  {procedure.additional_note && (
-                                    <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                      {procedure.additional_note}
-                                    </p>
-                                  )}
                                 </div>
                               ))}
-                            </div>
-                          )}
-
-                          {treatment.notes && (
-                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                Notes
-                              </p>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                {treatment.notes}
-                              </p>
                             </div>
                           )}
 

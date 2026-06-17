@@ -184,10 +184,6 @@ const PatientProfile: React.FC = () => {
     }
   };
 
-  const handleEditTreatment = (treatment: TreatmentEntry) => {
-    console.log("Edit treatment:", treatment);
-  };
-
   const handleExportHistory = () => {
     const csvContent = [
       ["Date", "Time", "Procedure", "Status", "Notes"],
@@ -393,7 +389,6 @@ const PatientProfile: React.FC = () => {
         <TreatmentHistoryTimeline
           treatments={treatmentHistory}
           onViewAll={handleViewAllVisits}
-          onEditTreatment={handleEditTreatment}
           onExport={handleExportHistory}
         />
       </div>
