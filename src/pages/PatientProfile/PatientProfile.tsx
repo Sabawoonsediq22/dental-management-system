@@ -10,7 +10,7 @@ import TreatmentHistoryTimeline from "../../components/patients/TreatmentHistory
 import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWithStatus";
 import StatisticsCard from "../../components/patients/StatisticsCard";
 import PersonalDetailsCard from "../../components/patients/PersonalDetailsCard";
-import { PatientIcon, PhoneIcon, HomeIcon, PlusIcon, DeleteIcon } from "../../shared/icons/icons";
+import { PatientIcon, PhoneIcon, HomeIcon, PlusIcon, DeleteIcon, LocationIcon } from "../../shared/icons/icons";
 import { toast } from "sonner";
 import type { PatientVisitWithTreatments } from "../../types/ApiTypes";
 
@@ -285,20 +285,17 @@ const PatientProfile: React.FC = () => {
           <div className="flex items-center gap-4">
             <PatientAvatarWithStatus name={patient.full_name} size="xxl" status="online" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {patient.full_name}
               </h1>
-              <div className="flex items-center gap-2 mt-1">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                   {patient.id}
                 </span>
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <LocationIcon className="h-3 w-3"/>
                   {patient.address ? patient.address : "Address not provided"}   •
                 </span>
                 <span>Registered since {registeredDate}</span>

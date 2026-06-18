@@ -5,6 +5,7 @@ import MainLayout from "./components/layouts/MainLayout";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Patients from "./pages/Patients/Patients";
 import NewPatient from "./pages/NewPatient/NewPatient";
+import NewVisit from "./pages/NewVisit/NewVisit";
 import PatientProfile from "./pages/PatientProfile/PatientProfile";
 import Reports from "./pages/Reports/Reports";
 import Settings from "./pages/Setting/Settings";
@@ -49,6 +50,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/patients" element={<Patients />} />
           <Route path="/patients/new" element={<NewPatient />} />
+          <Route path="/patients/:id/visits/new" element={<NewVisit />} />
           <Route path="/patients/:id" element={<PatientProfile />} />
           <Route path="/billing" element={<Billing />} />
           <Route path="/reports" element={<Reports />} />

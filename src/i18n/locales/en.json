@@ -144,6 +144,53 @@
     "discardDraft": "Discard Draft",
     "saveAndPrintInvoice": "Save & Print Invoice"
   },
+  "newVisit": {
+    "title": "New Visit",
+    "visits": "Visits",
+    "description": "Create a new clinical visit for this patient and record treatment details.",
+    "patientId": "Patient ID",
+    "date": "Visit Date",
+    "visitDetails": "Visit Details",
+    "chiefComplaint": "Chief Complaint",
+    "chiefComplaintPlaceholder": "Main reason for today's visit",
+    "clinicalNotes": "Clinical Notes",
+    "clinicalNotesPlaceholder": "Doctor's observations and plan",
+    "treatmentRecording": "Treatment Recording",
+    "procedure": "Procedure",
+    "selectProcedure": "Select procedure",
+    "selectedProcedure": "No procedure selected",
+    "additionalNotes": "Additional Notes",
+    "additionalNotesPlaceholder": "Procedure notes",
+    "numberOfProcedures": "Number of Procedures",
+    "selectedTeethLabel": "teeth selected",
+    "xray": "X-ray / Clinical Photos",
+    "uploadXray": "Upload X-ray",
+    "dragAndDrop": "Click or drag and drop",
+    "or": "or",
+    "remove": "Remove",
+    "billing": "Billing",
+    "discount": "Discount",
+    "discountPlaceholder": "Enter discount",
+    "paidAmount": "Paid Amount",
+    "paidAmountPlaceholder": "Enter paid amount",
+    "subtotal": "Subtotal",
+    "totalDue": "Total Due",
+    "outstanding": "Outstanding",
+    "saveVisit": "Create Visit",
+    "errors": {
+      "patientLoadFailed": "Failed to load patient data.",
+      "dateRequired": "Visit date is required.",
+      "chiefComplaintRequired": "Chief complaint is required.",
+      "procedureRequired": "Please select a valid procedure.",
+      "quantityRequired": "Procedure quantity must be at least 1.",
+      "nonNegativeAmount": "Amount cannot be negative."
+    },
+    "notifications": {
+      "addSuccess": "Visit created successfully",
+      "addError": "Failed to create visit",
+      "partialSuccess": "Visit was saved, but some treatment details could not be saved."
+    }
+  },
   "common": {
     "cancel": "Cancel",
     "saving": "Saving..."

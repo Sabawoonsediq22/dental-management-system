@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import type { CreateVisitInput } from "../types/ApiTypes";
 
 export function useVisits(patientId: string) {
   return useQuery({
@@ -13,9 +14,10 @@ export function useCreateVisit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.visits.create,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["visits"] });
-      qc.invalidateQueries({ queryKey: ["treatment-history"] });
+    onSuccess: (_, input: CreateVisitInput) => {
+      qc.invalidateQueries({ queryKey: ["visits", input.patient_id] });
+      qc.invalidateQueries({ queryKey: ["treatment-history", input.patient_id] });
+      qc.invalidateQueries({ queryKey: ["patients", input.patient_id, "statistics"] });
     },
   });
 }

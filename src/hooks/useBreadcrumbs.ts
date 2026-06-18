@@ -9,7 +9,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
   const { t } = useTranslation();
 
   const patientId = useMemo(() => {
-    const match = location.pathname.match(/^\/patients\/([^/]+)$/);
+    const match = location.pathname.match(/^\/patients\/([^/]+)/);
     return match?.[1] || "";
   }, [location.pathname]);
 
@@ -17,6 +17,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
 
   return useMemo(() => {
     const pathnames = location.pathname.split("/").filter(Boolean);
+    const isNewVisitPage = pathnames[0] === "patients" && pathnames[3] === "new";
 
     const breadcrumbMap: Record<string, string> = {
       dashboard: t("nav.dashboard"),
@@ -26,7 +27,8 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
       settings: t("nav.settings"),
       about: t("nav.about"),
       help: t("nav.help"),
-      new: t("patients.new") || "New Patient",
+      visits: t("newVisit.visits"),
+      new: isNewVisitPage ? t("newVisit.title") : t("patients.new") || "New Patient",
     };
 
     const buildBreadcrumbs = (): BreadcrumbItem[] => {
@@ -55,13 +57,14 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
           return;
         }
 
+        const hasNestedPatientRoute = pathnames[0] === "patients" && index === 2 && pathnames[3] === "new";
         const label =
           breadcrumbMap[pathname] ||
           pathname.charAt(0).toUpperCase() + pathname.slice(1);
 
         breadcrumbs.push({
           label,
-          href: isLast ? undefined : currentPath,
+          href: isLast || hasNestedPatientRoute ? undefined : currentPath,
         });
       });
 

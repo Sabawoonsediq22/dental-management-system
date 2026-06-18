@@ -134,6 +134,53 @@
     "outstanding": "باقي",
     "totalDue": "مجموعي پور"
    },
+  "newVisit": {
+    "title": "نوی ملاقات",
+    "visits": "ملاقاتونه",
+    "description": "د دې مریض لپاره نوی کلینیکي ملاقات جوړ کړئ او د درملنې جزئیات ثبت کړئ.",
+    "patientId": "د مریض پېژندنه",
+    "date": "د ملاقات نېټه",
+    "visitDetails": "د ملاقات جزئیات",
+    "chiefComplaint": "اصلي شکایت",
+    "chiefComplaintPlaceholder": "د ننني ملاقات اصلي دلیل",
+    "clinicalNotes": "کلینیکي نوټونه",
+    "clinicalNotesPlaceholder": "د ډاکټر لیدنې او پلان",
+    "treatmentRecording": "د درملنې ثبت",
+    "procedure": "عملیه",
+    "selectProcedure": "عملیه وټاکئ",
+    "selectedProcedure": "هیڅ عملیه نه ده ټاکل شوې",
+    "additionalNotes": "اضافي نوټونه",
+    "additionalNotesPlaceholder": "د عملیې نوټونه",
+    "numberOfProcedures": "د عملیو شمېر",
+    "selectedTeethLabel": "غاښونه ټاکل شوي",
+    "xray": "ایکس رې / کلینیکي انځورونه",
+    "uploadXray": "ایکس رې اپلوډ کړئ",
+    "dragAndDrop": "کلک کړئ یا فایل راوړئ",
+    "or": "یا",
+    "remove": "لرې کړئ",
+    "billing": "بیل",
+    "discount": "تخفیف",
+    "discountPlaceholder": "تخفیف ولیکئ",
+    "paidAmount": "ورکړل شوی مقدار",
+    "paidAmountPlaceholder": "ورکړل شوی مقدار ولیکئ",
+    "subtotal": "فرعي مجموعه",
+    "totalDue": "مجموعي پور",
+    "outstanding": "باقي",
+    "saveVisit": "ملاقات جوړ کړئ",
+    "errors": {
+      "patientLoadFailed": "د مریض معلومات لوستل بریالي نه شول.",
+      "dateRequired": "د ملاقات نېټه اړینه ده.",
+      "chiefComplaintRequired": "اصلي شکایت اړین دی.",
+      "procedureRequired": "مهرباني وکړئ یوه معتبره عملیه وټاکئ.",
+      "quantityRequired": "د عملیې مقدار لږ تر لږه ۱ وي.",
+      "nonNegativeAmount": "مقدار نشي منفي کیدی."
+    },
+    "notifications": {
+      "addSuccess": "ملاقات په بریالیتوب سره جوړ شو",
+      "addError": "د ملاقات جوړول بریالي نه شول",
+      "partialSuccess": "ملاقات ذخیره شو، خو ځینې د درملنې جزئیات ذخیره نه شول."
+    }
+  },
   "common": {
     "cancel": "لغوه",
     "saving": "ذخیره کول..."

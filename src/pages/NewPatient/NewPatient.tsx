@@ -928,7 +928,7 @@ const input: CreatePatientInput = {
                     <FormInput
                       type="number"
                       placeholder={t(
-                        "newPatient.discountPlaceholder",
+                        "newPatient.discount",
                         "Enter Value",
                       )}
                       onChange={(e) =>
@@ -956,7 +956,7 @@ const input: CreatePatientInput = {
                     <FormInput
                       type="number"
                       placeholder={t(
-                        "newPatient.paidAmountPlaceholder",
+                        "newPatient.paidAmount",
                         "Enter Amount",
                       )}
                       onChange={(e) =>
