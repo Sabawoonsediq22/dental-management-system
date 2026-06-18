@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,6 +99,7 @@ const NewVisit: React.FC = () => {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
   const [selectedProcedureName, setSelectedProcedureName] = useState("");
+  const [procedureAdditionalNote, setProcedureAdditionalNote] = useState("");
   const [numberOfProcedures, setNumberOfProcedures] = useState(1);
   const [discount, setDiscount] = useState("");
   const [paidAmount, setPaidAmount] = useState("");
@@ -115,6 +116,8 @@ const NewVisit: React.FC = () => {
   const selectedProcedure = PROCEDURES.find(
     (procedure) => procedure.name === selectedProcedureName,
   );
+  const [procedureId, setProcedureId] = useState<string | null>(null);
+
   const discountAmount = parseFloat(discount) || 0;
   const paidAmountValue = parseFloat(paidAmount) || 0;
   const subtotal =
@@ -247,16 +250,19 @@ const NewVisit: React.FC = () => {
       let treatmentRecord: TreatmentRecord | null = null;
       let treatmentFailed = false;
       let xrayUploadFailed = false;
-      let procedureId: string | null = null;
 
-      if (selectedProcedureName) {
-        const procedure = await api.procedures.findByName(
-          selectedProcedureName,
-        );
-        procedureId = procedure?.id ?? null;
+      if (selectedProcedureName && !procedureId) {
+        treatmentFailed = true;
+      }
 
-        if (!procedureId) {
-          treatmentFailed = true;
+      if (procedureId && procedureAdditionalNote !== undefined) {
+        try {
+          await api.procedures.updateAdditionalNote(
+            procedureId,
+            procedureAdditionalNote.trim() || null,
+          );
+        } catch (noteError) {
+          console.error("Failed to update procedure note:", noteError);
         }
       }
 
@@ -421,15 +427,14 @@ const NewVisit: React.FC = () => {
 
       <div className="space-y-6">
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 dark:bg-gray-700 p-4 dark:border-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <VisitDetailsIcon className="h-5 w-5 text-blue-600" />
               {t("newVisit.visitDetails")}
             </h3>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
+            <div>
                 <FormField
                   label={t("newVisit.date")}
                   error={errors.visitDate}
@@ -443,8 +448,9 @@ const NewVisit: React.FC = () => {
                     className="w-full"
                   />
                 </FormField>
-              </div>
-              <div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6">
                 <FormField
                   label={t("newVisit.chiefComplaint")}
                   error={errors.chiefComplaint}
@@ -458,10 +464,6 @@ const NewVisit: React.FC = () => {
                     disabled={isSubmitting}
                   />
                 </FormField>
-              </div>
-            </div>
-
-            <div className="mt-6">
               <FormField label={t("newVisit.clinicalNotes")}>
                 <FormTextarea
                   value={clinicalNotes}
@@ -476,7 +478,7 @@ const NewVisit: React.FC = () => {
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 dark:bg-gray-700 p-4 dark:border-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <ToothIcon className="h-5 w-5 text-green-600" />
               {t("newVisit.treatmentRecording")}
@@ -525,6 +527,20 @@ const NewVisit: React.FC = () => {
               </FormField>
             </div>
 
+            <div className="mt-4">
+              <FormField label={t("newVisit.procedureAdditionalNotes")}>
+                <FormTextarea
+                  value={procedureAdditionalNote}
+                  onChange={(event) =>
+                    setProcedureAdditionalNote(event.target.value)
+                  }
+                  placeholder={t("newVisit.procedureAdditionalNotesPlaceholder")}
+                  className="min-h-[80px] w-full"
+                  disabled={isSubmitting}
+                />
+              </FormField>
+            </div>
+
             <div className="mt-6">
               <DentalChart
                 onToothSelect={handleSelectedToothChange}
@@ -542,7 +558,7 @@ const NewVisit: React.FC = () => {
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-purple-50 to-violet-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 dark:bg-gray-700 p-4 dark:border-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <ImageIcon className="h-5 w-5 text-purple-600" />
               {t("newVisit.xray")}
@@ -604,7 +620,7 @@ const NewVisit: React.FC = () => {
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 dark:bg-gray-700 p-4 dark:border-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <BillingIcon className="h-5 w-5 text-amber-600" />
               {t("newVisit.billing")}

@@ -477,7 +477,7 @@ const input: CreatePatientInput = {
 
       <div className="space-y-8">
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <PatientIcon className="w-5 h-5 text-blue-600" />
               {t("newPatient.personalInfo")}
@@ -574,7 +574,7 @@ const input: CreatePatientInput = {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <div className="border-b bg-gradient-to-r from-red-50 to-rose-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+            <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
               <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
                 <MedicalHistoryIcon className="w-5 h-5 text-red-600" />
                 {t("newPatient.medicalHistory")}
@@ -701,7 +701,7 @@ const input: CreatePatientInput = {
           </section>
 
           <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <div className="border-b bg-gradient-to-r from-blue-50 to-sky-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+            <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
               <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
                 <VisitDetailsIcon className="w-5 h-5 text-blue-600" />
                 {t("newPatient.visitDetails")}
@@ -736,7 +736,7 @@ const input: CreatePatientInput = {
         </div>
 
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gradient-to-r from-green-50 to-emerald-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <ToothIcon className="w-5 h-5 text-green-600" />
               {t("newPatient.treatmentRecording")}
@@ -851,7 +851,7 @@ const input: CreatePatientInput = {
         </section>
 
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gradient-to-r from-amber-50 to-orange-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
               <BillingIcon className="w-5 h-5 text-amber-600" />
               {t("newPatient.billing")}
