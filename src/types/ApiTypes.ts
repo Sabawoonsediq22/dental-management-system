@@ -108,6 +108,13 @@ export interface CreateVisitInput {
   clinical_notes?: string | null;
 }
 
+export interface CreateProcedureInput {
+  visit_id: string;
+  name: string;
+  additional_note?: string | null;
+  procedure_price: number;
+}
+
 export interface TreatmentRecord {
   id: string;
   visit_id: string;

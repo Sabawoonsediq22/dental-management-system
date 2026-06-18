@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,7 @@ import { isRTL } from "../../i18n";
 import { ToothData } from "../../components/dental-chart/types";
 import { api } from "../../lib/api";
 import type {
+  CreateProcedureInput,
   CreateTreatmentRecordInput,
   CreateVisitInput,
   TreatmentRecord,
@@ -116,7 +117,6 @@ const NewVisit: React.FC = () => {
   const selectedProcedure = PROCEDURES.find(
     (procedure) => procedure.name === selectedProcedureName,
   );
-  const [procedureId, setProcedureId] = useState<string | null>(null);
 
   const discountAmount = parseFloat(discount) || 0;
   const paidAmountValue = parseFloat(paidAmount) || 0;
@@ -248,40 +248,26 @@ const NewVisit: React.FC = () => {
       };
       const createdVisit = await api.visits.create(visitInput);
       let treatmentRecord: TreatmentRecord | null = null;
-      let treatmentFailed = false;
       let xrayUploadFailed = false;
 
-      if (selectedProcedureName && !procedureId) {
-        treatmentFailed = true;
-      }
-
-      if (procedureId && procedureAdditionalNote !== undefined) {
-        try {
-          await api.procedures.updateAdditionalNote(
-            procedureId,
-            procedureAdditionalNote.trim() || null,
-          );
-        } catch (noteError) {
-          console.error("Failed to update procedure note:", noteError);
-        }
-      }
-
-      if (procedureId) {
+      if (selectedProcedureName && selectedProcedure) {
+        const procedureInput: CreateProcedureInput = {
+          visit_id: createdVisit.id,
+          name: selectedProcedureName,
+          additional_note: trimToNull(procedureAdditionalNote),
+          procedure_price: selectedProcedure.price,
+        };
+        const createdProcedure = await api.procedures.create(procedureInput);
         const treatmentInput: CreateTreatmentRecordInput = {
           visit_id: createdVisit.id,
-          procedure_id: procedureId,
+          procedure_id: createdProcedure.id,
           number_of_procedures: Math.max(numberOfProcedures, 1),
           treatment_teeth: treatmentTeeth.filter(
             (tooth) => tooth.tooth_number > 0 && tooth.tooth_quadrant.trim(),
           ),
         };
 
-        try {
-          treatmentRecord = await api.treatments.add(treatmentInput);
-        } catch (treatmentError) {
-          treatmentFailed = true;
-          console.error("Treatment record failed:", treatmentError);
-        }
+        treatmentRecord = await api.treatments.add(treatmentInput);
       }
 
       if (xrayFile) {
@@ -298,6 +284,13 @@ const NewVisit: React.FC = () => {
         }
       }
 
+      await api.invoices.create({
+        visit_id: createdVisit.id,
+        subtotal,
+        discount: discountAmount,
+        paid_amount: paidAmountValue,
+      });
+
       queryClient.invalidateQueries({ queryKey: ["patients", patientId] });
       queryClient.invalidateQueries({
         queryKey: ["patients", patientId, "statistics"],
@@ -306,13 +299,15 @@ const NewVisit: React.FC = () => {
         queryKey: ["treatment-history", patientId],
       });
       queryClient.invalidateQueries({ queryKey: ["visits", patientId] });
+      queryClient.invalidateQueries({
+        queryKey: ["invoices", "visit", createdVisit.id],
+      });
 
       toast.success({
         title: t("newVisit.notifications.addSuccess"),
-        description:
-          treatmentFailed || xrayUploadFailed
-            ? t("newVisit.notifications.partialSuccess")
-            : undefined,
+        description: xrayUploadFailed
+          ? t("newVisit.notifications.partialSuccess")
+          : undefined,
       });
 
       navigate(`/patients/${patientId}`);

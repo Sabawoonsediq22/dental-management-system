@@ -234,6 +234,16 @@ async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary,
 
 // Procedure commands
 #[tauri::command]
+async fn create_procedure(
+    state: State<'_, AppState>,
+    input: CreateProcedureInput,
+) -> Result<Procedure, String> {
+    ProcedureService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn list_procedures(state: State<'_, AppState>) -> Result<Vec<Procedure>, String> {
     ProcedureService::list(&state.db)
         .await
@@ -321,6 +331,7 @@ pub fn run() {
             get_visit_invoice,
             add_payment,
             get_invoice_payments,
+            create_procedure,
             list_procedures,
             find_procedure_by_name,
             get_report_summary,

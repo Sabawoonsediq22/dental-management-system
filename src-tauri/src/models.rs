@@ -284,6 +284,14 @@ pub struct CreateVisitInput {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct CreateProcedureInput {
+    pub visit_id: String,
+    pub name: String,
+    pub additional_note: Option<String>,
+    pub procedure_price: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTreatmentRecordInput {
     pub visit_id: String,
     pub procedure_id: String,

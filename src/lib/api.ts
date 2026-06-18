@@ -11,6 +11,7 @@ import type {
   TreatmentRecord,
   CreateTreatmentRecordInput,
   Procedure,
+  CreateProcedureInput,
   Invoice,
   CreateInvoiceInput,
   Payment,
@@ -59,6 +60,8 @@ export const api = {
   procedures: {
     list: () => invoke<Procedure[]>("list_procedures"),
     findByName: (name: string) => invoke<Procedure | null>("find_procedure_by_name", { name }),
+    create: (input: CreateProcedureInput) => invoke<Procedure>("create_procedure", { input }),
+    updateAdditionalNote: (id: string, additionalNote: string | null) => invoke<void>("update_procedure_additional_note", { id, additionalNote }),
   },
   reports: {
     summary: () => invoke<ReportSummary>("get_report_summary"),
