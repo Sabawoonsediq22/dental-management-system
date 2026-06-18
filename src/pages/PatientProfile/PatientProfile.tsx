@@ -363,7 +363,7 @@ const PatientProfile: React.FC = () => {
 
       {/* Treatment History */}
       <div className="mb-6">
-<TreatmentHistoryTimeline
+        <TreatmentHistoryTimeline
            treatments={treatmentHistory}
            onViewAll={handleViewAllVisits}
            patientId={patient?.id}

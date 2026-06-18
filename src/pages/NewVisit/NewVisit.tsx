@@ -681,7 +681,7 @@ const NewVisit: React.FC = () => {
                 currency={currencySymbol}
                 strong
               />
-              <div className="mt-3 border-t-2 border-amber-500" />
+              <div className="mt-3 pt-3 border-t-2 border-amber-500" />
               <SummaryRow
                 label={t("newVisit.outstanding")}
                 value={formatCurrency(outstandingAmount)}
