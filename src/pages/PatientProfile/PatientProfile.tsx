@@ -181,23 +181,6 @@ const PatientProfile: React.FC = () => {
     }
   };
 
-  const handleExportHistory = () => {
-    const csvContent = [
-      ["Date", "Time", "Procedure", "Status", "Notes"],
-      ...(treatmentHistory.map(t => [t.date, t.time, t.title, t.status, t.notes || ""])),
-    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `treatment-history-${patient?.id || "unknown"}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const updateMedicalInfoMutation = useUpdatePatientMedicalInfo();
 
   const handleSaveAllergies = () => {
@@ -383,11 +366,12 @@ const PatientProfile: React.FC = () => {
 
       {/* Treatment History */}
       <div className="mb-6">
-        <TreatmentHistoryTimeline
-          treatments={treatmentHistory}
-          onViewAll={handleViewAllVisits}
-          onExport={handleExportHistory}
-        />
+<TreatmentHistoryTimeline
+           treatments={treatmentHistory}
+           onViewAll={handleViewAllVisits}
+           patientId={patient?.id}
+           patientName={patient?.full_name}
+         />
       </div>
 
       {/* Delete Confirmation Dialog */}

@@ -31,7 +31,8 @@ impl XrayService {
         std::fs::create_dir_all(&base_path)?;
         
         let safe_filename: String = filename.chars().filter(|c| c.is_alphanumeric() || *c == '.' || *c == '-' || *c == '_').collect();
-        let file_path = base_path.join(&format!("{}-{}", now.replace(':', "-"), safe_filename)).to_string_lossy().to_string();
+        let file_path = base_path.join(&format!("{}-{}", now.replace(':', "-"), safe_filename));
+        let file_path_str = file_path.to_string_lossy().replace('\\', "/").to_string();
         std::fs::write(&file_path, bytes)?;
 
         let xray = sqlx::query_as::<_, Xray>(
@@ -42,7 +43,7 @@ impl XrayService {
         .bind(&id)
         .bind(patient_id)
         .bind(treatment_record_id)
-        .bind(&file_path)
+        .bind(&file_path_str)
         .bind(false)
         .bind(&now)
         .fetch_one(pool)
