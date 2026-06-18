@@ -45,7 +45,7 @@ export function useCreatePatient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.patients.create,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" }),
   });
 }
 
@@ -55,10 +55,10 @@ export function useUpdatePatient() {
     mutationFn: ({ id, input }: { id: string; input: Parameters<typeof api.patients.update>[1] }) =>
       api.patients.update(id, input),
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ["patients"] });
-      qc.invalidateQueries({ queryKey: ["patients", data.id] });
-      qc.invalidateQueries({ queryKey: ["patients", data.id, "medical-info"] });
-      qc.invalidateQueries({ queryKey: ["patients", data.id, "statistics"] });
+      qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["patients", data.id], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["patients", data.id, "medical-info"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["patients", data.id, "statistics"], refetchType: "all" });
     },
   });
 }
@@ -69,7 +69,7 @@ export function useUpdatePatientMedicalInfo() {
     mutationFn: ({ patient_id, input }: { patient_id: string; input: Parameters<typeof api.patients.updateMedicalInfo>[1] }) =>
       api.patients.updateMedicalInfo(patient_id, input),
     onSuccess: (_, { patient_id }) => {
-      qc.invalidateQueries({ queryKey: ["patients", patient_id, "medical-info"] });
+      qc.invalidateQueries({ queryKey: ["patients", patient_id, "medical-info"], refetchType: "all" });
     },
   });
 }
@@ -78,7 +78,7 @@ export function useDeletePatient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.patients.delete,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" }),
   });
 }
 

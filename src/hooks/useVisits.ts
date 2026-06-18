@@ -15,9 +15,9 @@ export function useCreateVisit() {
   return useMutation({
     mutationFn: api.visits.create,
     onSuccess: (_, input: CreateVisitInput) => {
-      qc.invalidateQueries({ queryKey: ["visits", input.patient_id] });
-      qc.invalidateQueries({ queryKey: ["treatment-history", input.patient_id] });
-      qc.invalidateQueries({ queryKey: ["patients", input.patient_id, "statistics"] });
+      qc.invalidateQueries({ queryKey: ["visits", input.patient_id], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["treatment-history", input.patient_id], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["patients", input.patient_id, "statistics"], refetchType: "all" });
     },
   });
 }
@@ -28,8 +28,8 @@ export function useUpdateVisitStatus() {
     mutationFn: ({ id, status }: { id: string; status: "Open" | "Completed" | "Cancelled" }) =>
       api.visits.updateStatus(id, status),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["visits"] });
-      qc.invalidateQueries({ queryKey: ["treatment-history"] });
+      qc.invalidateQueries({ queryKey: ["visits"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["treatment-history"], refetchType: "all" });
     },
   });
 }
@@ -54,8 +54,8 @@ export function useAddTreatmentRecord() {
   return useMutation({
     mutationFn: api.treatments.add,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["treatments"] });
-      qc.invalidateQueries({ queryKey: ["treatment-history"] });
+      qc.invalidateQueries({ queryKey: ["treatments"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["treatment-history"], refetchType: "all" });
     },
   });
 }

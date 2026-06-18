@@ -16,8 +16,8 @@ const AllergiesMedicalAlertsCard: React.FC<AllergiesMedicalAlertsCardProps> = ({
   className,
 }) => {
   return (
-    <Card className={cn("w-full bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700", className)}>
-      <CardHeader className="pb-3 bg-red-100 dark:bg-red-900/30 border-b border-red-200 dark:border-red-700">
+    <Card className={cn("w-full bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-900/30", className)}>
+      <CardHeader className="pb-3 bg-red-100 dark:bg-red-900/30 border-b border-red-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ErrorTriangleIcon className="w-5 h-5 text-red-500" />

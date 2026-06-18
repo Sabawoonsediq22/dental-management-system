@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
   PatientIcon,
@@ -48,6 +49,7 @@ import { validatePatientForm } from "../../validation/patientValidation";
 const NewPatient: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Tracks validation messages for required patient fields and submission state.
   const [errors, setErrors] = useState<FormErrors>({});
@@ -382,7 +384,7 @@ const NewPatient: React.FC = () => {
       const medicationsCsv = formatCsvList(medicationInput);
       const selectedMedicalConditions = getSelectedMedicalConditions();
       const treatmentTeethInput = getTreatmentTeethInput();
-const input: CreatePatientInput = {
+      const input: CreatePatientInput = {
           full_name: patient.fullName.trim(),
           phone: patient.phoneNumber.trim(),
           age: patient.age,
@@ -431,6 +433,7 @@ const input: CreatePatientInput = {
       }
 
       toast.success({ title: "Patient added successfully" });
+      queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
       navigate(`/patients/${created.id}`);
     } catch (error) {
       toast.error({ title: "Failed to add patient" });
