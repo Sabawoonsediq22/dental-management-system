@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
-  PatientIcon,
   VisitDetailsIcon,
   ToothIcon,
   ImageIcon,
   CheckCircleIcon,
   CrossCircleIcon,
   LocationIcon,
+  BillingIcon,
 } from "../../shared/icons/icons";
 import {
   Button,
@@ -61,7 +61,8 @@ const getToothQuadrant = (toothId: string) => {
   return "";
 };
 
-const formatCurrency = (amount: number) => new Intl.NumberFormat().format(Math.round(amount));
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat().format(Math.round(amount));
 
 const trimToNull = (value: string) => {
   const trimmed = value.trim();
@@ -90,6 +91,9 @@ const NewVisit: React.FC = () => {
 
   const patientQuery = usePatient(patientId || "");
   const patient = patientQuery.data;
+  const registeredDate = patient?.created_at
+    ? new Date(patient.created_at).toISOString().split("T")[0]
+    : "";
 
   const [visitDate, setVisitDate] = useState(getTodayDateString());
   const [chiefComplaint, setChiefComplaint] = useState("");
@@ -99,7 +103,9 @@ const NewVisit: React.FC = () => {
   const [discount, setDiscount] = useState("");
   const [paidAmount, setPaidAmount] = useState("");
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
-  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentToothInput[]>([]);
+  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentToothInput[]>(
+    [],
+  );
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
@@ -111,11 +117,11 @@ const NewVisit: React.FC = () => {
   );
   const discountAmount = parseFloat(discount) || 0;
   const paidAmountValue = parseFloat(paidAmount) || 0;
-  const subtotal = (selectedProcedure?.price ?? 0) * Math.max(numberOfProcedures, 0);
+  const subtotal =
+    (selectedProcedure?.price ?? 0) * Math.max(numberOfProcedures, 0);
   const totalDue = Math.max(subtotal - discountAmount, 0);
   const outstandingAmount = Math.max(totalDue - paidAmountValue, 0);
   const currencySymbol = getCurrencySymbol(selectedProcedure?.name ?? "");
-  const registeredDate = patient.created_at;
 
   const handleSelectedToothChange = (toothData?: ToothData) => {
     if (!toothData) return;
@@ -130,7 +136,8 @@ const NewVisit: React.FC = () => {
 
     setTreatmentTeeth((prev) => {
       const toothNumber = parseInt(toothData.id, 10);
-      const toothQuadrant = toothData.quadrant || getToothQuadrant(toothData.id);
+      const toothQuadrant =
+        toothData.quadrant || getToothQuadrant(toothData.id);
 
       if (prev.some((tooth) => tooth.tooth_number === toothNumber)) {
         return prev.filter((tooth) => tooth.tooth_number !== toothNumber);
@@ -243,7 +250,9 @@ const NewVisit: React.FC = () => {
       let procedureId: string | null = null;
 
       if (selectedProcedureName) {
-        const procedure = await api.procedures.findByName(selectedProcedureName);
+        const procedure = await api.procedures.findByName(
+          selectedProcedureName,
+        );
         procedureId = procedure?.id ?? null;
 
         if (!procedureId) {
@@ -284,15 +293,20 @@ const NewVisit: React.FC = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: ["patients", patientId] });
-      queryClient.invalidateQueries({ queryKey: ["patients", patientId, "statistics"] });
-      queryClient.invalidateQueries({ queryKey: ["treatment-history", patientId] });
+      queryClient.invalidateQueries({
+        queryKey: ["patients", patientId, "statistics"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["treatment-history", patientId],
+      });
       queryClient.invalidateQueries({ queryKey: ["visits", patientId] });
 
       toast.success({
         title: t("newVisit.notifications.addSuccess"),
-        description: treatmentFailed || xrayUploadFailed
-          ? t("newVisit.notifications.partialSuccess")
-          : undefined,
+        description:
+          treatmentFailed || xrayUploadFailed
+            ? t("newVisit.notifications.partialSuccess")
+            : undefined,
       });
 
       navigate(`/patients/${patientId}`);
@@ -319,7 +333,11 @@ const NewVisit: React.FC = () => {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-destructive">
         <p className="font-medium">{t("newVisit.errors.patientLoadFailed")}</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate("/patients")}>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => navigate("/patients")}
+        >
           {t("patients.table.columnActions")}
         </Button>
       </div>
@@ -365,20 +383,24 @@ const NewVisit: React.FC = () => {
         <div className="flex items-start justify-between">
           {/* Left Side */}
           <div className="flex items-center gap-4">
-            <PatientAvatarWithStatus name={patient.full_name} size="xxl" status="online" />
+            <PatientAvatarWithStatus
+              name={patient.full_name}
+              size="xxl"
+              status="online"
+            />
             <div>
               <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {patient.full_name}
-              </h1>
+                  {patient.full_name}
+                </h1>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                   {patient.id}
                 </span>
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
-                  <LocationIcon className="w-4 h-4"/>
-                  {patient.address ? patient.address : "Address not provided"}   •
+                  <LocationIcon className="w-4 h-4" />
+                  {patient.address ? patient.address : "Address not provided"} •
                 </span>
                 <span>Registered since {registeredDate}</span>
               </div>
@@ -387,9 +409,10 @@ const NewVisit: React.FC = () => {
 
           {/* Right Side - Action Buttons */}
           <div className="flex items-center justify-center gap-3 mt-5">
-            <Button 
+            <Button
               variant="outline"
-              onClick={() => navigate(`/patients/${patientId}`)}>
+              onClick={() => navigate(`/patients/${patientId}`)}
+            >
               View History
             </Button>
           </div>
@@ -398,92 +421,120 @@ const NewVisit: React.FC = () => {
 
       <div className="space-y-6">
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 dark:border-gray-700 dark:bg-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <VisitDetailsIcon className="h-5 w-5" />
+              <VisitDetailsIcon className="h-5 w-5 text-blue-600" />
               {t("newVisit.visitDetails")}
             </h3>
           </div>
-          <div className="space-y-4 p-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <FormField label={t("newVisit.date")} error={errors.visitDate} required>
-                <FormInput
-                  type="date"
-                  value={visitDate}
-                  onChange={(event) => setVisitDate(event.target.value)}
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <FormField
+                  label={t("newVisit.date")}
+                  error={errors.visitDate}
+                  required
+                >
+                  <FormInput
+                    type="date"
+                    value={visitDate}
+                    onChange={(event) => setVisitDate(event.target.value)}
+                    disabled={isSubmitting}
+                    className="w-full"
+                  />
+                </FormField>
+              </div>
+              <div>
+                <FormField
+                  label={t("newVisit.chiefComplaint")}
+                  error={errors.chiefComplaint}
+                  required
+                >
+                  <FormTextarea
+                    value={chiefComplaint}
+                    onChange={(event) => setChiefComplaint(event.target.value)}
+                    placeholder={t("newVisit.chiefComplaintPlaceholder")}
+                    className="min-h-[110px] w-full"
+                    disabled={isSubmitting}
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <FormField label={t("newVisit.clinicalNotes")}>
+                <FormTextarea
+                  value={clinicalNotes}
+                  onChange={(event) => setClinicalNotes(event.target.value)}
+                  placeholder={t("newVisit.clinicalNotesPlaceholder")}
+                  className="min-h-[110px] w-full"
                   disabled={isSubmitting}
                 />
               </FormField>
-              <FormField
-              label={t("newVisit.chiefComplaint")}
-              error={errors.chiefComplaint}
-              required
-            >
-              <FormTextarea
-                value={chiefComplaint}
-                onChange={(event) => setChiefComplaint(event.target.value)}
-                placeholder={t("newVisit.chiefComplaintPlaceholder")}
-                className="min-h-[110px]"
-                disabled={isSubmitting}
-              />
-            </FormField>
             </div>
-  
-            <FormField label={t("newVisit.clinicalNotes")}>
-              <FormTextarea
-                value={clinicalNotes}
-                onChange={(event) => setClinicalNotes(event.target.value)}
-                placeholder={t("newVisit.clinicalNotesPlaceholder")}
-                className="min-h-[110px]"
-                disabled={isSubmitting}
-              />
-            </FormField>
           </div>
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4 dark:border-gray-700 dark:bg-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <ToothIcon className="h-5 w-5" />
+              <ToothIcon className="h-5 w-5 text-green-600" />
               {t("newVisit.treatmentRecording")}
             </h3>
           </div>
-          <div className="space-y-4 p-4">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_auto]">
-              <FormField label={t("newVisit.procedure")} error={errors.procedure}>
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+              <FormField
+                label={t("newVisit.procedure")}
+                error={errors.procedure}
+              >
                 <Select
                   value={selectedProcedureName}
-                  onChange={(event) => setSelectedProcedureName(event.target.value)}
+                  onChange={(event) =>
+                    setSelectedProcedureName(event.target.value)
+                  }
                   disabled={isSubmitting}
-                  className="cursor-pointer"
+                  className="w-full cursor-pointer"
                 >
                   <option value="">{t("newVisit.selectProcedure")}</option>
                   {PROCEDURES.map((procedure) => (
                     <option key={procedure.name} value={procedure.name}>
-                      {procedure.name} - {formatCurrency(procedure.price)} {getCurrencySymbol(procedure.name)}
+                      {procedure.name} - {formatCurrency(procedure.price)}{" "}
+                      {getCurrencySymbol(procedure.name)}
                     </option>
                   ))}
                 </Select>
               </FormField>
-              <FormField label={t("newVisit.numberOfProcedures")} error={errors.numberOfProcedures}>
+              <FormField
+                label={t("newVisit.numberOfProcedures")}
+                error={errors.numberOfProcedures}
+              >
                 <FormInput
                   type="number"
                   min={1}
                   value={numberOfProcedures}
-                  onChange={(event) => handleNumberChange(event.target.value, setNumberOfProcedures)}
+                  onChange={(event) =>
+                    handleNumberChange(
+                      event.target.value,
+                      setNumberOfProcedures,
+                    )
+                  }
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormField>
             </div>
 
-            <DentalChart
-              onToothSelect={handleSelectedToothChange}
-              selectedToothIds={selectedToothIds}
-              teethData={sealedTeeth}
-            />
+            <div className="mt-6">
+              <DentalChart
+                onToothSelect={handleSelectedToothChange}
+                selectedToothIds={selectedToothIds}
+                teethData={sealedTeeth}
+              />
+            </div>
 
             {selectedToothIds.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 {selectedToothIds.length} {t("newVisit.selectedTeethLabel")}
               </p>
             )}
@@ -491,15 +542,15 @@ const NewVisit: React.FC = () => {
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-purple-50 to-violet-50 p-4 dark:border-gray-700 dark:bg-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <ImageIcon className="h-5 w-5" />
+              <ImageIcon className="h-5 w-5 text-purple-600" />
               {t("newVisit.xray")}
             </h3>
           </div>
-          <div className="p-4">
+          <div className="p-6">
             <div
-              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-colors dark:border-gray-600 dark:bg-gray-700/50"
+              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-purple-300 bg-purple-50/50 p-8 text-center transition-all hover:border-purple-400 hover:bg-purple-100/50 dark:border-gray-600 dark:bg-gray-700/50"
               onClick={() => fileInputRef.current?.click()}
             >
               {xrayPreview ? (
@@ -512,7 +563,8 @@ const NewVisit: React.FC = () => {
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm text-muted-foreground">
                       {xrayFile?.name}
-                      {xrayFile?.size && ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
+                      {xrayFile?.size &&
+                        ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
                     </p>
                     <Button
                       type="button"
@@ -529,10 +581,12 @@ const NewVisit: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                  <ImageIcon className="h-12 w-12" />
-                  <p className="text-sm">{t("newVisit.uploadXray")}</p>
-                  <p className="text-xs">
+                <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
+                  <ImageIcon className="h-14 w-14 text-purple-500" />
+                  <p className="text-base font-medium text-gray-700 dark:text-gray-200">
+                    {t("newVisit.uploadXray")}
+                  </p>
+                  <p className="text-sm">
                     {t("newVisit.dragAndDrop")} {t("newVisit.or")}
                   </p>
                   <input
@@ -550,17 +604,19 @@ const NewVisit: React.FC = () => {
         </section>
 
         <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="rounded-t-lg border-b border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-700">
+          <div className="rounded-t-lg border-b border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 dark:border-gray-700 dark:bg-gray-700">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <PatientIcon className="h-5 w-5" />
+              <BillingIcon className="h-5 w-5 text-amber-600" />
               {t("newVisit.billing")}
             </h3>
           </div>
-          <div className="grid grid-cols-1 gap-6 p-4 lg:grid-cols-[1fr_320px]">
+          <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
             <div className="space-y-4">
               <BillingRow
                 iconActive={Boolean(selectedProcedure)}
-                label={selectedProcedure?.name || t("newVisit.selectedProcedure")}
+                label={
+                  selectedProcedure?.name || t("newVisit.selectedProcedure")
+                }
                 currency={currencySymbol}
                 value={selectedProcedure?.price?.toString() ?? ""}
                 onChange={() => {}}
@@ -570,7 +626,9 @@ const NewVisit: React.FC = () => {
                 iconActive={numberOfProcedures > 0}
                 label={t("newVisit.numberOfProcedures")}
                 value={numberOfProcedures.toString()}
-                onChange={(event) => handleNumberChange(event.target.value, setNumberOfProcedures)}
+                onChange={(event) =>
+                  handleNumberChange(event.target.value, setNumberOfProcedures)
+                }
                 disabled={isSubmitting}
               />
               <BillingRow
@@ -595,14 +653,42 @@ const NewVisit: React.FC = () => {
               />
             </div>
 
-            <div className="rounded-lg border border-gray-200 bg-blue-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-              <SummaryRow label={t("newVisit.subtotal")} value={formatCurrency(subtotal)} currency={currencySymbol} />
-              <SummaryRow label={t("newVisit.discount")} value={formatCurrency(discountAmount)} currency={currencySymbol} />
-              <SummaryRow label={t("newVisit.paidAmount")} value={formatCurrency(paidAmountValue)} currency={currencySymbol} />
-              <div className="my-3 border-t border-gray-300 dark:border-gray-600" />
-              <SummaryRow label={t("newVisit.totalDue")} value={formatCurrency(totalDue)} currency={currencySymbol} strong />
-              <div className="mt-3 border-t-2 border-primary" />
-              <SummaryRow label={t("newVisit.outstanding")} value={formatCurrency(outstandingAmount)} currency={currencySymbol} strong danger />
+            <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50 p-5 dark:border-gray-700 dark:from-gray-700/50 dark:to-gray-700/30">
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                  {t("newVisit.billingSummary")}
+                </p>
+              </div>
+              <SummaryRow
+                label={t("newVisit.subtotal")}
+                value={formatCurrency(subtotal)}
+                currency={currencySymbol}
+              />
+              <SummaryRow
+                label={t("newVisit.discount")}
+                value={formatCurrency(discountAmount)}
+                currency={currencySymbol}
+              />
+              <SummaryRow
+                label={t("newVisit.paidAmount")}
+                value={formatCurrency(paidAmountValue)}
+                currency={currencySymbol}
+              />
+              <div className="my-3 border-t border-amber-300 dark:border-gray-600" />
+              <SummaryRow
+                label={t("newVisit.totalDue")}
+                value={formatCurrency(totalDue)}
+                currency={currencySymbol}
+                strong
+              />
+              <div className="mt-3 border-t-2 border-amber-500" />
+              <SummaryRow
+                label={t("newVisit.outstanding")}
+                value={formatCurrency(outstandingAmount)}
+                currency={currencySymbol}
+                strong
+                danger
+              />
             </div>
           </div>
         </section>
@@ -692,11 +778,26 @@ const SummaryRow: React.FC<SummaryRowProps> = ({
   danger,
 }) => (
   <div className="flex items-center justify-between space-y-4">
-    <p className={strong ? "text-sm font-bold text-gray-900 dark:text-white" : "text-sm text-gray-700 dark:text-gray-200"}>
+    <p
+      className={
+        strong
+          ? "text-sm font-bold text-gray-900 dark:text-white"
+          : "text-sm text-gray-700 dark:text-gray-200"
+      }
+    >
       {label}
     </p>
-    <p className={strong ? "text-xl font-bold text-primary dark:text-white" : "text-sm font-medium text-gray-900 dark:text-white"}>
-      <span className={danger ? "text-red-600 dark:text-red-400" : undefined}>{value}</span> {currency}
+    <p
+      className={
+        strong
+          ? "text-xl font-bold text-primary dark:text-white"
+          : "text-sm font-medium text-gray-900 dark:text-white"
+      }
+    >
+      <span className={danger ? "text-red-600 dark:text-red-400" : undefined}>
+        {value}
+      </span>{" "}
+      {currency}
     </p>
   </div>
 );

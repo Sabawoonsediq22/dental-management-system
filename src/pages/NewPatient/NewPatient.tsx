@@ -293,7 +293,7 @@ const NewPatient: React.FC = () => {
 
     return (
       <Icon
-        className={`w-4 h-4 ${
+        className={`h-5 w-5 ${
           isActive ? "text-green-500" : "text-red-500"
         } ${className}`}
       />
@@ -477,13 +477,13 @@ const input: CreatePatientInput = {
 
       <div className="space-y-8">
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <PatientIcon className="w-5 h-5" />
+              <PatientIcon className="w-5 h-5 text-blue-600" />
               {t("newPatient.personalInfo")}
             </h3>
           </div>
-          <div className="space-y-4 px-4 pb-6">
+          <div className="space-y-4 px-6 pb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 label={t("newPatient.fullName")}
@@ -499,6 +499,7 @@ const input: CreatePatientInput = {
                   }
                   value={patient.fullName}
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormField>
 
@@ -513,6 +514,7 @@ const input: CreatePatientInput = {
                   }
                   value={patient.phoneNumber}
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormField>
 
@@ -526,6 +528,7 @@ const input: CreatePatientInput = {
                   }}
                   value={patient.age}
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormField>
             </div>
@@ -538,6 +541,7 @@ const input: CreatePatientInput = {
                     handlePatientChange("gender", e.target.value)
                   }
                   disabled={isSubmitting}
+                  className="w-full"
                 >
                   <option value="">-- {t("newPatient.selectGender")} --</option>
                   <option value="Male">{t("newPatient.male")}</option>
@@ -561,6 +565,7 @@ const input: CreatePatientInput = {
                   }
                   value={patient.address}
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormField>
             </div>
@@ -569,9 +574,9 @@ const input: CreatePatientInput = {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+            <div className="border-b bg-gradient-to-r from-red-50 to-rose-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
               <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-                <MedicalHistoryIcon className="w-5 h-5" />
+                <MedicalHistoryIcon className="w-5 h-5 text-red-600" />
                 {t("newPatient.medicalHistory")}
               </h3>
             </div>
@@ -586,11 +591,12 @@ const input: CreatePatientInput = {
                     onChange={(e) => handleAllergyInputChange(e.target.value)}
                     value={allergyInput}
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormField>
               </div>
 
-              <div className="space-y-3 my-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
+              <div className="space-y-3 my-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-red-50/50 dark:bg-gray-700/50 p-4">
                 <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   {t("newPatient.medicalConditions")}
                 </p>
@@ -606,6 +612,7 @@ const input: CreatePatientInput = {
                         })
                       }
                       disabled={isSubmitting}
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
                     <span>{t("newPatient.diabetes")}</span>
                   </label>
@@ -620,6 +627,7 @@ const input: CreatePatientInput = {
                         })
                       }
                       disabled={isSubmitting}
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
                     <span>{t("newPatient.hypertension")}</span>
                   </label>
@@ -634,6 +642,7 @@ const input: CreatePatientInput = {
                         })
                       }
                       disabled={isSubmitting}
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
                     <span>{t("newPatient.heartDisease")}</span>
                   </label>
@@ -648,6 +657,7 @@ const input: CreatePatientInput = {
                         })
                       }
                       disabled={isSubmitting}
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
                     <span>{t("newPatient.asthma")}</span>
                   </label>
@@ -670,6 +680,7 @@ const input: CreatePatientInput = {
                       }
                       value={medicalConditions.other || ""}
                       disabled={isSubmitting}
+                      className="w-full"
                     />
                   </FormField>
                 </div>
@@ -682,7 +693,7 @@ const input: CreatePatientInput = {
                   )}
                   onChange={(e) => handleMedicationInputChange(e.target.value)}
                   value={medicationInput}
-                  className="h-20"
+                  className="h-20 w-full"
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -690,9 +701,9 @@ const input: CreatePatientInput = {
           </section>
 
           <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+            <div className="border-b bg-gradient-to-r from-blue-50 to-sky-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
               <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-                <VisitDetailsIcon className="w-5 h-5" />
+                <VisitDetailsIcon className="w-5 h-5 text-blue-600" />
                 {t("newPatient.visitDetails")}
               </h3>
             </div>
@@ -704,7 +715,7 @@ const input: CreatePatientInput = {
                     handlePatientVisitChange("chiefComplaint", e.target.value)
                   }
                   value={patientVisit.chiefComplaint}
-                  className="h-20"
+                  className="h-20 w-full"
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -716,7 +727,7 @@ const input: CreatePatientInput = {
                     handlePatientVisitChange("clinicalNotes", e.target.value)
                   }
                   value={patientVisit.clinicalNotes}
-                  className="h-20"
+                  className="h-20 w-full"
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -725,14 +736,14 @@ const input: CreatePatientInput = {
         </div>
 
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gradient-to-r from-green-50 to-emerald-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <ToothIcon className="w-5 h-5" />
+              <ToothIcon className="w-5 h-5 text-green-600" />
               {t("newPatient.treatmentRecording")}
             </h3>
           </div>
-          <div className="flex flex-col md:flex-row gap-6 px-4 pb-4">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
+            <div className="space-y-4 flex-1">
               <div className="flex flex-col md:flex-row md:gap-4 items-center justify-between">
                 <FormField label={t("newPatient.procedure")} className="flex-1">
                   <Select
@@ -748,13 +759,13 @@ const input: CreatePatientInput = {
                         procedurePrice: selectedProcedure?.price ?? 0,
                       }));
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer w-full"
                     disabled={isSubmitting}
                   >
                     <option value="">{t("newPatient.selectProcedure")}</option>
                     {PROCEDURES.map((procedure, index) => (
                       <option key={index} value={procedure.name}>
-                        {procedure.name} - {procedure.price}{" "}
+                        {procedure.name} - {formatCurrency(procedure.price)}{" "}
                         {getCurrencySymbol(procedure.name)}
                       </option>
                     ))}
@@ -775,6 +786,7 @@ const input: CreatePatientInput = {
                     }
                     value={patientProcedure.additionalNotes ?? ""}
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormField>
               </div>
@@ -791,7 +803,7 @@ const input: CreatePatientInput = {
             <div className="flex-2 space-y-4 w-full h-full">
               <FormField label={t("newPatient.xray")}>
                 <div
-                  className="border border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all border-purple-300 bg-purple-50/50 dark:border-gray-600 dark:bg-gray-700/50 hover:border-purple-400 hover:bg-purple-100/50 h-[19.2rem]"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {xrayPreview ? (
@@ -799,10 +811,10 @@ const input: CreatePatientInput = {
                       <img
                         src={xrayPreview}
                         alt="X-ray preview"
-                        className=" w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
+                        className="h-[13.5rem] w-full rounded-lg border border-gray-200 object-contain dark:border-gray-700"
                       />
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-muted-foreground">
                           {xrayFile?.name}
                           {xrayFile?.size && ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
                         </p>
@@ -818,14 +830,10 @@ const input: CreatePatientInput = {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 w-full h-full">
-                      <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        {t("newPatient.uploadXray")}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-300">
-                        {t("newPatient.dragAndDrop")} {t("newPatient.or")}
-                      </p>
+                    <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground w-full h-full">
+                      <ImageIcon className="h-14 w-14 text-purple-500" />
+                      <p className="text-base font-medium text-gray-700 dark:text-gray-200">{t("newPatient.uploadXray")}</p>
+                      <p className="text-sm">{t("newPatient.dragAndDrop")} {t("newPatient.or")}</p>
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -843,33 +851,29 @@ const input: CreatePatientInput = {
         </section>
 
         <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+          <div className="border-b bg-gradient-to-r from-amber-50 to-orange-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-              <BillingIcon className="w-5 h-5" />
+              <BillingIcon className="w-5 h-5 text-amber-600" />
               {t("newPatient.billing")}
             </h3>
           </div>
-          <div className="flex flex-col md:flex-row md:gap-6 px-4 pb-4">
-            <div className="space-y-4 flex-4">
-              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+          <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
+            <div className="space-y-4">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <BillingStatusIcon
                       isActive={Boolean(patientProcedure.procedureName.trim())}
                     />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {patientProcedure.procedureName ||
                         t("newPatient.selectedProcedure")}
                     </p>
                   </div>
-                  <div className="relative w-40">
+                  <div className="relative w-36">
                     <FormInput
                       type="number"
                       readOnly
-                      placeholder={t(
-                        "newPatient.procedureValuePlaceholder",
-                        "Enter Value",
-                      )}
                       onChange={(e) =>
                         handlePatientProcedureChange(
                           "procedurePrice",
@@ -877,20 +881,20 @@ const input: CreatePatientInput = {
                         )
                       }
                       value={patientProcedure.procedurePrice || ""}
-                      className="w-full text-right pr-12"
+                      className="w-full text-right pr-10"
                       disabled={isSubmitting}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       {currencySymbol}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <BillingStatusIcon isActive={numberOfProcedures > 0} />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("newPatient.numberOfProcedures")}
                     </p>
                   </div>
@@ -911,20 +915,20 @@ const input: CreatePatientInput = {
                         ? treatmentRecord.numberOfProcedures.toString()
                         : ""
                     }
-                    className="w-28 mr-12"
+                    className="w-26 mr-10"
                     disabled={isSubmitting}
                   />
                 </div>
               </div>
-              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <BillingStatusIcon isActive={discountAmount > 0} />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("newPatient.discount")}
                     </p>
                   </div>
-                  <div className="relative w-40">
+                  <div className="relative w-36">
                     <FormInput
                       type="number"
                       placeholder={t(
@@ -935,24 +939,24 @@ const input: CreatePatientInput = {
                         handlePatientVisitChange("discount", e.target.value)
                       }
                       value={patientVisit.discount ?? ""}
-                      className="w-full text-right pr-12"
+                      className="w-full text-right pr-10"
                       disabled={isSubmitting}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       {currencySymbol}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <BillingStatusIcon isActive={paidAmount > 0} />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("newPatient.paidAmount")}
-                      </p>
-                    </div>
-                  <div className="relative w-40">
+                  <div className="flex items-center gap-3">
+                    <BillingStatusIcon isActive={paidAmount > 0} />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("newPatient.paidAmount")}
+                    </p>
+                  </div>
+                  <div className="relative w-36">
                     <FormInput
                       type="number"
                       placeholder={t(
@@ -963,10 +967,10 @@ const input: CreatePatientInput = {
                         handlePatientVisitChange("paidAmount", e.target.value)
                       }
                       value={patientVisit.paidAmount ?? ""}
-                      className="w-full text-right pr-12"
+                      className="w-full text-right pr-10"
                       disabled={isSubmitting}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       {currencySymbol}
                     </span>
                   </div>
@@ -974,54 +978,39 @@ const input: CreatePatientInput = {
               </div>
             </div>
 
-            <div className="space-y-4 flex-2">
-              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-blue-100 dark:bg-gray-700/50 h-full flex flex-col justify-center gap-2">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-200">
-                    {t("newPatient.subtotal")}
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatCurrency(subtotal)} {currencySymbol}
-                  </p>
+            <div className="space-y-4 flex-1">
+              <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50 p-5 dark:border-gray-700 dark:from-gray-700/50 dark:to-gray-700/30 h-full flex flex-col justify-center">
+                <div className="mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">{t("newPatient.billingSummary")}</p>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-200">
-                    {t("newPatient.discount")}
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatCurrency(discountAmount)} {currencySymbol}
-                  </p>
+                <div className="flex justify-between items-center py-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{t("newPatient.subtotal")}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{formatCurrency(subtotal)} {currencySymbol}</p>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-200">
-                    {t("newPatient.paidAmount")}
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatCurrency(paidAmount)} {currencySymbol}
-                  </p>
+                <div className="flex justify-between items-center py-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{t("newPatient.discount")}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{formatCurrency(discountAmount)} {currencySymbol}</p>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-300 dark:border-gray-600">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {t("newPatient.totalDue")}
-                  </p>
-                  <p className="text-xl font-bold text-primary dark:text-white">
-                    {formatCurrency(totalDue)} {currencySymbol}
-                  </p>
+                <div className="flex justify-between items-center py-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{t("newPatient.paidAmount")}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{formatCurrency(paidAmount)} {currencySymbol}</p>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t-2 border-primary dark:border-gray-400 mt-2">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">
-                    {t("newPatient.outstanding")}
-                  </p>
-                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                    {formatCurrency(outstandingAmount)} {currencySymbol}
-                  </p>
+                <div className="my-2 border-t border-amber-300 dark:border-gray-600" />
+                <div className="flex justify-between items-center py-1">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{t("newPatient.totalDue")}</p>
+                  <p className="text-xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(totalDue)} {currencySymbol}</p>
+                </div>
+                <div className="mt-2 border-t-2 border-amber-500" />
+                <div className="flex justify-between items-center py-1 mt-2">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{t("newPatient.outstanding")}</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">{formatCurrency(outstandingAmount)} {currencySymbol}</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="flex justify-end gap-4 py-6 px-4 border-t border-gray-200 dark:border-gray-700 my-6 bg-white dark:bg-gray-800">
+        <div className="sticky bottom-0 -mx-6 flex justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
           <Button
             variant="outline"
             onClick={() => navigate("/patients")}
