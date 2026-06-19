@@ -97,6 +97,19 @@ const PatientProfile: React.FC = () => {
   const statistics = statisticsQuery.data;
   const treatmentHistory = toTreatmentEntries(treatmentHistoryQuery.data ?? []);
 
+  const lastVisitProcedure = React.useMemo(() => {
+    if (!treatmentHistory || treatmentHistory.length === 0) return null;
+    
+    const sortedHistory = [...treatmentHistory].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    const { procedures } = sortedHistory[0];
+    return procedures && procedures.length > 0
+      ? procedures.map((p) => p.name).join(", ")
+      : null;
+  }, [treatmentHistory]);
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAllergiesModal, setShowAllergiesModal] = useState(false);
@@ -337,7 +350,7 @@ const PatientProfile: React.FC = () => {
         <StatisticsCard
           label="Last Visit"
           value={formatDate(statistics?.last_visit_date) || "No visits"}
-          subtitle={statistics?.last_visit_procedure ? `${statistics.last_visit_procedure}` : "-"}
+          subtitle={lastVisitProcedure || "-"}
           variant="info"
           icon="clock"
         />

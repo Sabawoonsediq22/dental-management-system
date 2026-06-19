@@ -484,7 +484,7 @@ const NewVisit: React.FC = () => {
             </h3>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 label={t("newVisit.procedure")}
                 error={errors.procedure}
@@ -506,6 +506,20 @@ const NewVisit: React.FC = () => {
                   ))}
                 </Select>
               </FormField>
+              <FormField label={t("newPatient.procedureAdditionalNotes")}>
+                <FormInput
+                  value={procedureAdditionalNote}
+                  onChange={(event) =>
+                    setProcedureAdditionalNote(event.target.value)
+                  }
+                  placeholder={t(
+                      "newPatient.additionalNotesPlaceholder",
+                      "Add procedure notes",
+                    )}
+                  className="w-full"
+                  disabled={isSubmitting}
+                />
+              </FormField>
               <FormField
                 label={t("newVisit.numberOfProcedures")}
                 error={errors.numberOfProcedures}
@@ -522,20 +536,6 @@ const NewVisit: React.FC = () => {
                   }
                   disabled={isSubmitting}
                   className="w-full"
-                />
-              </FormField>
-            </div>
-
-            <div className="mt-4">
-              <FormField label={t("newVisit.procedureAdditionalNotes")}>
-                <FormTextarea
-                  value={procedureAdditionalNote}
-                  onChange={(event) =>
-                    setProcedureAdditionalNote(event.target.value)
-                  }
-                  placeholder={t("newVisit.procedureAdditionalNotesPlaceholder")}
-                  className="min-h-[80px] w-full"
-                  disabled={isSubmitting}
                 />
               </FormField>
             </div>
