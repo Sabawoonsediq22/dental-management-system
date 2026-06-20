@@ -253,8 +253,9 @@ textarea:focus-visible {
   }
 
   html,
-  body {
-    width: 100%;
+  body,
+  #root {
+    width: 100% !important;
     height: auto !important;
     overflow: visible !important;
     background: #ffffff !important;
@@ -266,30 +267,31 @@ textarea:focus-visible {
     print-color-adjust: exact;
   }
 
-  .receipt-print-modal {
-    position: static !important;
+  body > *,
+  #root > * {
+    visibility: hidden !important;
   }
 
-  .receipt-print-modal > div:first-child {
-    display: none !important;
+  #root,
+  .receipt-print-root,
+  .receipt-print-root * {
+    visibility: visible !important;
   }
 
-  .receipt-print-modal > div:nth-child(2) {
-    position: static !important;
+  .receipt-print-root {
+    position: fixed !important;
+    inset: 0 auto auto 0 !important;
+    z-index: 2147483647 !important;
     width: 100% !important;
-    max-width: none !important;
+    height: auto !important;
     margin: 0 !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
   }
 
-  .receipt-print-actions,
-  [data-receipt-print-action] {
-    display: none !important;
-  }
-
-  .receipt-print-modal button {
+  .receipt-print-root button,
+  .receipt-print-root [data-receipt-print-action] {
     display: none !important;
   }
 
@@ -301,11 +303,16 @@ textarea:focus-visible {
     border-radius: 0 !important;
     box-shadow: none !important;
     padding: 12mm !important;
+    background: #ffffff !important;
   }
 
   .receipt-print-content {
     max-height: none !important;
     overflow: visible !important;
+  }
+
+  .receipt-print-modal {
+    position: static !important;
   }
 
   .receipt-thermal {

@@ -190,7 +190,7 @@ export const buildReceiptDownloadHtml = (receipt: ReceiptData) => `<!doctype htm
       <div>Outstanding Balance</div>
       <div class="right outstanding">${formatCurrency(receipt.outstandingAmount, receipt.currency)}</div>
     </div>
-    <div class="footer">Thank you for choosing Khwaja Dental!<br />Computer generated receipt.<br />No signature required.</div>
+    <div class="footer">Thank you for choosing Khwaja Dental!</div>
   </div>
 </body>
 </html>`;

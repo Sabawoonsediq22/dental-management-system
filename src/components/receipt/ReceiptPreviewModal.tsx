@@ -43,7 +43,11 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
   const isLoading = !mockData && query.isLoading;
   const error = !mockData ? query.error : null;
 
+  const receiptPrintRef = React.useRef<HTMLDivElement>(null);
+
   const handlePrint = () => {
+    if (!receipt) return;
+
     window.setTimeout(() => window.print(), 50);
   };
 
@@ -138,12 +142,14 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
           </Button>
         </div>
 
-        <ReceiptPrintView
-          receipt={receipt}
-          error={error}
-          isLoading={isLoading}
-          logoUrl={logoUrl}
-        />
+        <div ref={receiptPrintRef} className="receipt-print-root">
+          <ReceiptPrintView
+            receipt={receipt}
+            error={error}
+            isLoading={isLoading}
+            logoUrl={logoUrl}
+          />
+        </div>
       </div>
     </Modal>
   );

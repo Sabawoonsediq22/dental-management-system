@@ -183,8 +183,6 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
           <p className="font-medium text-gray-700 dark:text-gray-300">
             Thank you for choosing Khwaja Dental!
           </p>
-          <p className="mt-1">Computer generated receipt.</p>
-          <p>No signature required.</p>
         </footer>
       </div>
     </div>
