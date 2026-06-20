@@ -21,6 +21,9 @@ export interface CreatedPatient {
   created_at: string;
   updated_at: string;
   last_visit?: string | null;
+  visit_id: string;
+  invoice_id: string;
+  invoice_number: string;
   treatment_record_id: string | null;
 }
 
@@ -198,6 +201,58 @@ export interface Payment {
   amount: number;
   notes?: string | null;
   received_at: string;
+}
+
+export interface ReceiptClinic {
+  name: string;
+  address: string;
+  phone: string;
+  logoUrl?: string | null;
+}
+
+export interface ReceiptPatient {
+  id: string;
+  fullName: string;
+  phone?: string | null;
+}
+
+export interface ReceiptPayment {
+  id: string;
+  amount: number;
+  method?: string | null;
+  notes?: string | null;
+  receivedAt: string;
+}
+
+export interface ReceiptProcedure {
+  treatmentRecordId?: string;
+  procedureName: string;
+  additionalNote?: string | null;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  performedAt?: string;
+  toothNumbers?: number[];
+}
+
+export interface ReceiptData {
+  id: string;
+  invoiceNumber: string;
+  patientId: string;
+  patientName: string;
+  patientPhone?: string | null;
+  visitId: string;
+  issueDate: string;
+  currency: "AFN" | "USD";
+  subtotal: number;
+  discount: number;
+  totalAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  status: "Unpaid" | "Partial" | "Paid";
+  procedures: ReceiptProcedure[];
+  payments: ReceiptPayment[];
+  clinic: ReceiptClinic;
 }
 
 export interface AddPaymentInput {

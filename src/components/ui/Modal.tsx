@@ -9,6 +9,7 @@ export interface ModalProps {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  footerClassName?: string;
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
   className?: string;
@@ -21,6 +22,7 @@ const Modal: React.FC<ModalProps> = ({
   description,
   children,
   footer,
+  footerClassName,
   size = "md",
   showCloseButton = true,
   className,
@@ -93,8 +95,19 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
           )}
-          <div className="p-6 overflow-y-auto">{children}</div>
-          {footer && <div className="p-6 pt-0 border-t">{footer}</div>}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <div className="p-6">{children}</div>
+            {footer && (
+              <div
+                className={cn(
+                  "sticky bottom-0 z-10 border-t bg-background/95 p-6 pt-3 backdrop-blur",
+                  footerClassName,
+                )}
+              >
+                {footer}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

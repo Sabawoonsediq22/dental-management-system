@@ -205,6 +205,26 @@ async fn get_visit_invoice(
 }
 
 #[tauri::command]
+async fn get_receipt_details(
+    state: State<'_, AppState>,
+    invoice_id: String,
+) -> Result<ReceiptData, String> {
+    InvoiceService::get_receipt_details(&state.db, &invoice_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_receipt_details_by_visit(
+    state: State<'_, AppState>,
+    visit_id: String,
+) -> Result<ReceiptData, String> {
+    InvoiceService::get_receipt_details_by_visit(&state.db, &visit_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn add_payment(
     state: State<'_, AppState>,
     input: AddPaymentInput,
@@ -329,6 +349,8 @@ pub fn run() {
             add_treatment_record,
             create_invoice,
             get_visit_invoice,
+            get_receipt_details,
+            get_receipt_details_by_visit,
             add_payment,
             get_invoice_payments,
             create_procedure,

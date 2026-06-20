@@ -237,11 +237,80 @@ html {
   textarea {
     @apply transition-all duration-200;
   }
+}
 
-  /* Improved focus for form elements */
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible {
-    @apply ring-2 ring-primary ring-offset-1;
+/* Improved focus for form elements */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  @apply ring-2 ring-primary ring-offset-1;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  body {
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .receipt-print-modal {
+    position: static !important;
+  }
+
+  .receipt-print-modal > div:first-child {
+    display: none !important;
+  }
+
+  .receipt-print-modal > div:nth-child(2) {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .receipt-print-actions,
+  [data-receipt-print-action] {
+    display: none !important;
+  }
+
+  .receipt-print-modal button {
+    display: none !important;
+  }
+
+  .receipt-print-surface {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 12mm !important;
+  }
+
+  .receipt-print-content {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .receipt-thermal {
+    width: 80mm !important;
+    font-size: 12px !important;
+    padding: 8mm !important;
   }
 }

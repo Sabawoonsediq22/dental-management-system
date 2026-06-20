@@ -23,6 +23,7 @@ import type {
   PatientMedicalInfo,
   PatientStatisticsInfo,
   PatientVisitWithTreatments,
+  ReceiptData,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -53,6 +54,10 @@ export const api = {
     create: (input: CreateInvoiceInput) => invoke<Invoice>("create_invoice", { input }),
     getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visitId }),
     getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
+  },
+  receipts: {
+    getByInvoiceId: (invoiceId: string) => invoke<ReceiptData>("get_receipt_details", { invoiceId }),
+    getByVisitId: (visitId: string) => invoke<ReceiptData>("get_receipt_details_by_visit", { visitId }),
   },
   payments: {
     add: (input: AddPaymentInput) => invoke<Payment>("add_payment", { input }),

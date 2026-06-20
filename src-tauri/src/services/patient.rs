@@ -184,7 +184,7 @@ impl PatientService {
             .await?);
         }
 
-        Self::insert_invoice(
+        let invoice = Self::insert_invoice(
             &mut tx,
             &visit_id,
             input.discount.unwrap_or(0.0),
@@ -204,6 +204,9 @@ impl PatientService {
             last_visit: input.visit_date,
             created_at: now.clone(),
             updated_at: now,
+            visit_id,
+            invoice_id: invoice.id,
+            invoice_number: invoice.invoice_number,
             treatment_record_id,
         })
     }
@@ -380,7 +383,7 @@ impl PatientService {
         visit_id: &str,
         discount: f64,
         paid_amount: f64,
-    ) -> AppResult<()> {
+    ) -> AppResult<Invoice> {
         let subtotal: f64 = sqlx::query_scalar(
             "SELECT COALESCE(SUM(p.procedure_price * tr.number_of_procedures), 0)
              FROM treatment_records tr
@@ -405,9 +408,10 @@ impl PatientService {
         let invoice_number = format!("INV-{}", Utc::now().timestamp_millis());
         let now = Utc::now().to_rfc3339();
 
-        sqlx::query(
+        Ok(sqlx::query_as::<_, Invoice>(
             "INSERT INTO invoices (id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             RETURNING id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at"
         )
         .bind(&invoice_id)
         .bind(visit_id)
@@ -423,10 +427,8 @@ impl PatientService {
             InvoiceStatus::Paid => "Paid",
         })
         .bind(&now)
-        .execute(&mut **tx)
-        .await?;
-
-        Ok(())
+        .fetch_one(&mut **tx)
+        .await?)
     }
 
     fn split_csv(value: Option<&str>) -> Vec<String> {

@@ -99,16 +99,16 @@ const PatientProfile: React.FC = () => {
 
   const lastVisitProcedure = React.useMemo(() => {
     if (!treatmentHistory || treatmentHistory.length === 0) return null;
+    if (!statistics?.last_visit_date) return null;
     
-    const sortedHistory = [...treatmentHistory].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    const lastVisitDate = new Date(statistics.last_visit_date).toDateString();
+    const lastVisitEntry = treatmentHistory.find(
+      (entry) => new Date(entry.date).toDateString() === lastVisitDate
     );
     
-    const { procedures } = sortedHistory[0];
-    return procedures && procedures.length > 0
-      ? procedures.map((p) => p.name).join(", ")
-      : null;
-  }, [treatmentHistory]);
+    if (!lastVisitEntry?.procedures || lastVisitEntry.procedures.length === 0) return null;
+    return lastVisitEntry.procedures.map((p) => p.name).join(", ");
+  }, [treatmentHistory, statistics?.last_visit_date]);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);

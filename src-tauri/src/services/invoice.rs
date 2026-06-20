@@ -72,6 +72,97 @@ impl InvoiceService {
         Ok(invoice)
     }
 
+    pub async fn get_receipt_details(
+        pool: &SqlitePool,
+        invoice_id: &str,
+    ) -> AppResult<ReceiptData> {
+        let invoice = sqlx::query_as::<_, Invoice>(
+            "SELECT id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at FROM invoices WHERE id = ?"
+        )
+        .bind(invoice_id)
+        .fetch_optional(pool)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Invoice {} not found", invoice_id)))?;
+
+        let patient = sqlx::query_as::<_, ReceiptPatient>(
+            "SELECT p.id, p.full_name, p.phone FROM patients p
+             INNER JOIN visits v ON v.patient_id = p.id
+             WHERE v.id = ?",
+        )
+        .bind(&invoice.visit_id)
+        .fetch_optional(pool)
+        .await?
+        .ok_or_else(|| {
+            AppError::NotFound(format!("Patient for visit {} not found", invoice.visit_id))
+        })?;
+
+        let payments = sqlx::query_as::<_, ReceiptPayment>(
+            "SELECT id, invoice_id, amount, 'Cash' as method, notes, received_at FROM payments
+             WHERE invoice_id = ?
+             ORDER BY received_at ASC",
+        )
+        .bind(&invoice.id)
+        .fetch_all(pool)
+        .await?;
+
+        let procedure_rows = sqlx::query_as::<_, ReceiptProcedure>(
+            "SELECT tr.id as treatment_record_id,
+                    p.name as procedure_name,
+                    p.additional_note as procedure_additional_note,
+                    tr.number_of_procedures,
+                    p.procedure_price as unit_price,
+                    (p.procedure_price * tr.number_of_procedures) as total_price,
+                    tr.performed_at,
+                    (SELECT GROUP_CONCAT(tt.tooth_number, ', ') FROM treatment_tooth tt WHERE tt.treatment_record_id = tr.id) as tooth_numbers
+             FROM treatment_records tr
+             INNER JOIN procedures p ON p.id = tr.procedure_id
+             WHERE tr.visit_id = ?
+             ORDER BY tr.performed_at DESC"
+        )
+        .bind(&invoice.visit_id)
+        .fetch_all(pool)
+        .await?;
+
+        Ok(ReceiptData {
+            id: invoice.id,
+            invoice_number: invoice.invoice_number,
+            patient_id: patient.id,
+            patient_name: patient.full_name,
+            patient_phone: patient.phone,
+            visit_id: invoice.visit_id,
+            issue_date: invoice.issued_at,
+            currency: "AFN".to_string(),
+            subtotal: invoice.subtotal,
+            discount: invoice.discount,
+            total_amount: invoice.total_amount,
+            paid_amount: invoice.paid_amount,
+            outstanding_amount: invoice.outstanding_amount,
+            status: invoice.status,
+            procedures: procedure_rows,
+            payments,
+            clinic: ReceiptClinic {
+                name: "KHWAJA DENTAL & IMPLANT SERVICE".to_string(),
+                address: "House 42, Road 7, Sector 3, Uttara, Dhaka".to_string(),
+                phone: "Phone: +880 1711-223344".to_string(),
+            },
+        })
+    }
+
+    pub async fn get_receipt_details_by_visit(
+        pool: &SqlitePool,
+        visit_id: &str,
+    ) -> AppResult<ReceiptData> {
+        let invoice = sqlx::query_as::<_, Invoice>(
+            "SELECT id, visit_id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at FROM invoices WHERE visit_id = ?"
+        )
+        .bind(visit_id)
+        .fetch_optional(pool)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Invoice for visit {} not found", visit_id)))?;
+
+        Self::get_receipt_details(pool, &invoice.id).await
+    }
+
     #[allow(dead_code)]
     pub async fn find(pool: &SqlitePool, id: &str) -> AppResult<Invoice> {
         let invoice = sqlx::query_as(

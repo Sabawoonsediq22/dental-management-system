@@ -21,6 +21,7 @@ import {
   Select,
 } from "../../components/ui";
 import DentalChart from "../../components/dental-chart/DentalChart";
+import { ReceiptPreviewModal } from "../../components/receipt/ReceiptPreviewModal";
 import { isRTL } from "../../i18n";
 import { ToothData } from "../../components/dental-chart/types";
 import { PROCEDURES } from "../../shared/constants/Procedures";
@@ -104,6 +105,8 @@ const NewPatient: React.FC = () => {
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
   const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
   const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
+  const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
+  const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -372,6 +375,16 @@ const NewPatient: React.FC = () => {
     }
   };
 
+  const handleReceiptClose = () => {
+    setReceiptInvoiceId(null);
+    const patientIdToNavigate = createdPatientId;
+    setCreatedPatientId(null);
+
+    if (patientIdToNavigate) {
+      navigate(`/patients/${patientIdToNavigate}`);
+    }
+  };
+
   const handlePatient = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -434,7 +447,8 @@ const NewPatient: React.FC = () => {
 
       toast.success({ title: "Patient added successfully" });
       queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
-      navigate(`/patients/${created.id}`);
+      setCreatedPatientId(created.id);
+      setReceiptInvoiceId(created.invoice_id);
     } catch (error) {
       toast.error({ title: "Failed to add patient" });
       console.error(error);
@@ -444,7 +458,14 @@ const NewPatient: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handlePatient} className="space-y-6">
+    <>
+      <ReceiptPreviewModal
+        isOpen={Boolean(receiptInvoiceId)}
+        invoiceId={receiptInvoiceId ?? undefined}
+        patientId={createdPatientId ?? undefined}
+        onClose={handleReceiptClose}
+      />
+      <form onSubmit={handlePatient} className="space-y-6">
       <div className="mb-6 flex justify-between">
         <div>
           <div className="flex items-center gap-3">
@@ -1034,7 +1055,8 @@ const NewPatient: React.FC = () => {
           </Button>
         </div>
       </div>
-    </form>
+      </form>
+    </>
   );
 };
 

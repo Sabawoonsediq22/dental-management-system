@@ -35,6 +35,7 @@ import type {
 import { usePatient } from "../../hooks/usePatients";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWithStatus";
+import { ReceiptPreviewModal } from "../../components/receipt/ReceiptPreviewModal";
 
 const getTodayDateString = () => new Date().toISOString().split("T")[0];
 
@@ -113,6 +114,7 @@ const NewVisit: React.FC = () => {
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
 
   const selectedProcedure = PROCEDURES.find(
     (procedure) => procedure.name === selectedProcedureName,
@@ -232,6 +234,11 @@ const NewVisit: React.FC = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  const handleReceiptClose = () => {
+    setReceiptInvoiceId(null);
+    navigate(`/patients/${patientId}`);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -284,14 +291,17 @@ const NewVisit: React.FC = () => {
         }
       }
 
-      await api.invoices.create({
+      const createdInvoice = await api.invoices.create({
         visit_id: createdVisit.id,
         subtotal,
         discount: discountAmount,
         paid_amount: paidAmountValue,
       });
 
-      queryClient.invalidateQueries({ queryKey: ["patients", patientId], refetchType: "all" });
+      queryClient.invalidateQueries({
+        queryKey: ["patients", patientId],
+        refetchType: "all",
+      });
       queryClient.invalidateQueries({
         queryKey: ["patients", patientId, "statistics"],
         refetchType: "all",
@@ -300,12 +310,20 @@ const NewVisit: React.FC = () => {
         queryKey: ["treatment-history", patientId],
         refetchType: "all",
       });
-      queryClient.invalidateQueries({ queryKey: ["visits", patientId], refetchType: "all" });
+      queryClient.invalidateQueries({
+        queryKey: ["visits", patientId],
+        refetchType: "all",
+      });
       queryClient.invalidateQueries({
         queryKey: ["invoices", "visit", createdVisit.id],
         refetchType: "all",
       });
-      queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+      queryClient.invalidateQueries({
+        queryKey: ["patients"],
+        refetchType: "all",
+      });
+
+      setReceiptInvoiceId(createdInvoice.id);
 
       toast.success({
         title: t("newVisit.notifications.addSuccess"),
@@ -313,8 +331,6 @@ const NewVisit: React.FC = () => {
           ? t("newVisit.notifications.partialSuccess")
           : undefined,
       });
-
-      navigate(`/patients/${patientId}`);
     } catch (error) {
       console.error("Failed to create visit:", error);
       toast.error({
@@ -350,7 +366,14 @@ const NewVisit: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <ReceiptPreviewModal
+        isOpen={Boolean(receiptInvoiceId)}
+        invoiceId={receiptInvoiceId ?? undefined}
+        patientId={patientId}
+        onClose={handleReceiptClose}
+      />
+      <form onSubmit={handleSubmit} className="space-y-6">
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div className="flex items-start gap-3">
           <Button
@@ -723,6 +746,7 @@ const NewVisit: React.FC = () => {
         </Button>
       </div>
     </form>
+    </>
   );
 };
 

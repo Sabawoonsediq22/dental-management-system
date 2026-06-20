@@ -26,6 +26,9 @@ pub struct CreatedPatient {
     pub last_visit: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    pub visit_id: String,
+    pub invoice_id: String,
+    pub invoice_number: String,
     pub treatment_record_id: Option<String>,
 }
 
@@ -188,6 +191,63 @@ pub struct Payment {
     pub amount: f64,
     pub notes: Option<String>,
     pub received_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ReceiptPatient {
+    pub id: String,
+    pub full_name: String,
+    pub phone: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ReceiptPayment {
+    pub id: String,
+    pub invoice_id: String,
+    pub amount: f64,
+    pub method: Option<String>,
+    pub notes: Option<String>,
+    pub received_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ReceiptProcedure {
+    pub treatment_record_id: String,
+    pub procedure_name: String,
+    pub procedure_additional_note: Option<String>,
+    pub number_of_procedures: i32,
+    pub unit_price: f64,
+    pub total_price: f64,
+    pub performed_at: String,
+    pub tooth_numbers: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReceiptClinic {
+    pub name: String,
+    pub address: String,
+    pub phone: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReceiptData {
+    pub id: String,
+    pub invoice_number: String,
+    pub patient_id: String,
+    pub patient_name: String,
+    pub patient_phone: Option<String>,
+    pub visit_id: String,
+    pub issue_date: String,
+    pub currency: String,
+    pub subtotal: f64,
+    pub discount: f64,
+    pub total_amount: f64,
+    pub paid_amount: f64,
+    pub outstanding_amount: f64,
+    pub status: InvoiceStatus,
+    pub procedures: Vec<ReceiptProcedure>,
+    pub payments: Vec<ReceiptPayment>,
+    pub clinic: ReceiptClinic,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type, Clone, Copy, PartialEq, Eq)]
