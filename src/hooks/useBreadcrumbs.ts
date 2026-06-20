@@ -57,14 +57,18 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
           return;
         }
 
-        const hasNestedPatientRoute = pathnames[0] === "patients" && index === 2 && pathnames[3] === "new";
+        // Skip "visits" segment when on New Visit page
+        if (pathnames[0] === "patients" && pathname === "visits" && pathnames[3] === "new") {
+          return;
+        }
+
         const label =
           breadcrumbMap[pathname] ||
           pathname.charAt(0).toUpperCase() + pathname.slice(1);
 
         breadcrumbs.push({
           label,
-          href: isLast || hasNestedPatientRoute ? undefined : currentPath,
+          href: isLast ? undefined : currentPath,
         });
       });
 
