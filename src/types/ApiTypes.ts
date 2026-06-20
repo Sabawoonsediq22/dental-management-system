@@ -232,7 +232,7 @@ export interface ReceiptProcedure {
   unitPrice: number;
   totalPrice: number;
   performedAt?: string;
-  toothNumbers?: number[];
+  toothNumbers?: string | number[];
 }
 
 export interface ReceiptData {

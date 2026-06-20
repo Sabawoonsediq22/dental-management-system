@@ -108,8 +108,8 @@ impl InvoiceService {
         let procedure_rows = sqlx::query_as::<_, ReceiptProcedure>(
             "SELECT tr.id as treatment_record_id,
                     p.name as procedure_name,
-                    p.additional_note as procedure_additional_note,
-                    tr.number_of_procedures,
+                    p.additional_note,
+                    tr.number_of_procedures as quantity,
                     p.procedure_price as unit_price,
                     (p.procedure_price * tr.number_of_procedures) as total_price,
                     tr.performed_at,

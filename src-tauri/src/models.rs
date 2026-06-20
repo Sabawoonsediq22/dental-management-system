@@ -194,6 +194,7 @@ pub struct Payment {
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct ReceiptPatient {
     pub id: String,
     pub full_name: String,
@@ -201,6 +202,7 @@ pub struct ReceiptPatient {
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct ReceiptPayment {
     pub id: String,
     pub invoice_id: String,
@@ -211,11 +213,12 @@ pub struct ReceiptPayment {
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct ReceiptProcedure {
     pub treatment_record_id: String,
     pub procedure_name: String,
-    pub procedure_additional_note: Option<String>,
-    pub number_of_procedures: i32,
+    pub additional_note: Option<String>,
+    pub quantity: i32,
     pub unit_price: f64,
     pub total_price: f64,
     pub performed_at: String,
@@ -223,6 +226,7 @@ pub struct ReceiptProcedure {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ReceiptClinic {
     pub name: String,
     pub address: String,
@@ -230,6 +234,7 @@ pub struct ReceiptClinic {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ReceiptData {
     pub id: String,
     pub invoice_number: String,

@@ -115,8 +115,11 @@ export const getCurrencyForProcedureName = (procedureName: string): ReceiptCurre
   DOLLAR_PROCEDURES.includes(procedureName) ? "USD" : "AFN";
 
 export const getProcedureLabel = (procedure: ReceiptProcedure) => {
-  const toothLabel = procedure.toothNumbers && procedure.toothNumbers.length > 0
-    ? ` (Tooth: ${procedure.toothNumbers.join(", ")})`
+  const toothNumbersArray = typeof procedure.toothNumbers === 'string'
+    ? procedure.toothNumbers.split(',').map(n => n.trim()).filter(n => n)
+    : procedure.toothNumbers;
+  const toothLabel = toothNumbersArray && toothNumbersArray.length > 0
+    ? ` (Tooth: ${toothNumbersArray.join(", ")})`
     : "";
   const quantityLabel = procedure.quantity > 1 ? ` (x${procedure.quantity})` : "";
 
