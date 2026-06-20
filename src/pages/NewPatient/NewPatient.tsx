@@ -38,6 +38,7 @@ import {
   TreatmentTooth,
 } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
+import { getCurrencySymbol } from "../../components/common/getCurrencySymbol";
 
 /**
  * NewPatient page collects the complete intake record for a new dental patient.
@@ -265,18 +266,6 @@ const NewPatient: React.FC = () => {
       ...prev,
       [field]: value,
     }));
-  };
-
-  const getCurrencySymbol = (procedureName: string): string => {
-    const dollarProcedures = [
-      "Zirconium Crown",
-      "Orthodontics (Basic)",
-      "Orthodontics (Standard)",
-      "Implant Surgery Only (Standard)",
-      "Implant Surgery Only (Premium)",
-      "Bleaching",
-    ];
-    return dollarProcedures.includes(procedureName) ? "$" : "AFN";
   };
 
   const procValue = parseFloat(patientProcedure.procedurePrice.toString()) || 0;
