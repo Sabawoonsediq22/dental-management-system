@@ -53,6 +53,11 @@ function App() {
           <Route path="/patients/:id/visits/new" element={<NewVisit />} />
           <Route path="/patients/:id" element={<PatientProfile />} />
           <Route path="/billing" element={<Billing />} />
+          <Route path="/billing/invoices/:id" element={<Billing />} />
+          <Route path="/billing/receipts/:id" element={<Billing />} />
+          <Route path="/billing/payments/:id" element={<Billing />} />
+          <Route path="/visits/:id" element={<Patients />} />
+          <Route path="/treatments/:id" element={<Patients />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/about" element={<About />} />
           <Route path="/help" element={<Help />} />

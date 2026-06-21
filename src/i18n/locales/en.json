@@ -202,5 +202,21 @@
     "perPage": "{{count}} per page",
     "previous": "Previous page",
     "next": "Next page"
+  },
+  "search": {
+    "placeholder": "Search patients or records by id, name or phone...",
+    "recentSearches": "Recent Searches",
+    "clearAll": "Clear All",
+    "noResults": "No results found",
+    "trySearching": "Try searching by:",
+    "hints": {
+      "patientName": "Patient Name",
+      "phone": "Phone Number",
+      "patientId": "Patient ID",
+      "invoiceNumber": "Invoice Number",
+      "treatmentName": "Treatment Name"
+    },
+    "emptyTitle": "No results found",
+    "emptySubtitle": "Try searching by:"
   }
 }

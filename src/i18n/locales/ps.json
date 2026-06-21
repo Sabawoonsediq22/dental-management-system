@@ -192,5 +192,21 @@
     "perPage": "هره څپه کې {{count}}",
     "previous": "وروستۍ پاېژنده",
     "next": "روان پاېژنده"
+  },
+  "search": {
+    "placeholder": "مریضان یا ریکارډونه د پېژند، نوم یا تلیفون له مخې ولټوئ...",
+    "recentSearches": "وروستۍ لټونونه",
+    "clearAll": "ټول ړنګ کړئ",
+    "noResults": "هیڅ پایله ونه موندل شوه",
+    "trySearching": "د لټون هڅه وکړئ:",
+    "hints": {
+      "patientName": "د مریض نوم",
+      "phone": "د تلیفون شمېره",
+      "patientId": "د مریض پېژند",
+      "invoiceNumber": "د انوایس شمېره",
+      "treatmentName": "د درمان نوم"
+    },
+    "emptyTitle": "هیڅ پایله ونه موندل شوه",
+    "emptySubtitle": "د لټون هڅه وکړئ:"
   }
 }

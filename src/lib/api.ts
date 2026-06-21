@@ -26,6 +26,8 @@ import type {
   ReceiptData,
 } from "../types/ApiTypes";
 
+import { SearchResult } from "../types/SearchTypes";
+
 export const api = {
   patients: {
     list: (params: { query?: string; gender?: string; page?: number; perPage?: number }) =>
@@ -74,5 +76,8 @@ export const api = {
   settings: {
     get: () => invoke<AppSettings>("get_settings"),
     update: (input: UpdateSettingsInput) => invoke<AppSettings>("update_settings", { input }),
+  },
+  search: {
+    globalSearch: (query: string) => invoke<SearchResult[]>("global_search", { query }),
   },
 };

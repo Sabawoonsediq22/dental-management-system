@@ -404,6 +404,66 @@ pub struct PatientListParams {
     pub per_page: Option<u32>,
 }
 
+// Search result types for global search
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchPatient {
+    pub id: String,
+    pub full_name: String,
+    pub phone: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchInvoice {
+    pub id: String,
+    pub invoice_number: String,
+    pub status: String,
+    pub outstanding_amount: f64,
+    pub patient_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchReceipt {
+    pub id: String,
+    pub invoice_number: String,
+    pub status: String,
+    pub patient_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchVisit {
+    pub id: String,
+    pub visit_date: String,
+    pub chief_complaint: Option<String>,
+    pub patient_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchTreatment {
+    pub id: String,
+    pub name: String,
+    pub additional_note: Option<String>,
+    pub procedure_price: f64,
+    pub visit_id: String,
+    pub practitioner_name: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct GlobalSearchPayment {
+    pub id: String,
+    pub amount: f64,
+    pub received_at: String,
+    pub patient_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchResult {
+    pub id: String,
+    pub result_type: String,
+    pub title: String,
+    pub subtitle: String,
+    pub route: Option<String>,
+}
+
 // Tauri state
 #[derive(Clone)]
 pub struct AppState {

@@ -244,6 +244,16 @@ async fn get_invoice_payments(
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn global_search(
+    state: State<'_, AppState>,
+    query: String,
+) -> Result<Vec<SearchResult>, String> {
+    SearchService::global_search(&state.db, &query)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 // Reports commands
 #[tauri::command]
 async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary, String> {
@@ -359,6 +369,7 @@ pub fn run() {
             get_report_summary,
             get_settings,
             update_settings,
+            global_search,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

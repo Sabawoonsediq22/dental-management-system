@@ -296,3 +296,11 @@ export interface UpdateSettingsInput {
   clinic_address?: string | null;
   language?: string | null;
 }
+
+export interface SearchResult {
+  id: string;
+  result_type: string;
+  title: string;
+  subtitle: string;
+  route: string | null;
+}
