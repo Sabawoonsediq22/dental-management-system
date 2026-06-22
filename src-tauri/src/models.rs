@@ -328,6 +328,7 @@ pub struct RecentPatient {
     pub phone: String,
     pub age: i32,
     pub gender: String,
+    pub address: String,
     pub visit_date: String,
     pub status: String,
 }

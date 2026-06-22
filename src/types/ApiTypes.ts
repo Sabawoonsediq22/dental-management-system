@@ -330,6 +330,7 @@ export interface RecentPatient {
   phone: string;
   age: number;
   gender: string;
+  address: string;
   visit_date: string;
   status: string;
 }

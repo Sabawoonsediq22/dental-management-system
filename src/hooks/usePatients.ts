@@ -45,7 +45,10 @@ export function useCreatePatient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.patients.create,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+    },
   });
 }
 

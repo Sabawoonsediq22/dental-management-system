@@ -122,8 +122,8 @@ impl DashboardService {
     }
 
     pub async fn recent_patients(pool: &SqlitePool) -> AppResult<Vec<RecentPatient>> {
-        let rows: Vec<(String, String, String, i32, String, String, String)> = sqlx::query_as(
-            "SELECT p.id, p.full_name, p.phone, p.age, p.gender, v.visit_date, v.status
+        let rows: Vec<(String, String, String, i32, String, String, String, String)> = sqlx::query_as(
+            "SELECT p.id, p.full_name, p.phone, p.age, p.gender, p.address, v.visit_date, v.status
              FROM patients p
              JOIN visits v ON p.id = v.patient_id
              ORDER BY v.visit_date DESC
@@ -132,13 +132,14 @@ impl DashboardService {
         .fetch_all(pool)
         .await?;
 
-        Ok(rows.into_iter().map(|(id, full_name, phone, age, gender, visit_date, status)| {
+        Ok(rows.into_iter().map(|(id, full_name, phone, age, gender, address, visit_date, status)| {
             RecentPatient {
                 id,
                 full_name,
                 phone,
                 age,
                 gender,
+                address,
                 visit_date,
                 status,
             }

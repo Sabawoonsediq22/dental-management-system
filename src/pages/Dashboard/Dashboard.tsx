@@ -63,7 +63,7 @@ const StatCard: React.FC<{
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [flowMode, setFlowMode] = useState<"daily" | "weekly">("daily");
+  const [flowMode, setFlowMode] = useState<"daily" | "weekly">("weekly");
 
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: flowData } = usePatientsFlow(flowMode);
@@ -292,6 +292,9 @@ const Dashboard: React.FC = () => {
                     AGE / GENDER
                   </th>
                   <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    ADDRESS
+                  </th>
+                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">
                     LAST VISIT
                   </th>
                   <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -300,16 +303,16 @@ const Dashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {recentPatients?.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-12 text-center text-gray-500"
-                    >
-                      No recent patients
-                    </td>
-                  </tr>
-                ) : (
+                 {recentPatients?.length === 0 ? (
+                   <tr>
+                     <td
+                       colSpan={6}
+                       className="px-6 py-12 text-center text-gray-500"
+                     >
+                       No recent patients
+                     </td>
+                   </tr>
+                 ) : (
                   recentPatients?.map((patient: RecentPatient) => (
                     <tr
                       key={patient.id}
@@ -332,6 +335,9 @@ const Dashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-gray-600">
                         {patient.age} / {patient.gender}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {patient.address}
                       </td>
                       <td className="px-6 py-4 text-gray-600">
                         {new Date(patient.visit_date).toLocaleDateString(
