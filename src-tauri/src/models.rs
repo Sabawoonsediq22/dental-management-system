@@ -298,6 +298,40 @@ pub struct ReportSummary {
     pub cancelled_visits_this_month: i64,
 }
 
+// Dashboard
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DashboardStats {
+    pub daily_revenue: f64,
+    pub patients_today: i64,
+    pub outstanding_balance: f64,
+    pub procedures_performed: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PatientsFlowPoint {
+    pub label: String,
+    pub check_ins: i64,
+    pub visits: i64,
+    pub completed: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProcedureDistribution {
+    pub name: String,
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RecentPatient {
+    pub id: String,
+    pub full_name: String,
+    pub phone: String,
+    pub age: i32,
+    pub gender: String,
+    pub visit_date: String,
+    pub status: String,
+}
+
 // Input DTOs
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreatePatientInput {

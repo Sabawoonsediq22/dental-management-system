@@ -262,6 +262,42 @@ async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary,
         .map_err(|e| e.to_string())
 }
 
+// Dashboard commands
+#[tauri::command]
+async fn get_dashboard_stats(state: State<'_, AppState>) -> Result<DashboardStats, String> {
+    DashboardService::stats(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_patients_flow(
+    state: State<'_, AppState>,
+    mode: String,
+) -> Result<Vec<PatientsFlowPoint>, String> {
+    DashboardService::patients_flow(&state.db, &mode)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_procedure_distribution(
+    state: State<'_, AppState>,
+) -> Result<Vec<ProcedureDistribution>, String> {
+    DashboardService::procedure_distribution(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_recent_patients(
+    state: State<'_, AppState>,
+) -> Result<Vec<RecentPatient>, String> {
+    DashboardService::recent_patients(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 // Procedure commands
 #[tauri::command]
 async fn create_procedure(
@@ -370,6 +406,10 @@ pub fn run() {
             get_settings,
             update_settings,
             global_search,
+            get_dashboard_stats,
+            get_patients_flow,
+            get_procedure_distribution,
+            get_recent_patients,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

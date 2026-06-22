@@ -304,3 +304,32 @@ export interface SearchResult {
   subtitle: string;
   route: string | null;
 }
+
+export interface DashboardStats {
+  daily_revenue: number;
+  patients_today: number;
+  outstanding_balance: number;
+  procedures_performed: number;
+}
+
+export interface PatientsFlowPoint {
+  label: string;
+  check_ins: number;
+  visits: number;
+  completed: number;
+}
+
+export interface ProcedureDistribution {
+  name: string;
+  count: number;
+}
+
+export interface RecentPatient {
+  id: string;
+  full_name: string;
+  phone: string;
+  age: number;
+  gender: string;
+  visit_date: string;
+  status: string;
+}

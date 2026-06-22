@@ -27,6 +27,12 @@ import type {
 } from "../types/ApiTypes";
 
 import { SearchResult } from "../types/SearchTypes";
+import type {
+  DashboardStats,
+  PatientsFlowPoint,
+  ProcedureDistribution,
+  RecentPatient,
+} from "../types/ApiTypes";
 
 export const api = {
   patients: {
@@ -79,5 +85,11 @@ export const api = {
   },
   search: {
     globalSearch: (query: string) => invoke<SearchResult[]>("global_search", { query }),
+  },
+  dashboard: {
+    stats: () => invoke<DashboardStats>("get_dashboard_stats"),
+    patientsFlow: (mode: string) => invoke<PatientsFlowPoint[]>("get_patients_flow", { mode }),
+    procedureDistribution: () => invoke<ProcedureDistribution[]>("get_procedure_distribution"),
+    recentPatients: () => invoke<RecentPatient[]>("get_recent_patients"),
   },
 };

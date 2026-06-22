@@ -1,3 +1,4 @@
+pub mod dashboard;
 pub mod errors;
 pub mod invoice;
 pub mod patient;
@@ -9,6 +10,8 @@ pub mod settings;
 pub mod treatment;
 pub mod visit;
 pub mod xray;
+
+pub use dashboard::DashboardService;
 
 pub use invoice::InvoiceService;
 pub use patient::PatientService;
