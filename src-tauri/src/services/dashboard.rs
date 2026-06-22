@@ -1,13 +1,13 @@
 use sqlx::SqlitePool;
 use crate::models::*;
 use crate::services::errors::AppResult;
-use chrono::{Local, Duration};
+use chrono::{Utc, Duration};
 
 pub struct DashboardService;
 
 impl DashboardService {
     pub async fn stats(pool: &SqlitePool) -> AppResult<DashboardStats> {
-        let today = Local::now().format("%Y-%m-%d").to_string();
+        let today = Utc::now().format("%Y-%m-%d").to_string();
 
         let daily_revenue: Option<f64> = sqlx::query_scalar(
             "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(received_at) = ?"
@@ -30,7 +30,7 @@ impl DashboardService {
         .await?;
 
         let procedures_performed: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM treatment_records WHERE date(performed_at) = ?"
+            "SELECT COALESCE(SUM(number_of_procedures), 0) FROM treatment_records WHERE date(performed_at) = ?"
         )
         .bind(&today)
         .fetch_one(pool)
@@ -48,7 +48,7 @@ impl DashboardService {
         if mode == "weekly" {
             let mut result = Vec::new();
             for i in (0..7).rev() {
-                let day = Local::now() - Duration::days(i);
+                let day = Utc::now() - Duration::days(i);
                 let date_str = day.format("%Y-%m-%d").to_string();
                 let label = day.format("%a").to_string();
 

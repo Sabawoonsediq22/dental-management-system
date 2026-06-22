@@ -11,7 +11,29 @@
   },
   "dashboard": {
     "logo": "Khwaja Clinic",
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "welcome": "Welcome Back",
+    "stats": {
+      "dailyRevenue": "Daily Revenue",
+      "patientsToday": "Patients Today",
+      "outstandingBalance": "Outstanding Balance",
+      "proceduresPerformed": "Procedures Performed"
+    },
+    "patientsFlow": "Patients Flow",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "procedureDistribution": "Procedure Distribution",
+    "recentPatients": "Recent Patients",
+    "viewAllPatients": "View All Patients",
+    "table": {
+      "fullName": "FULL NAME",
+      "phone": "PHONE",
+      "ageGender": "AGE / GENDER",
+      "address": "ADDRESS",
+      "lastVisit": "LAST VISIT",
+      "status": "STATUS"
+    },
+    "noRecentPatients": "No recent patients"
   },
   "settings": {
     "language": "Language"
@@ -95,7 +117,7 @@
     "visitDetailsPlaceholder": "Details",
     "allergies": "Allergies",
     "chiefComplaint": "Chief Complaint",
-    "chiefComplaintPlaceholder": "What is the main reason for today's visit?",
+    "chiefComplaintPlaceholder": "What is the main reason today's visit?",
     "currentMedications": "Current Medications",
     "currentMedicationsPlaceholder": "List any medications currently being taken",
     "clinicalNotes": "Clinical Notes",
@@ -153,7 +175,7 @@
     "date": "Visit Date",
     "visitDetails": "Visit Details",
     "chiefComplaint": "Chief Complaint",
-    "chiefComplaintPlaceholder": "Main reason for today's visit",
+    "chiefComplaintPlaceholder": "Main reason today's visit",
     "clinicalNotes": "Clinical Notes",
     "clinicalNotesPlaceholder": "Doctor's observations and plan",
     "treatmentRecording": "Treatment Recording",
@@ -195,7 +217,8 @@
   },
   "common": {
     "cancel": "Cancel",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "high": "High"
   },
   "pagination": {
     "showing": "Showing {{start}} to {{end}} of {{total}}",

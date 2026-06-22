@@ -7,6 +7,7 @@ import { useDebounce } from "../../hooks/useDebounce";
 import { api } from "../../lib/api";
 import type { SearchResult } from "../../types/SearchTypes";
 import { useRecentSearches } from "../../hooks/useDebounce";
+import { Input } from "../ui";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   patient: <span className="text-lg">👤</span>,
@@ -172,19 +173,19 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         {/* Search Input */}
         <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-200 dark:border-gray-700">
           <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search.placeholder", "Search patients or records by id, name or phone...")}
             className={cn(
-              "flex-1 h-full bg-transparent text-sm text-gray-900 dark:text-white",
-              "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-              "focus:outline-none",
-              isRTL ? "text-right" : "text-left",
-            )}
-          />
+               "flex-1 h-full bg-transparent text-sm text-gray-900 dark:text-white",
+               "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+               "border-none focus:ring-0! focus:ring-offset-0!",
+               isRTL ? "text-right" : "text-left",
+             )}
+           />
           {query && (
             <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
               ESC

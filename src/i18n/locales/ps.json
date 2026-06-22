@@ -11,7 +11,29 @@
   },
   "dashboard": {
     "logo": "خواجه کلینیک",
-    "title": "ډاشبورډ"
+    "title": "ډاشبورډ",
+    "welcome": "ښه راشئ",
+    "stats": {
+      "dailyRevenue": "نورې عواقبه",
+      "patientsToday": "مریضان غونډه",
+      "outstandingBalance": "پاتې راکڅونه",
+      "proceduresPerformed": "جاتونه ونيسي"
+    },
+    "patientsFlow": "مریضان ګډون",
+    "daily": "نورې",
+    "weekly": "وربنیا",
+    "procedureDistribution": "د جاتونو ويش",
+    "recentPatients": "وروستي مریضان",
+    "viewAllPatients": "ټول مریضان وګڼئ",
+    "table": {
+      "fullName": "مکمل نوم",
+      "phone": "تیلیفون",
+      "ageGender": "عمر / جنسیت",
+      "address": "پته",
+      "lastVisit": "وروستی ملاقات",
+      "status": "حالت"
+    },
+    "noRecentPatients": "هیڅ وروستي مریض نشته"
   },
   "settings": {
     "language": "ژبه"
@@ -46,7 +68,7 @@
     },
     "table": {
       "title": "د مریضانو لیست",
-      "subtitle": "وروستۍ ریکارډونه",
+      "subtitle": "وروستي ریکارډونه",
       "updatedBy": "د وروستي ملاقات له مخې تازه شوی",
       "columnPatient": "مریض",
       "columnPhone": "تیلیفون",
@@ -90,8 +112,7 @@
     "chiefComplaintPlaceholder": "دراتو ملاقاتكه لپاره Proncipal شكويا سي؟",
     "currentMedications": "جواري دواوى",
     "currentMedicationsPlaceholder": "هېڅ entraîne دواوى Υپېzolئ شته",
-    "medicalConditionPlaceholder": "مثلا: Epilepsy, Thyroid Issues, etc.",
-    "clinicalNotes": "كلينينکي نوټونه",
+    "clinicalNotes": "كلينينكي نوټونه",
     "clinicalNotesPlaceholder": "Doctor ' s ابتدايې مشاهدات...",
     "procedureAdditionalNotes": "اضافي نوټونه",
     "medicalConditions": "طبی حالات",
@@ -104,16 +125,15 @@
     "fdiSystem": "FDI سيستم",
     "procedure": "عملية",
     "selectProcedure": "عملية هېښ کړئ...",
-    "selectedProcedure": "هېښ عملية نه دی",
+    "selectedProcedure": "هېڅ عملية نه دی",
     "rootCanalTreatment": "رېټ كانال tratabaٔ (RCT)",
     "filling": "پرېښتونه",
     "extraction": "استخراج",
-    "cleaning": "صाफ شو",
+    "cleaning": "صـٔـف شو",
     "whitening": "سفيد شو",
     "materialUsed": "كارولوو matière",
-    "technique": "تکنېک",
+    "technique": "تكنېك",
     "materialUsedPlaceholder": "مثلا: Gutta-percha, MTA",
-    "treatmentRecording": "درملنې ثبت",
     "techniquePlaceholder": "مثلا: Lateral condensation",
     "xray": "اكس رې",
     "xRayPhotos": "X-Ray او كلينينيكي تصاویر",
@@ -123,7 +143,7 @@
     "browseFiles": "فایل‌ها را مرور کنید",
     "remove": "حذف کنید",
     "xRayDescription": "X-Ray تصاویر، اندرلالي دندان صورټونه یا د لوټول",
-"billing": "بیل",
+    "billing": "بیل",
     "billingSummary": "بیل حاله",
     "molar": "مولر",
     "numberOfProcedures": "شمیر",
@@ -178,7 +198,7 @@
       "nonNegativeAmount": "مقدار نشي منفي کیدی."
     },
     "notifications": {
-      "addSuccess": "ملاقات په بریالیتوب سره جوړ شو",
+      "addSuccess": "ملاقات په بریالیتوب سرخ جوړ شو",
       "addError": "د ملاقات جوړول بریالي نه شول",
       "partialSuccess": "ملاقات ذخیره شو، خو ځینې د درملنې جزئیات ذخیره نه شول."
     }
