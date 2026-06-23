@@ -231,7 +231,8 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                               </div>
                               <div className="flex items-center gap-3 ml-4">
                                 <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                                  {entry.procedure.totalPrice.toLocaleString()} AFN
+                                  {entry.procedure.totalPrice.toLocaleString()}{" "}
+                                  {getCurrencySymbol(entry.procedure.name)}
                                 </span>
                                 <button
                                   onClick={() => toggleExpand(entry.expandKey)}
@@ -271,29 +272,41 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                   </div>
                                 )}
 
-                                <div className="grid grid-cols-3 gap-3 pt-2">
-                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 p-3 text-center">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quantity</p>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{entry.procedure.quantity}</p>
-                                  </div>
-                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 p-3 text-center">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit Price</p>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                                      {entry.procedure.unitPrice.toLocaleString()} {getCurrencySymbol(entry.procedure.name)} AFN
-                                    </p>
-                                  </div>
-                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-700/40 p-3 text-center">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</p>
-                                    <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">
-                                      {entry.procedure.totalPrice.toLocaleString()} AFN
-                                    </p>
+                                <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-4 space-y-3">
+                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Billing Details
+                                  </span>
+                                  <div className="grid md:grid-cols-4 grid-cols-2 gap-y-2 gap-x-4 pt-2">
+                                    <div>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">Quantity</p>
+                                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">{entry.procedure.quantity}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">Unit Price</p>
+                                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                        {entry.procedure.unitPrice.toLocaleString()} {getCurrencySymbol(entry.procedure.name)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">Subtotal</p>
+                                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                        {(entry.procedure.unitPrice * entry.procedure.quantity).toLocaleString()} {getCurrencySymbol(entry.procedure.name)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                                      <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-0.5">
+                                        {entry.procedure.totalPrice.toLocaleString()} {" "}
+                                        {getCurrencySymbol(entry.procedure.name)}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
 
                                 {entry.images && entry.images.length > 0 && (
                                   <div className="pt-2">
                                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Treatment Images
+                                      Xray Images
                                     </span>
                                     <div className="flex gap-2 flex-wrap mt-2">
                                       {entry.images.map((img, imgIndex) => {
