@@ -30,27 +30,14 @@ import type {
   CreateTreatmentRecordInput,
   CreateVisitInput,
   TreatmentRecord,
-  TreatmentToothInput,
 } from "../../types/ApiTypes";
 import { usePatient } from "../../hooks/usePatients";
 import { PROCEDURES } from "../../shared/constants/Procedures";
 import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWithStatus";
 import { ReceiptPreviewModal } from "../../components/receipt/ReceiptPreviewModal";
+import { getCurrencySymbol } from "../../components/common/getCurrencySymbol";
 
 const getTodayDateString = () => new Date().toISOString().split("T")[0];
-
-const getCurrencySymbol = (procedureName: string): string => {
-  const dollarProcedures = [
-    "Zirconium Crown",
-    "Orthodontics (Basic)",
-    "Orthodontics (Standard)",
-    "Implant Surgery Only (Standard)",
-    "Implant Surgery Only (Premium)",
-    "Bleaching",
-  ];
-
-  return dollarProcedures.includes(procedureName) ? "$" : "AFN";
-};
 
 const getToothQuadrant = (toothId: string) => {
   const fdiNumber = parseInt(toothId, 10);
@@ -66,24 +53,7 @@ const getToothQuadrant = (toothId: string) => {
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat().format(Math.round(amount));
 
-const trimToNull = (value: string) => {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-
-const fileToUint8Array = (file: File): Promise<number[]> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      const buffer = reader.result as ArrayBuffer;
-      resolve(Array.from(new Uint8Array(buffer)));
-    };
-
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-
+  
 const NewVisit: React.FC = () => {
   const { t } = useTranslation();
   const { id: patientId } = useParams<{ id: string }>();
@@ -100,80 +70,162 @@ const NewVisit: React.FC = () => {
   const [visitDate, setVisitDate] = useState(getTodayDateString());
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
-  const [selectedProcedureName, setSelectedProcedureName] = useState("");
-  const [procedureAdditionalNote, setProcedureAdditionalNote] = useState("");
-  const [numberOfProcedures, setNumberOfProcedures] = useState(1);
+
+  interface SelectedProcedure {
+    procedureName: string;
+    additionalNotes: string;
+    procedurePrice: number;
+    numberOfProcedures: number;
+    selectedToothIds: string[];
+    sealedTeeth: ToothData[];
+  }
+
+  const [selectedProcedures, setSelectedProcedures] =
+    useState<SelectedProcedure[]>([]);
+  const [activeProcedureIndex, setActiveProcedureIndex] = useState<number>(0);
+  const [newProcedureName, setNewProcedureName] = useState("");
+
   const [discount, setDiscount] = useState("");
   const [paidAmount, setPaidAmount] = useState("");
-  const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
-  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentToothInput[]>(
-    [],
-  );
-  const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
 
-  const selectedProcedure = PROCEDURES.find(
-    (procedure) => procedure.name === selectedProcedureName,
-  );
-
-  const discountAmount = parseFloat(discount) || 0;
-  const paidAmountValue = parseFloat(paidAmount) || 0;
-  const subtotal =
-    (selectedProcedure?.price ?? 0) * Math.max(numberOfProcedures, 0);
-  const totalDue = Math.max(subtotal - discountAmount, 0);
-  const outstandingAmount = Math.max(totalDue - paidAmountValue, 0);
-  const currencySymbol = getCurrencySymbol(selectedProcedure?.name ?? "");
-
-  const handleSelectedToothChange = (toothData?: ToothData) => {
-    if (!toothData) return;
-
-    setSelectedToothIds((prev) => {
-      if (prev.includes(toothData.id)) {
-        return prev.filter((id) => id !== toothData.id);
+  const updateActiveProcedure = <K extends keyof SelectedProcedure>(
+    field: K,
+    value: SelectedProcedure[K],
+  ) => {
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      if (next.length === 0 || activeProcedureIndex >= next.length) {
+        return prev;
       }
-
-      return [...prev, toothData.id];
-    });
-
-    setTreatmentTeeth((prev) => {
-      const toothNumber = parseInt(toothData.id, 10);
-      const toothQuadrant =
-        toothData.quadrant || getToothQuadrant(toothData.id);
-
-      if (prev.some((tooth) => tooth.tooth_number === toothNumber)) {
-        return prev.filter((tooth) => tooth.tooth_number !== toothNumber);
-      }
-
-      return [
-        ...prev,
-        {
-          tooth_number: toothNumber,
-          tooth_quadrant: toothQuadrant,
-        },
-      ];
-    });
-
-    setSealedTeeth((prev) => {
-      const next = [
-        ...prev.filter((existing) => existing.id !== toothData.id),
-        toothData,
-      ];
-
+      next[activeProcedureIndex] = {
+        ...next[activeProcedureIndex],
+        [field]: value,
+      };
       return next;
     });
   };
 
-  const handleNumberChange = (
-    value: string,
-    onChange: (value: number) => void,
-  ) => {
-    const parsed = parseInt(value, 10);
-    onChange(Number.isNaN(parsed) ? 0 : parsed);
+  const addProcedure = () => {
+    const selectedProcedure = PROCEDURES.find(
+      (p) => p.name === newProcedureName,
+    );
+    const newProc: SelectedProcedure = {
+      procedureName: newProcedureName,
+      additionalNotes: "",
+      procedurePrice: selectedProcedure?.price ?? 0,
+      numberOfProcedures: 1,
+      selectedToothIds: [],
+      sealedTeeth: [],
+    };
+    setSelectedProcedures((prev) => {
+      const next = [...prev, newProc];
+      setActiveProcedureIndex(next.length - 1);
+      return next;
+    });
+    setNewProcedureName("");
   };
+
+  const removeProcedure = (index: number) => {
+    setSelectedProcedures((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length === 0) {
+        setActiveProcedureIndex(0);
+      } else if (index < activeProcedureIndex) {
+        setActiveProcedureIndex((prevIndex) => prevIndex - 1);
+      } else if (index === activeProcedureIndex) {
+        setActiveProcedureIndex(Math.max(0, next.length - 1));
+      }
+      return next;
+    });
+  };
+
+  const handleSelectedToothChange = (toothData?: ToothData) => {
+    if (!toothData) return;
+    const index = activeProcedureIndex;
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      const current = { ...next[index] };
+      if (!current.selectedToothIds) current.selectedToothIds = [];
+      if (!current.sealedTeeth) current.sealedTeeth = [];
+      current.selectedToothIds = current.selectedToothIds.includes(toothData.id)
+        ? current.selectedToothIds.filter((id) => id !== toothData.id)
+        : [...current.selectedToothIds, toothData.id];
+
+      current.sealedTeeth = [
+        ...current.sealedTeeth.filter((existing) => existing.id !== toothData.id),
+        toothData,
+      ];
+
+      next[index] = current;
+      return next;
+    });
+  };
+
+  const handleToothMeasurements = (toothId: string) => {
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      const current = { ...next[activeProcedureIndex] };
+      if (!current.sealedTeeth) current.sealedTeeth = [];
+      const exists = current.sealedTeeth.find(
+        (item: ToothData) => item.id === toothId,
+      );
+      if (!exists) {
+        current.sealedTeeth = [...current.sealedTeeth, { id: toothId } as ToothData];
+      }
+      next[activeProcedureIndex] = current;
+      return next;
+    });
+  };
+
+  const discountAmount = parseFloat(discount) || 0;
+  const paidAmountValue = parseFloat(paidAmount) || 0;
+  const subtotal = selectedProcedures.reduce(
+    (sum, p) => sum + (parseFloat(p.procedurePrice.toString()) || 0) * (parseInt(p.numberOfProcedures.toString(), 10) || 1),
+    0,
+  );
+  const totalDue = Math.max(subtotal - discountAmount, 0);
+  const outstandingAmount = Math.max(totalDue - paidAmountValue, 0);
+  const currencySymbol = getCurrencySymbol(
+    selectedProcedures.length > 0
+      ? selectedProcedures[0].procedureName
+      : "",
+  );
+
+  const BillingStatusIcon: React.FC<{
+    isActive: boolean;
+    className?: string;
+  }> = ({ isActive, className = "" }) => {
+    const Icon = isActive ? CheckCircleIcon : CrossCircleIcon;
+
+    return (
+      <Icon
+        className={`h-5 w-5 ${
+          isActive ? "text-green-500" : "text-red-500"
+        } ${className}`}
+      />
+    );
+  };
+
+  const trimToNull = (value: string) => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  };
+
+  const fileToUint8Array = (file: File): Promise<number[]> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const buffer = reader.result as ArrayBuffer;
+        resolve(Array.from(new Uint8Array(buffer)));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
 
   const handleXrayChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -198,151 +250,150 @@ const NewVisit: React.FC = () => {
     }
   };
 
-  const validateNewVisitForm = () => {
-    const nextErrors: Record<string, string> = {};
+   const validateNewVisitForm = () => {
+     const nextErrors: Record<string, string> = {};
 
-    if (!patientId) {
-      return false;
-    }
+     if (!patientId) {
+       return false;
+     }
 
-    if (!visitDate) {
-      nextErrors.visitDate = t("newVisit.errors.dateRequired");
-    }
+     if (!visitDate) {
+       nextErrors.visitDate = t("newVisit.errors.dateRequired");
+     }
 
-    if (!chiefComplaint.trim()) {
-      nextErrors.chiefComplaint = t("newVisit.errors.chiefComplaintRequired");
-    }
+     if (!chiefComplaint.trim()) {
+       nextErrors.chiefComplaint = t("newVisit.errors.chiefComplaintRequired");
+     }
 
-    if (selectedProcedureName && !selectedProcedure) {
-      nextErrors.procedure = t("newVisit.errors.procedureRequired");
-    }
+     for (const proc of selectedProcedures) {
+       const qty = parseInt(proc.numberOfProcedures.toString(), 10) || 0;
+       if (qty < 1) {
+         nextErrors.numberOfProcedures = t("newVisit.errors.quantityRequired");
+         break;
+       }
+     }
 
-    if (selectedProcedureName && numberOfProcedures < 1) {
-      nextErrors.numberOfProcedures = t("newVisit.errors.quantityRequired");
-    }
+     if (discountAmount < 0) {
+       nextErrors.discount = t("newVisit.errors.nonNegativeAmount");
+     }
 
-    if (discountAmount < 0) {
-      nextErrors.discount = t("newVisit.errors.nonNegativeAmount");
-    }
+     if (paidAmountValue < 0) {
+       nextErrors.paidAmount = t("newVisit.errors.nonNegativeAmount");
+     }
 
-    if (paidAmountValue < 0) {
-      nextErrors.paidAmount = t("newVisit.errors.nonNegativeAmount");
-    }
+     setErrors(nextErrors);
 
-    setErrors(nextErrors);
-
-    return Object.keys(nextErrors).length === 0;
-  };
+     return Object.keys(nextErrors).length === 0;
+   };
 
   const handleReceiptClose = () => {
     setReceiptInvoiceId(null);
     navigate(`/patients/${patientId}`);
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+   const handleSubmit = async (event: React.FormEvent) => {
+     event.preventDefault();
 
-    if (!patient || !patientId || !validateNewVisitForm()) return;
+     if (!patient || !patientId || !validateNewVisitForm()) return;
 
-    setIsSubmitting(true);
+     setIsSubmitting(true);
 
-    try {
-      const visitInput: CreateVisitInput = {
-        patient_id: patientId,
-        visit_date: visitDate || undefined,
-        chief_complaint: trimToNull(chiefComplaint),
-        clinical_notes: trimToNull(clinicalNotes),
-      };
-      const createdVisit = await api.visits.create(visitInput);
-      let treatmentRecord: TreatmentRecord | null = null;
-      let xrayUploadFailed = false;
+     try {
+       const visitInput: CreateVisitInput = {
+         patient_id: patientId,
+         visit_date: visitDate || undefined,
+         chief_complaint: trimToNull(chiefComplaint),
+         clinical_notes: trimToNull(clinicalNotes),
+       };
+       const createdVisit = await api.visits.create(visitInput);
+       let treatmentRecord: TreatmentRecord | null = null;
+       let xrayUploadFailed = false;
 
-      if (selectedProcedureName && selectedProcedure) {
-        const procedureInput: CreateProcedureInput = {
-          visit_id: createdVisit.id,
-          name: selectedProcedureName,
-          additional_note: trimToNull(procedureAdditionalNote),
-          procedure_price: selectedProcedure.price,
-        };
-        const createdProcedure = await api.procedures.create(procedureInput);
-        const treatmentInput: CreateTreatmentRecordInput = {
-          visit_id: createdVisit.id,
-          procedure_id: createdProcedure.id,
-          number_of_procedures: Math.max(numberOfProcedures, 1),
-          treatment_teeth: treatmentTeeth.filter(
-            (tooth) => tooth.tooth_number > 0 && tooth.tooth_quadrant.trim(),
-          ),
-        };
+       for (const proc of selectedProcedures) {
+         const procedureInput: CreateProcedureInput = {
+           visit_id: createdVisit.id,
+           name: proc.procedureName,
+           additional_note: proc.additionalNotes?.trim() || null,
+           procedure_price: proc.procedurePrice,
+         };
+         const createdProcedure = await api.procedures.create(procedureInput);
+         const treatmentInput: CreateTreatmentRecordInput = {
+           visit_id: createdVisit.id,
+           procedure_id: createdProcedure.id,
+           number_of_procedures: Math.max(proc.numberOfProcedures, 1),
+           treatment_teeth: proc.selectedToothIds
+             .map((id) => ({
+               tooth_number: parseInt(id, 10),
+               tooth_quadrant: getToothQuadrant(id),
+             }))
+             .filter((t) => t.tooth_number > 0 && t.tooth_quadrant.trim()),
+         };
 
-        treatmentRecord = await api.treatments.add(treatmentInput);
-      }
+         treatmentRecord = await api.treatments.add(treatmentInput);
+       }
 
-      if (xrayFile) {
-        try {
-          await api.patients.upload_xray(
-            patient.id,
-            treatmentRecord?.id ?? null,
-            xrayFile.name,
-            await fileToUint8Array(xrayFile),
-          );
-        } catch (xrayError) {
-          xrayUploadFailed = true;
-          console.error("X-ray upload failed:", xrayError);
-        }
-      }
+       if (xrayFile && treatmentRecord) {
+         try {
+           await api.patients.upload_xray(
+             patient.id,
+             treatmentRecord.id,
+             xrayFile.name,
+             await fileToUint8Array(xrayFile),
+           );
+         } catch (xrayError) {
+           xrayUploadFailed = true;
+           console.error("X-ray upload failed:", xrayError);
+         }
+       }
 
-      const createdInvoice = await api.invoices.create({
-        visit_id: createdVisit.id,
-        subtotal,
-        discount: discountAmount,
-        paid_amount: paidAmountValue,
-      });
+       const createdInvoice = await api.invoices.create({
+         visit_id: createdVisit.id,
+         subtotal,
+         discount: discountAmount,
+         paid_amount: paidAmountValue,
+       });
 
-      queryClient.invalidateQueries({
-        queryKey: ["patients", patientId],
-        refetchType: "all",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["patients", patientId, "statistics"],
-        refetchType: "all",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["treatment-history", patientId],
-        refetchType: "all",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["visits", patientId],
-        refetchType: "all",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["invoices", "visit", createdVisit.id],
-        refetchType: "all",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["patients"],
-        refetchType: "all",
-      });
+       queryClient.invalidateQueries({
+         queryKey: ["patients", patientId],
+         refetchType: "all",
+       });
+       queryClient.invalidateQueries({
+         queryKey: ["patients", patientId, "statistics"],
+         refetchType: "all",
+       });
+       queryClient.invalidateQueries({
+         queryKey: ["treatment-history", patientId],
+         refetchType: "all",
+       });
+       queryClient.invalidateQueries({
+         queryKey: ["visits", patientId],
+         refetchType: "all",
+       });
+       queryClient.invalidateQueries({
+         queryKey: ["invoices", "visit", createdVisit.id],
+         refetchType: "all",
+       });
 
-      setReceiptInvoiceId(createdInvoice.id);
+       setReceiptInvoiceId(createdInvoice.id);
 
-      toast.success({
-        title: t("newVisit.notifications.addSuccess"),
-        description: xrayUploadFailed
-          ? t("newVisit.notifications.partialSuccess")
-          : undefined,
-      });
-    } catch (error) {
-      console.error("Failed to create visit:", error);
-      toast.error({
-        title: t("newVisit.notifications.addError"),
-        description: String(error),
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+       toast.success({
+         title: t("newVisit.notifications.addSuccess"),
+         description: xrayUploadFailed
+           ? t("newVisit.notifications.partialSuccess")
+           : undefined,
+       });
+     } catch (error) {
+       console.error("Failed to create visit:", error);
+       toast.error({
+         title: t("newVisit.notifications.addError"),
+         description: String(error),
+       });
+     } finally {
+       setIsSubmitting(false);
+     }
+    };
 
-  if (patientQuery.isLoading) {
+   if (patientQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
@@ -506,75 +557,157 @@ const NewVisit: React.FC = () => {
               {t("newVisit.treatmentRecording")}
             </h3>
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <FormField
-                label={t("newVisit.procedure")}
-                error={errors.procedure}
-              >
+          <div className="p-6 space-y-6">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <FormField label={t("newVisit.procedure")} className="flex-1">
                 <Select
-                  value={selectedProcedureName}
-                  onChange={(event) =>
-                    setSelectedProcedureName(event.target.value)
-                  }
+                  value={newProcedureName}
+                  onChange={(e) => {
+                    setNewProcedureName(e.target.value);
+                  }}
+                  className="cursor-pointer w-full"
                   disabled={isSubmitting}
-                  className="w-full cursor-pointer"
                 >
                   <option value="">{t("newVisit.selectProcedure")}</option>
-                  {PROCEDURES.map((procedure) => (
-                    <option key={procedure.name} value={procedure.name}>
+                  {PROCEDURES.map((procedure, index) => (
+                    <option key={index} value={procedure.name}>
                       {procedure.name} - {formatCurrency(procedure.price)}{" "}
                       {getCurrencySymbol(procedure.name)}
                     </option>
                   ))}
                 </Select>
               </FormField>
-              <FormField label={t("newPatient.procedureAdditionalNotes")}>
-                <FormInput
-                  value={procedureAdditionalNote}
-                  onChange={(event) =>
-                    setProcedureAdditionalNote(event.target.value)
-                  }
-                  placeholder={t(
-                      "newPatient.additionalNotesPlaceholder",
-                      "Add procedure notes",
-                    )}
-                  className="w-full"
-                  disabled={isSubmitting}
-                />
-              </FormField>
-              <FormField
-                label={t("newVisit.numberOfProcedures")}
-                error={errors.numberOfProcedures}
+              <Button
+                type="button"
+                onClick={addProcedure}
+                disabled={isSubmitting || !newProcedureName}
+                className="cursor-pointer"
               >
-                <FormInput
-                  type="number"
-                  min={1}
-                  value={numberOfProcedures}
-                  onChange={(event) =>
-                    handleNumberChange(
-                      event.target.value,
-                      setNumberOfProcedures,
-                    )
-                  }
-                  disabled={isSubmitting}
-                  className="w-full"
-                />
-              </FormField>
+                {t("newPatient.addProcedure")}
+              </Button>
             </div>
 
-            <div className="mt-6">
-              <DentalChart
-                onToothSelect={handleSelectedToothChange}
-                selectedToothIds={selectedToothIds}
-                teethData={sealedTeeth}
-              />
-            </div>
+            {selectedProcedures.length === 0 ? (
+              <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {t("newPatient.noProceduresAdded")}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedProcedures.map((proc, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setActiveProcedureIndex(index)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        index === activeProcedureIndex
+                          ? "border-l-4 border-l-green-500 border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/20 dark:text-white"
+                          : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                      }`}
+                    >
+                      <span>#{index + 1} {proc.procedureName}</span>
+                      <span className="text-xs text-muted-foreground">
+                        x{proc.numberOfProcedures}
+                      </span>
+                      {proc.selectedToothIds.length > 0 && (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          {proc.selectedToothIds.length} {t("newPatient.teeth")}
+                        </span>
+                      )}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeProcedure(index);
+                        }}
+                        className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                      >
+                        ×
+                      </span>
+                    </button>
+                  ))}
+                </div>
 
-            {selectedToothIds.length > 0 && (
-              <p className="mt-3 text-sm text-muted-foreground">
-                {selectedToothIds.length} {t("newVisit.selectedTeethLabel")}
-              </p>
+                <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <h4 className="text-base font-bold text-gray-900 dark:text-white">
+                        {selectedProcedures[activeProcedureIndex]?.procedureName || t("newVisit.selectedProcedure")}
+                      </h4>
+                      <span className="text-sm text-muted-foreground">
+                        {formatCurrency(selectedProcedures[activeProcedureIndex]?.procedurePrice || 0)}{" "}
+                        {getCurrencySymbol(selectedProcedures[activeProcedureIndex]?.procedureName || "")}
+                      </span>
+                      {selectedProcedures[activeProcedureIndex]?.selectedToothIds.length ? (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          {selectedProcedures[activeProcedureIndex].selectedToothIds.length} {t("newPatient.teeth")}
+                        </span>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeProcedure(activeProcedureIndex)}
+                      disabled={isSubmitting}
+                      className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    >
+                      {t("newVisit.remove")}
+                    </Button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <FormField label={t("newPatient.procedureAdditionalNotes")}>
+                        <FormInput
+                          placeholder={t(
+                            "newPatient.additionalNotesPlaceholder",
+                            "Add procedure notes",
+                          )}
+                          value={selectedProcedures[activeProcedureIndex]?.additionalNotes ?? ""}
+                          onChange={(e) =>
+                            updateActiveProcedure(
+                              "additionalNotes",
+                              e.target.value,
+                            )
+                          }
+                          disabled={isSubmitting}
+                          className="w-full"
+                        />
+                      </FormField>
+                      <FormField label={t("newVisit.numberOfProcedures")}>
+                        <FormInput
+                          type="number"
+                          min={1}
+                          value={selectedProcedures[activeProcedureIndex]?.numberOfProcedures ?? 1}
+                          onChange={(e) =>
+                            updateActiveProcedure(
+                              "numberOfProcedures",
+                              Math.max(parseInt(e.target.value, 10) || 1, 1),
+                            )
+                          }
+                          disabled={isSubmitting}
+                          className="w-full"
+                        />
+                      </FormField>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+                      <p className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {t("newPatient.dentalChart")}
+                      </p>
+                      <DentalChart
+                        onToothSelect={handleSelectedToothChange}
+                        onMeasurementChange={handleToothMeasurements}
+                        selectedToothIds={selectedProcedures[activeProcedureIndex]?.selectedToothIds ?? []}
+                        teethData={selectedProcedures[activeProcedureIndex]?.sealedTeeth ?? []}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -650,25 +783,54 @@ const NewVisit: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
             <div className="space-y-4">
-              <BillingRow
-                iconActive={Boolean(selectedProcedure)}
-                label={
-                  selectedProcedure?.name || t("newVisit.selectedProcedure")
-                }
-                currency={currencySymbol}
-                value={selectedProcedure?.price?.toString() ?? ""}
-                onChange={() => {}}
-                disabled
-              />
-              <BillingRow
-                iconActive={numberOfProcedures > 0}
-                label={t("newVisit.numberOfProcedures")}
-                value={numberOfProcedures.toString()}
-                onChange={(event) =>
-                  handleNumberChange(event.target.value, setNumberOfProcedures)
-                }
-                disabled={isSubmitting}
-              />
+              {selectedProcedures.length === 0 ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t("newPatient.noProceduresAdded")}
+                  </p>
+                </div>
+              ) : (
+                selectedProcedures.map((proc, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <BillingStatusIcon isActive={Boolean(proc.procedureName)} />
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {proc.procedureName || t("newVisit.selectedProcedure")}
+                        </p>
+                      </div>
+                      <div className="relative w-36">
+                        <FormInput
+                          type="number"
+                          readOnly
+                          value={proc.procedurePrice || ""}
+                          className="w-full text-right pr-10"
+                          disabled={isSubmitting}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          {getCurrencySymbol(proc.procedureName)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <BillingStatusIcon isActive={selectedProcedures.length > 0} />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t("newVisit.numberOfProcedures")}
+                    </p>
+                  </div>
+                  <div className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {selectedProcedures.reduce((sum, p) => sum + (parseInt(p.numberOfProcedures.toString(), 10) || 0), 0)}
+                  </div>
+                </div>
+              </div>
               <BillingRow
                 iconActive={discountAmount > 0}
                 label={t("newVisit.discount")}
