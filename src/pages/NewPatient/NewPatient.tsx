@@ -28,14 +28,14 @@ import { PROCEDURES } from "../../shared/constants/Procedures";
 import { toast } from "../../lib/toast-utils";
 import { api } from "../../lib/api";
 import type { CreatePatientInput } from "../../types/ApiTypes";
+import type {
+  CreateProcedureWithTreatmentInput,
+} from "../../types/ApiTypes";
 import {
   FormErrors,
   medicalConditions,
-  PatientProcedure,
   Patient,
   PatientVisit,
-  TreatmentRecord,
-  TreatmentTooth,
 } from "../../types/PatientFormTypes";
 import { validatePatientForm } from "../../validation/patientValidation";
 import { getCurrencySymbol } from "../../components/common/getCurrencySymbol";
@@ -88,69 +88,114 @@ const NewPatient: React.FC = () => {
     status: "Open",
   });
 
-  // Treatment and billing state are combined with selected teeth when creating the record.
-  const [patientProcedure, setPatientProcedure] = useState<PatientProcedure>({
-    procedureName: "",
-    additionalNotes: "",
-    procedurePrice: 0,
-  });
-  const [treatmentRecord, setTreatmentRecord] = useState<TreatmentRecord>({
-    visitId: "",
-    procedureId: "",
-    numberOfProcedures: 1,
-  });
-  const [treatmentTeeth, setTreatmentTeeth] = useState<TreatmentTooth[]>([]);
+  // Multiple procedures can be added for the visit. Each entry tracks
+  // its own selected teeth and notes so they stay independent.
+  interface SelectedProcedure {
+    procedureName: string;
+    additionalNotes: string;
+    procedurePrice: number;
+    numberOfProcedures: number;
+    selectedToothIds: string[];
+    sealedTeeth: ToothData[];
+  }
+
+  const [selectedProcedures, setSelectedProcedures] =
+    useState<SelectedProcedure[]>([]);
+  const [activeProcedureIndex, setActiveProcedureIndex] = useState<number>(0);
+  const [newProcedureName, setNewProcedureName] = useState("");
 
   // X-ray, drag-drop, and dental chart state are independent from the main patient form.
   const [xrayFile, setXrayFile] = useState<File | null>(null);
   const [xrayPreview, setXrayPreview] = useState<string | null>(null);
-  const [selectedToothIds, setSelectedToothIds] = useState<string[]>([]);
-  const [sealedTeeth, setSealedTeeth] = useState<ToothData[]>([]);
   const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
   const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /**
-   * Updates the dental chart selection and keeps the tooth state used for API
-   * submission in sync with the visual chart state.
-   *
-   * The same tooth can be represented by three state sources: selectedToothIds
-   * for visual highlighting, treatmentTeeth for API payload generation, and
-   * sealedTeeth for DentalChart measurement data.
-   */
+  const updateActiveProcedure = <K extends keyof SelectedProcedure>(
+    field: K,
+    value: SelectedProcedure[K],
+  ) => {
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      if (next.length === 0 || activeProcedureIndex >= next.length) {
+        return prev;
+      }
+      next[activeProcedureIndex] = {
+        ...next[activeProcedureIndex],
+        [field]: value,
+      };
+      return next;
+    });
+  };
+
+  const addProcedure = () => {
+    const selectedProcedure = PROCEDURES.find(
+      (p) => p.name === newProcedureName,
+    );
+    const newProc: SelectedProcedure = {
+      procedureName: newProcedureName,
+      additionalNotes: "",
+      procedurePrice: selectedProcedure?.price ?? 0,
+      numberOfProcedures: 1,
+      selectedToothIds: [],
+      sealedTeeth: [],
+    };
+    setSelectedProcedures((prev) => {
+      const next = [...prev, newProc];
+      setActiveProcedureIndex(next.length - 1);
+      return next;
+    });
+    setNewProcedureName("");
+  };
+
+  const removeProcedure = (index: number) => {
+    setSelectedProcedures((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length === 0) {
+        setActiveProcedureIndex(0);
+      } else if (index < activeProcedureIndex) {
+        setActiveProcedureIndex((prevIndex) => prevIndex - 1);
+      } else if (index === activeProcedureIndex) {
+        setActiveProcedureIndex(Math.max(0, next.length - 1));
+      }
+      return next;
+    });
+  };
+
   const handleSelectedToothChange = (toothData?: ToothData) => {
     if (!toothData) return;
-    setSelectedToothIds((prev) => {
-      if (prev.includes(toothData.id)) {
-        return prev.filter((id) => id !== toothData.id);
-      }
-      return [...prev, toothData.id];
-    });
-    setTreatmentTeeth((prev) => {
-      const toothNumber = parseInt(toothData.id, 10);
-      // Use the quadrant from the chart when available; otherwise derive it from the FDI tooth number.
-      const toothQuadrant =
-        toothData.quadrant || getToothQuadrant(toothData.id);
+    const index = activeProcedureIndex;
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      const current = { ...next[index] };
+      if (!current.selectedToothIds) current.selectedToothIds = [];
+      if (!current.sealedTeeth) current.sealedTeeth = [];
+      current.selectedToothIds = current.selectedToothIds.includes(toothData.id)
+        ? current.selectedToothIds.filter((id) => id !== toothData.id)
+        : [...current.selectedToothIds, toothData.id];
 
-      // Keep treatment teeth unique so toggling the same tooth removes it instead of duplicating it.
-      if (prev.some((tooth) => tooth.toothNumber === toothNumber)) {
-        return prev.filter((tooth) => tooth.toothNumber !== toothNumber);
-      }
-
-      return [
-        ...prev,
-        {
-          treatmentRecordId: "",
-          toothNumber,
-          toothQuadrant,
-        },
-      ];
-    });
-    setSealedTeeth((prev) => {
-      const next = [
-        ...prev.filter((existing) => existing.id !== toothData.id),
+      current.sealedTeeth = [
+        ...current.sealedTeeth.filter((existing) => existing.id !== toothData.id),
         toothData,
       ];
+
+      next[index] = current;
+      return next;
+    });
+  };
+
+  const handleToothMeasurements = (toothId: string) => {
+    setSelectedProcedures((prev) => {
+      const next = [...prev];
+      const current = { ...next[activeProcedureIndex] };
+      if (!current.sealedTeeth) current.sealedTeeth = [];
+      const exists = current.sealedTeeth.find(
+        (item: ToothData) => item.id === toothId,
+      );
+      if (!exists) {
+        current.sealedTeeth = [...current.sealedTeeth, { id: toothId } as ToothData];
+      }
+      next[activeProcedureIndex] = current;
       return next;
     });
   };
@@ -193,14 +238,6 @@ const NewPatient: React.FC = () => {
   /**
    * Filters selected teeth into the snake_case payload shape expected by the API.
    */
-  const getTreatmentTeethInput = () => {
-    return treatmentTeeth
-      .filter((tooth) => tooth.toothNumber > 0 && tooth.toothQuadrant.trim())
-      .map((tooth) => ({
-        tooth_number: tooth.toothNumber,
-        tooth_quadrant: tooth.toothQuadrant.trim(),
-      }));
-  };
 
   /**
    * Builds the medical condition list from checkbox selections and the custom "other" field.
@@ -255,30 +292,24 @@ const NewPatient: React.FC = () => {
     }));
   };
 
-  /**
-   * Updates any treatment procedure field using a dynamic key from the PatientProcedure type.
-   */
-  const handlePatientProcedureChange = (
-    field: keyof PatientProcedure,
-    value: string | number,
-  ) => {
-    setPatientProcedure((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const procValue = parseFloat(patientProcedure.procedurePrice.toString()) || 0;
-  const numProc = parseInt(treatmentRecord.numberOfProcedures.toString()) || 1;
   const discountAmount =
     parseFloat(patientVisit.discount?.toString() || "0") || 0;
   const paidAmount = parseFloat(patientVisit.paidAmount?.toString() || "0") || 0;
-  const subtotal = procValue * numProc;
+  const subtotal = selectedProcedures.reduce(
+    (sum, p) => sum + (parseFloat(p.procedurePrice.toString()) || 0) * (parseInt(p.numberOfProcedures.toString(), 10) || 1),
+    0,
+  );
+  const numProc = selectedProcedures.reduce(
+    (sum, p) => sum + (parseInt(p.numberOfProcedures.toString(), 10) || 0),
+    0,
+  );
   const totalDue = subtotal - discountAmount;
   const outstandingAmount = totalDue - paidAmount;
-  const currencySymbol = getCurrencySymbol(patientProcedure.procedureName);
-  const numberOfProcedures =
-    parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 0;
+  const currencySymbol = getCurrencySymbol(
+    selectedProcedures.length > 0
+      ? selectedProcedures[0].procedureName
+      : "",
+  );
   const BillingStatusIcon: React.FC<{
     isActive: boolean;
     className?: string;
@@ -292,14 +323,6 @@ const NewPatient: React.FC = () => {
         } ${className}`}
       />
     );
-  };
-
-  const handleToothMeasurements = (toothId: string) => {
-    setSealedTeeth((prev) => {
-      const exists = prev.find((item) => item.id === toothId);
-      if (exists) return prev;
-      return [...prev, { id: toothId } as ToothData];
-    });
   };
 
   const handleXrayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -330,16 +353,6 @@ const NewPatient: React.FC = () => {
       reader.onerror = reject;
       reader.readAsArrayBuffer(file);
     });
-  };
-
-  const handleTreatmentRecordChange = (
-    field: keyof TreatmentRecord,
-    value: string | number,
-  ) => {
-    setTreatmentRecord((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   const handlePatientChange = (field: string, value: string | boolean) => {
@@ -385,46 +398,55 @@ const NewPatient: React.FC = () => {
       const allergiesCsv = formatCsvList(allergyInput);
       const medicationsCsv = formatCsvList(medicationInput);
       const selectedMedicalConditions = getSelectedMedicalConditions();
-      const treatmentTeethInput = getTreatmentTeethInput();
+
+      const proceduresPayload: CreateProcedureWithTreatmentInput[] =
+        selectedProcedures.map((proc) => ({
+          procedure_name: proc.procedureName,
+          procedure_additional_note: proc.additionalNotes?.trim() || null,
+          procedure_price: proc.procedurePrice,
+          number_of_procedures: Math.max(proc.numberOfProcedures, 1),
+          treatment_teeth: proc.selectedToothIds
+            .map((id) => ({
+              tooth_number: parseInt(id, 10),
+              tooth_quadrant: getToothQuadrant(id),
+            }))
+            .filter((t) => t.tooth_number > 0 && t.tooth_quadrant.trim()),
+        }));
+
       const input: CreatePatientInput = {
-          full_name: patient.fullName.trim(),
-          phone: patient.phoneNumber.trim(),
-          age: patient.age,
-          gender,
-          address: patient.address?.trim() || null,
-          allergies: allergiesCsv || null,
-          medications: medicationsCsv || null,
-          medical_conditions:
-            selectedMedicalConditions.length > 0
-              ? selectedMedicalConditions
-              : null,
-          visit_date: patientVisit.visitDate || null,
-          chief_complaint: patientVisit.chiefComplaint.trim() || null,
-          clinical_notes: patientVisit.clinicalNotes.trim() || null,
-          procedure_name: patientProcedure.procedureName.trim() || null,
-          procedure_additional_note:
-            patientProcedure.additionalNotes?.trim() || null,
-          procedure_price:
-            patientProcedure.procedurePrice > 0
-              ? patientProcedure.procedurePrice
-              : null,
-          number_of_procedures:
-            parseInt(treatmentRecord.numberOfProcedures.toString(), 10) || 1,
-          treatment_teeth:
-            treatmentTeethInput.length > 0 ? treatmentTeethInput : null,
-          discount: discountAmount > 0 ? discountAmount : null,
-          paid_amount: paidAmount > 0 ? paidAmount : null,
-        };
+        full_name: patient.fullName.trim(),
+        phone: patient.phoneNumber.trim(),
+        age: patient.age,
+        gender,
+        address: patient.address?.trim() || null,
+        allergies: allergiesCsv || null,
+        medications: medicationsCsv || null,
+        medical_conditions:
+          selectedMedicalConditions.length > 0
+            ? selectedMedicalConditions
+            : null,
+        visit_date: patientVisit.visitDate || null,
+        chief_complaint: patientVisit.chiefComplaint.trim() || null,
+        clinical_notes: patientVisit.clinicalNotes.trim() || null,
+        procedures: proceduresPayload,
+        discount: discountAmount > 0 ? discountAmount : null,
+        paid_amount: paidAmount > 0 ? paidAmount : null,
+      };
 
       const created = await api.patients.create(input);
 
-      if (xrayFile && created.id) {
+      if (xrayFile && created.treatment_record_id) {
         try {
           if (!api.patients.upload_xray) {
             throw new Error("upload_xray command is not available");
           }
           const bytes = await fileToUint8Array(xrayFile);
-          await api.patients.upload_xray(created.id, created.treatment_record_id, xrayFile.name, bytes);
+          await api.patients.upload_xray(
+            created.id,
+            created.treatment_record_id,
+            xrayFile.name,
+            bytes,
+          );
         } catch (xrayError) {
           console.error("X-ray upload failed:", xrayError);
           toast.error({
@@ -756,110 +778,179 @@ const NewPatient: React.FC = () => {
               {t("newPatient.treatmentRecording")}
             </h3>
           </div>
-          <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
-            <div className="space-y-4 flex-1">
-              <div className="flex flex-col md:flex-row md:gap-4 items-center justify-between">
-                <FormField label={t("newPatient.procedure")} className="flex-1">
+          <div className="p-6 space-y-6">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <FormField label={t("newPatient.procedure")} className="flex-1">
                   <Select
-                    value={patientProcedure.procedureName}
+                    value={newProcedureName}
                     onChange={(e) => {
-                      const selectedProcedureName = e.target.value;
-                      const selectedProcedure = PROCEDURES.find(
-                        (p) => p.name === selectedProcedureName,
-                      );
-                      setPatientProcedure((prev) => ({
-                        ...prev,
-                        procedureName: selectedProcedureName,
-                        procedurePrice: selectedProcedure?.price ?? 0,
-                      }));
+                      setNewProcedureName(e.target.value);
                     }}
-                    className="cursor-pointer w-full"
-                    disabled={isSubmitting}
-                  >
-                    <option value="">{t("newPatient.selectProcedure")}</option>
-                    {PROCEDURES.map((procedure, index) => (
-                      <option key={index} value={procedure.name}>
-                        {procedure.name} - {formatCurrency(procedure.price)}{" "}
-                        {getCurrencySymbol(procedure.name)}
-                      </option>
-                    ))}
-                  </Select>
-                </FormField>
-
-                <FormField className="flex-1" label={t("newPatient.procedureAdditionalNotes")}>
-                  <FormInput
-                    placeholder={t(
-                      "newPatient.additionalNotesPlaceholder",
-                      "Add procedure notes",
-                    )}
-                    onChange={(e) =>
-                      handlePatientProcedureChange(
-                        "additionalNotes",
-                        e.target.value,
-                      )
-                    }
-                    value={patientProcedure.additionalNotes ?? ""}
-                    disabled={isSubmitting}
-                    className="w-full"
-                  />
-                </FormField>
-              </div>
-              <div className="">
-                <DentalChart
-                  onToothSelect={handleSelectedToothChange}
-                  onMeasurementChange={handleToothMeasurements}
-                  selectedToothIds={selectedToothIds}
-                  teethData={sealedTeeth}
-                />
-              </div>
+                  className="cursor-pointer w-full"
+                  disabled={isSubmitting}
+                >
+                  <option value="">{t("newPatient.selectProcedure")}</option>
+                  {PROCEDURES.map((procedure, index) => (
+                    <option key={index} value={procedure.name}>
+                      {procedure.name} - {formatCurrency(procedure.price)}{" "}
+                      {getCurrencySymbol(procedure.name)}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+              <Button
+                type="button"
+                onClick={addProcedure}
+                disabled={isSubmitting || !newProcedureName}
+                className="cursor-pointer"
+              >
+                {t("newPatient.addProcedure")}
+              </Button>
             </div>
 
-            <div className="flex-2 space-y-4 w-full h-full">
-              <FormField label={t("newPatient.xray")}>
+            {selectedProcedures.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                {t("newPatient.noProceduresAdded")}
+              </p>
+            )}
+
+            <div className="space-y-6">
+              {selectedProcedures.map((proc, index) => (
                 <div
-                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all border-purple-300 bg-purple-50/50 dark:border-gray-600 dark:bg-gray-700/50 hover:border-purple-400 hover:bg-purple-100/50 h-[19.2rem]"
-                  onClick={() => fileInputRef.current?.click()}
+                  key={index}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
                 >
-                  {xrayPreview ? (
-                    <div className="space-y-4">
-                      <img
-                        src={xrayPreview}
-                        alt="X-ray preview"
-                        className="h-[13.5rem] w-full rounded-lg border border-gray-200 object-contain dark:border-gray-700"
-                      />
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-muted-foreground">
-                          {xrayFile?.name}
-                          {xrayFile?.size && ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={removeXray}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                        #{index + 1}
+                      </span>
+                      <h4 className="text-base font-bold text-gray-900 dark:text-white">
+                        {proc.procedureName}
+                      </h4>
+                      <span className="text-sm text-muted-foreground">
+                        {formatCurrency(proc.procedurePrice)}{" "}
+                        {getCurrencySymbol(proc.procedureName)}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setActiveProcedureIndex(index);
+                        removeProcedure(index);
+                      }}
+                      disabled={isSubmitting}
+                      className="cursor-pointer"
+                    >
+                      {t("newPatient.remove")}
+                    </Button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField label={t("newPatient.procedureAdditionalNotes")}>
+                        <FormInput
+                          placeholder={t(
+                            "newPatient.additionalNotesPlaceholder",
+                            "Add procedure notes",
+                          )}
+                          value={proc.additionalNotes}
+                          onChange={(e) =>
+                            updateActiveProcedure(
+                              "additionalNotes",
+                              e.target.value,
+                            )
+                          }
                           disabled={isSubmitting}
-                          className="cursor-pointer"
-                        >
-                          {t("newPatient.remove")}
-                        </Button>
-                      </div>
+                          className="w-full"
+                        />
+                      </FormField>
+                      <FormField label={t("newPatient.numberOfProcedures")}>
+                        <FormInput
+                          type="number"
+                          min={1}
+                          value={proc.numberOfProcedures}
+                          onChange={(e) =>
+                            updateActiveProcedure(
+                              "numberOfProcedures",
+                              Math.max(parseInt(e.target.value, 10) || 1, 1),
+                            )
+                          }
+                          disabled={isSubmitting}
+                          className="w-full"
+                        />
+                      </FormField>
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground w-full h-full">
-                      <ImageIcon className="h-14 w-14 text-purple-500" />
-                      <p className="text-base font-medium text-gray-700 dark:text-gray-200">{t("newPatient.uploadXray")}</p>
-                      <p className="text-sm">{t("newPatient.dragAndDrop")} {t("newPatient.or")}</p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleXrayChange}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  )}
+                    <DentalChart
+                      onToothSelect={handleSelectedToothChange}
+                      onMeasurementChange={handleToothMeasurements}
+                      selectedToothIds={proc.selectedToothIds}
+                      teethData={proc.sealedTeeth}
+                    />
+                    {proc.selectedToothIds.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {proc.selectedToothIds.length}{" "}
+                        {t("newPatient.selectedTeethLabel")}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </FormField>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+          <div className="border-b bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-t-lg p-4">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+              <ImageIcon className="h-5 w-5 text-purple-600" />
+              {t("newPatient.xray")}
+            </h3>
+          </div>
+          <div className="p-6">
+            <div
+              className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all border-purple-300 bg-purple-50/50 dark:border-gray-600 dark:bg-gray-700/50 hover:border-purple-400 hover:bg-purple-100/50 h-[19.2rem]"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {xrayPreview ? (
+                <div className="space-y-4">
+                  <img
+                    src={xrayPreview}
+                    alt="X-ray preview"
+                    className="h-[13.5rem] w-full rounded-lg border border-gray-200 object-contain dark:border-gray-700"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      {xrayFile?.name}
+                      {xrayFile?.size && ` (${(xrayFile.size / 1024).toFixed(2)} KB)`}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={removeXray}
+                      disabled={isSubmitting}
+                      className="cursor-pointer"
+                    >
+                      {t("newPatient.remove")}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground w-full h-full">
+                  <ImageIcon className="h-14 w-14 text-purple-500" />
+                  <p className="text-base font-medium text-gray-700 dark:text-gray-200">{t("newPatient.uploadXray")}</p>
+                  <p className="text-sm">{t("newPatient.dragAndDrop")} {t("newPatient.or")}</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleXrayChange}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -873,65 +964,52 @@ const NewPatient: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_340px]">
             <div className="space-y-4">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <BillingStatusIcon
-                      isActive={Boolean(patientProcedure.procedureName.trim())}
-                    />
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {patientProcedure.procedureName ||
-                        t("newPatient.selectedProcedure")}
-                    </p>
-                  </div>
-                  <div className="relative w-36">
-                    <FormInput
-                      type="number"
-                      readOnly
-                      onChange={(e) =>
-                        handlePatientProcedureChange(
-                          "procedurePrice",
-                          e.target.value,
-                        )
-                      }
-                      value={patientProcedure.procedurePrice || ""}
-                      className="w-full text-right pr-10"
-                      disabled={isSubmitting}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                      {currencySymbol}
-                    </span>
-                  </div>
+              {selectedProcedures.length === 0 ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t("newPatient.noProceduresAdded")}
+                  </p>
                 </div>
-              </div>
+              ) : (
+                selectedProcedures.map((proc, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <BillingStatusIcon isActive={Boolean(proc.procedureName)} />
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {proc.procedureName || t("newPatient.selectedProcedure")}
+                        </p>
+                      </div>
+                      <div className="relative w-36">
+                        <FormInput
+                          type="number"
+                          readOnly
+                          value={proc.procedurePrice || ""}
+                          className="w-full text-right pr-10"
+                          disabled={isSubmitting}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          {getCurrencySymbol(proc.procedureName)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <BillingStatusIcon isActive={numberOfProcedures > 0} />
+                    <BillingStatusIcon isActive={numProc > 0} />
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {t("newPatient.numberOfProcedures")}
+                      {t("newPatient.totalNumberOfProcedures")}
                     </p>
                   </div>
-                  <FormInput
-                    type="number"
-                    placeholder={t(
-                      "newPatient.numberOfProceduresPlaceholder",
-                      "Enter Value",
-                    )}
-                    onChange={(e) =>
-                      handleTreatmentRecordChange(
-                        "numberOfProcedures",
-                        e.target.value,
-                      )
-                    }
-                    value={
-                      treatmentRecord.numberOfProcedures > 0
-                        ? treatmentRecord.numberOfProcedures.toString()
-                        : ""
-                    }
-                    className="w-26 mr-10"
-                    disabled={isSubmitting}
-                  />
+                  <div className="w-26 mr-10 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {numProc}
+                  </div>
                 </div>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">

@@ -73,13 +73,17 @@ export interface CreatePatientInput {
   visit_date?: string | null;
   chief_complaint?: string | null;
   clinical_notes?: string | null;
-  procedure_name?: string | null;
-  procedure_additional_note?: string | null;
-  procedure_price?: number | null;
-  number_of_procedures?: number;
-  treatment_teeth?: TreatmentToothInput[] | null;
+  procedures: CreateProcedureWithTreatmentInput[];
   discount?: number | null;
   paid_amount?: number | null;
+}
+
+export interface CreateProcedureWithTreatmentInput {
+  procedure_name: string;
+  procedure_additional_note?: string | null;
+  procedure_price: number;
+  number_of_procedures: number;
+  treatment_teeth: TreatmentToothInput[];
 }
 
 export interface UpdatePatientInput {

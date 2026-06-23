@@ -162,26 +162,31 @@ impl PatientService {
         )
         .await?;
 
-        let mut treatment_record_id: Option<String> = None;
+        let mut treatment_record_ids: Vec<String> = Vec::new();
 
-        if let Some(procedure_id) = Self::insert_procedure(
-            &mut tx,
-            &visit_id,
-            input.procedure_name.as_deref(),
-            input.procedure_additional_note.as_deref(),
-            input.procedure_price,
-            &now,
-        )
-        .await?
-        {
-            treatment_record_id = Some(Self::insert_treatment_record(
-                &mut tx,
-                &visit_id,
-                &procedure_id,
-                input.number_of_procedures,
-                input.treatment_teeth.as_deref(),
-            )
-            .await?);
+        if let Some(procedures) = &input.procedures {
+            for proc in procedures {
+                if let Some(procedure_id) = Self::insert_procedure(
+                    &mut tx,
+                    &visit_id,
+                    Some(proc.procedure_name.as_str()),
+                    proc.procedure_additional_note.as_deref(),
+                    Some(proc.procedure_price),
+                    &now,
+                )
+                .await?
+                {
+                    let tr_id = Self::insert_treatment_record(
+                        &mut tx,
+                        &visit_id,
+                        &procedure_id,
+                        Some(proc.number_of_procedures),
+                        proc.treatment_teeth.as_deref(),
+                    )
+                    .await?;
+                    treatment_record_ids.push(tr_id);
+                }
+            }
         }
 
         let invoice = Self::insert_invoice(
@@ -207,7 +212,7 @@ impl PatientService {
             visit_id,
             invoice_id: invoice.id,
             invoice_number: invoice.invoice_number,
-            treatment_record_id,
+            treatment_record_id: treatment_record_ids.into_iter().next(),
         })
     }
 
