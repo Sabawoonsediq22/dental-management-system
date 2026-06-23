@@ -29,7 +29,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import type { ProcedureDistribution, RecentPatient } from "../../types/ApiTypes";
 
@@ -139,7 +138,7 @@ const Dashboard: React.FC = () => {
             <div className="flex rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
               <button
                 onClick={() => setFlowMode("daily")}
-                className={`px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                   flowMode === "daily"
                     ? "bg-primary text-white"
                     : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -149,7 +148,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setFlowMode("weekly")}
-                className={`px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                   flowMode === "weekly"
                     ? "bg-primary text-white"
                     : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -248,15 +247,6 @@ const Dashboard: React.FC = () => {
                       backgroundColor: "#ffffff",
                     }}
                   />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    iconType="circle"
-                    iconSize={8}
-                    formatter={(value: string) => (
-                      <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{value}</span>
-                    )}
-                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -331,13 +321,13 @@ const Dashboard: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                        {patient.phone}
+                        {patient.phone || "--"}
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                         {patient.age} / {patient.gender}
                       </td>
                       <td className="hidden md:table-cell px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                        {patient.address}
+                        {patient.address || "--"}
                       </td>
                       <td className="hidden sm:table-cell px-4 sm:px-6 py-3 sm:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                         {new Date(patient.visit_date).toLocaleDateString(

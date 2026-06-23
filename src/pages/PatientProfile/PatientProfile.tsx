@@ -23,14 +23,6 @@ const formatDate = (dateStr: string | null | undefined): string => {
   });
 };
 
-const formatTime = (dateStr: string | null | undefined): string => {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 const parseCsv = (value: string): string[] => Array.from(
   new Set(
     value
@@ -42,43 +34,41 @@ const parseCsv = (value: string): string[] => Array.from(
 
 const formatCsv = (values: string[]): string => values.join(", ");
 
-const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntry[] => visits
-  .filter((visit) => visit.procedures.length > 0)
-  .map((visit) => {
-    const procedures = visit.procedures.map((procedure) => ({
-      name: procedure.procedure_name,
-      additional_note: procedure.procedure_additional_note ?? undefined,
-      quantity: procedure.number_of_procedures,
-      unit_price: procedure.unit_price,
-      total_price: procedure.total_price,
-      tooth_numbers: procedure.teeth.map((tooth) => tooth.tooth_number),
-    }));
-    const procedureNames = procedures.map((procedure) => procedure.name).join(", ");
-    const toothNumbers = procedures.flatMap((procedure) => procedure.tooth_numbers || []);
-    const procedureNotes = procedures
-      .map((procedure) => procedure.additional_note)
-      .filter((note): note is string => Boolean(note))
-      .join("\n");
-    
-    const images = visit.procedures
-      .flatMap((procedure) => procedure.xrays || [])
-      .filter(Boolean);
-    
-    return {
-      id: visit.visit_id,
-      title: visit.chief_complaint?.trim() || procedureNames || "Treatment",
-      tooth_number: toothNumbers[0],
-      date: visit.visit_date,
-      time: formatTime(visit.procedures[0].performed_at || visit.visit_date),
-      cost: procedures.reduce((sum, procedure) => sum + procedure.total_price, 0),
-      status: visit.status === "Open" || visit.status === "Completed" || visit.status === "Cancelled"
-        ? visit.status
-        : "Open",
-      notes: [visit.clinical_notes, procedureNotes].filter(Boolean).join("\n\n") || undefined,
-      procedures,
-      images: images.length > 0 ? images : undefined,
-    };
+const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntry[] => {
+  const entries: TreatmentEntry[] = [];
+  
+  visits.forEach((visit) => {
+    if (visit.procedures.length === 0) return;
+
+    visit.procedures.forEach((procedure, procedureIndex) => {
+      const procedureEntry: TreatmentEntry = {
+        id: `${visit.visit_id}-procedure-${procedureIndex}`,
+        title: procedure.procedure_name,
+        tooth_number: procedure.teeth.length > 0 ? procedure.teeth[0].tooth_number : undefined,
+        date: visit.visit_date,
+        time: procedure.performed_at || visit.visit_date,
+        cost: procedure.total_price,
+        status: visit.status === "Open" || visit.status === "Completed" || visit.status === "Cancelled"
+          ? visit.status
+          : "Open",
+        notes: visit.clinical_notes || procedure.procedure_additional_note || undefined,
+        procedures: [{
+          name: procedure.procedure_name,
+          additional_note: procedure.procedure_additional_note ?? undefined,
+          quantity: procedure.number_of_procedures,
+          unit_price: procedure.unit_price,
+          total_price: procedure.total_price,
+          tooth_numbers: procedure.teeth.map((tooth) => tooth.tooth_number),
+        }],
+        images: procedure.xrays && procedure.xrays.length > 0 ? [...procedure.xrays] : undefined,
+      };
+
+      entries.push(procedureEntry);
+    });
   });
+
+  return entries;
+};
 
 const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -107,7 +97,7 @@ const PatientProfile: React.FC = () => {
     );
     
     if (!lastVisitEntry?.procedures || lastVisitEntry.procedures.length === 0) return null;
-    return lastVisitEntry.procedures.map((p) => p.name).join(", ");
+    return lastVisitEntry.procedures[0].name;
   }, [treatmentHistory, statistics?.last_visit_date]);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

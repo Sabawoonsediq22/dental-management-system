@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { cn } from "../../lib/utils";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
-import { FilterIcon, ChevronDownIcon, ChevronUpIcon } from "../../shared/icons/icons";
+import { FilterIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon } from "../../shared/icons/icons";
 import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
 import TreatmentHistoryFilterModal from "./TreatmentHistoryFilterModal";
 import TreatmentHistoryDownloadModal from "./TreatmentHistoryDownloadModal";
-import i18n from "../../i18n";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { getCurrencySymbol } from "../common/getCurrencySymbol";
 
 const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
@@ -42,7 +42,73 @@ const statusConfig: Record<string, { bg: string; text: string }> = {
     text: "text-yellow-700 dark:text-yellow-400",
   },
 };
-const isRTL = i18n.language === "ps";
+
+interface FlattenedEntry {
+  visitId: string;
+  date: string;
+  time: string;
+  status: string;
+  notes: string | undefined;
+  images: string[] | undefined;
+  procedure: {
+    name: string;
+    toothNumbers: number[];
+    additionalNote: string | undefined;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  };
+  expandKey: string;
+}
+
+const flattenTreatments = (treatments: TreatmentEntry[]): FlattenedEntry[] => {
+  const entries: FlattenedEntry[] = [];
+  treatments.forEach((treatment) => {
+    treatment.procedures?.forEach((procedure, index) => {
+      entries.push({
+        visitId: treatment.id,
+        date: treatment.date,
+        time: treatment.time,
+        status: treatment.status,
+        notes: treatment.notes,
+        images: treatment.images,
+        procedure: {
+          name: procedure.name,
+          toothNumbers: procedure.tooth_numbers ?? [],
+          additionalNote: procedure.additional_note,
+          quantity: procedure.quantity,
+          unitPrice: procedure.unit_price,
+          totalPrice: procedure.total_price,
+        },
+        expandKey: `${treatment.id}-proc-${index}`,
+      });
+    });
+  });
+  return entries;
+};
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
+const formatTime = (timeStr: string) => {
+  return new Date(timeStr).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getProcedureTitle = (toothNumbers: number[], name: string) => {
+  const validTeeth = toothNumbers.filter((t) => t > 0);
+  if (!validTeeth || validTeeth.length === 0) {
+    return name;
+  }
+  return `${name} (Tooth: ${validTeeth.join(", ")})`;
+};
 
 const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   treatments: initialTreatments,
@@ -51,22 +117,14 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   patientName,
   className,
 }) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [filteredTreatments, setFilteredTreatments] = useState<TreatmentEntry[]>(initialTreatments);
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
+  const toggleExpand = (key: string) => {
+    setExpandedKey(expandedKey === key ? null : key);
   };
 
   const getImageUrl = (filePath: string): string => {
@@ -83,26 +141,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
     return filePath;
   };
 
-  type TreatmentProcedureEntry = NonNullable<TreatmentEntry["procedures"]>[number];
-
-  const getProcedureTitle = (procedure: TreatmentProcedureEntry) => {
-    const toothNumbers = procedure.tooth_numbers?.filter((tooth) => tooth > 0);
-    if (!toothNumbers || toothNumbers.length === 0) {
-      return procedure.name;
-    }
-    return `${procedure.name} (Tooth: ${toothNumbers.join(", ")})`;
-  };
-
-  const getTreatmentTitle = (t: TreatmentEntry) => {
-    const procedureNames = t.procedures?.map((p) => getProcedureTitle(p)).join(", ");
-    if (procedureNames) {
-      return procedureNames;
-    }
-    if (t.tooth_number) {
-      return `${t.title} (Tooth ${t.tooth_number})`;
-    }
-    return t.title;
-  };
+  const flattenedEntries = useMemo(() => flattenTreatments(filteredTreatments), [filteredTreatments]);
 
   return (
     <>
@@ -125,165 +164,175 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                 className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 aria-label="Export treatments"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+                <DownloadIcon/>
               </button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
+            <div className="absolute left-[18px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
-            <div className="space-y-6">
-              {filteredTreatments.length === 0 ? (
-                <div className="relative flex gap-4">
-                  <div className="absolute left-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center z-10">
-                    <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                  <div className="ml-12 flex-1 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-sm text-gray-500 dark:text-gray-400">
-                    No treatment history recorded yet.
-                  </div>
+            {flattenedEntries.length === 0 ? (
+              <div className="relative flex gap-4">
+                <div className="absolute left-0 w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center z-10">
+                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
                 </div>
-              ) : filteredTreatments.map((treatment) => {
-                const isExpanded = expandedId === treatment.id;
-                const statusStyle = statusConfig[treatment.status] || statusConfig.Completed;
+                <div className="ml-14 flex-1 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-sm text-gray-500 dark:text-gray-400">
+                  No treatment history recorded yet.
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {flattenedEntries.map((entry, index) => {
+                  const isExpanded = expandedKey === entry.expandKey;
+                  const statusStyle = statusConfig[entry.status] || statusConfig.Completed;
+                  const showDateDivider = index === 0 || flattenedEntries[index - 1].date !== entry.date;
+                  const procedureTitle = getProcedureTitle(entry.procedure.toothNumbers, entry.procedure.name);
 
-                return (
-                  <div key={treatment.id} className="relative flex gap-4">
-                    {/* Timeline node */}
-                    <div className="absolute left-0 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center z-10">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-
-                    {/* Content */}
-                    <div className="ml-12 flex-1">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {getTreatmentTitle(treatment)}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {formatDate(treatment.date)} • {treatment.time}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <p className={`text-sm font-bold text-gray-900 dark:text-white ${isRTL ? "ml-4" : "mr-4"}`}>
-                            {treatment.cost.toLocaleString()} AFN
-                          </p>
-                          <Badge className={cn(statusStyle.bg, statusStyle.text)}>
-                            {treatment.status.toUpperCase()}
-                          </Badge>
-                          <button
-                            onClick={() => toggleExpand(treatment.id)}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer focus:outline-none"
-                            aria-label={isExpanded ? "Collapse" : "Expand"}
-                          >
-                            {isExpanded ? (
-                              <ChevronUpIcon size="md" />
-                            ) : (
-                              <ChevronDownIcon size="md" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="mt-4 space-y-3">
-                          {treatment.notes && (
-                            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-                              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                Notes:{" "}
-                              </span>
-                              <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                {treatment.notes}
-                              </span>
-                            </div>
-                          )}
-                          {treatment.procedures && treatment.procedures.length > 0 && (
-                            <div className="space-y-3">
-                              {treatment.procedures.map((procedure, procedureIndex) => (
-                                <div
-                                  key={`${treatment.id}-procedure-${procedureIndex}`}
-                                  className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
-                                >
-                                  {procedure.additional_note && (
-                                    <div className="mb-2">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                        Procedure Note:{" "}
-                                      </span>
-                                      <span className="text-xs text-gray-700 dark:text-gray-300">
-                                        {procedure.additional_note}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>
-                                      Number of procedures: {procedure.quantity}
-                                    </span>
-                                    <span>
-                                      Unit: {procedure.unit_price.toLocaleString()} AFN
-                                    </span>
-                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      Total: {procedure.total_price.toLocaleString()} AFN
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {treatment.images && treatment.images.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                Treatment Images
-                              </p>
-                              <div className="flex gap-2 flex-wrap">
-                                {treatment.images.map((img, imgIndex) => {
-                                  const imgUrl = getImageUrl(img);
-                                  return (
-                                    <button
-                                      key={imgIndex}
-                                      onClick={() => setPreviewImage(img)}
-                                      className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity bg-gray-100 dark:bg-gray-700"
-                                      title={`Treatment image ${imgIndex + 1}`}
-                                    >
-                                      <img
-                                        src={imgUrl}
-                                        alt={`Treatment image ${imgIndex + 1}`}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          const target = e.target as HTMLImageElement;
-                                          console.error("Image failed to load:", img, "URL:", imgUrl);
-                                          target.style.display = "none";
-                                          const parent = target.parentElement;
-                                          if (parent) {
-                                            parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Image not found</div>`;
-                                          }
-                                        }}
-                                      />
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
+                  return (
+                    <div key={entry.expandKey}>
+                      {showDateDivider && (
+                        <div className="flex items-center gap-3 mb-3 ml-0">
+                          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            {formatDate(entry.date)}
+                          </span>
+                          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                         </div>
                       )}
-                      <div className="h-px bg-gray-200 dark:bg-gray-700 mt-4" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
 
-            {/* View All link */}
+                      <div className="relative flex gap-4">
+                        <div className="absolute left-0 w-9 h-9 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center z-10 shadow-sm">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </div>
+
+                        <div className="ml-14 flex-1">
+                          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between p-4">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                  {procedureTitle}
+                                </h4>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatTime(entry.time)}
+                                  </span>
+                                  <Badge className={cn(statusStyle.bg, statusStyle.text)}>
+                                    {entry.status.toUpperCase()}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 ml-4">
+                                <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                                  {entry.procedure.totalPrice.toLocaleString()} AFN
+                                </span>
+                                <button
+                                  onClick={() => toggleExpand(entry.expandKey)}
+                                  className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUpIcon size="md" />
+                                  ) : (
+                                    <ChevronDownIcon size="md" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700/50">
+                                {entry.notes && (
+                                  <div className="pt-3">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                      Clinical Notes
+                                    </span>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
+                                      {entry.notes}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {entry.procedure.additionalNote && (
+                                  <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-3">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                      Procedure Note
+                                    </span>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
+                                      {entry.procedure.additionalNote}
+                                    </p>
+                                  </div>
+                                )}
+
+                                <div className="grid grid-cols-3 gap-3 pt-2">
+                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 p-3 text-center">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quantity</p>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{entry.procedure.quantity}</p>
+                                  </div>
+                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 p-3 text-center">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit Price</p>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                                      {entry.procedure.unitPrice.toLocaleString()} {getCurrencySymbol(entry.procedure.name)} AFN
+                                    </p>
+                                  </div>
+                                  <div className="rounded-lg bg-gray-50 dark:bg-gray-700/40 p-3 text-center">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</p>
+                                    <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">
+                                      {entry.procedure.totalPrice.toLocaleString()} AFN
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {entry.images && entry.images.length > 0 && (
+                                  <div className="pt-2">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                      Treatment Images
+                                    </span>
+                                    <div className="flex gap-2 flex-wrap mt-2">
+                                      {entry.images.map((img, imgIndex) => {
+                                        const imgUrl = getImageUrl(img);
+                                        return (
+                                          <button
+                                            key={imgIndex}
+                                            onClick={() => setPreviewImage(img)}
+                                            className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity bg-gray-100 dark:bg-gray-700"
+                                            title={`Treatment image ${imgIndex + 1}`}
+                                          >
+                                            <img
+                                              src={imgUrl}
+                                              alt={`Treatment image ${imgIndex + 1}`}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = "none";
+                                                const parent = target.parentElement;
+                                                if (parent) {
+                                                  parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Not found</div>`;
+                                                }
+                                              }}
+                                            />
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {onViewAll && (
               <div className="flex justify-center mt-6">
                 <Button
@@ -299,7 +348,6 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         </CardContent>
       </Card>
 
-      {/* Image Preview Modal */}
       <Modal
         isOpen={!!previewImage}
         onClose={() => setPreviewImage(null)}
@@ -317,7 +365,6 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         )}
       </Modal>
 
-      {/* Filter Modal */}
       <TreatmentHistoryFilterModal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
@@ -325,7 +372,6 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         onApplyFilter={setFilteredTreatments}
       />
 
-      {/* Download Modal */}
       <TreatmentHistoryDownloadModal
         isOpen={showDownloadModal}
         onClose={() => setShowDownloadModal(false)}
