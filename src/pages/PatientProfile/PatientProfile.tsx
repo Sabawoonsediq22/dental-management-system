@@ -247,6 +247,12 @@ const PatientProfile: React.FC = () => {
     });
   };
 
+  React.useEffect(() => {
+    if ((patientQuery.error || !patient) && !patientQuery.isLoading) {
+      navigate("/patients");
+    }
+  }, [patientQuery.error, patient, patientQuery.isLoading, navigate]);
+
   if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading || treatmentHistoryQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -256,9 +262,7 @@ const PatientProfile: React.FC = () => {
   }
 
   if (patientQuery.error || !patient) {
-    return (
-      toast.error(`Failed to load patient data: ${String(patientQuery.error)}`)
-    );
+    return null;
   }
 
   if (treatmentHistoryQuery.error) {
