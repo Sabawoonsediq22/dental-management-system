@@ -55,6 +55,7 @@ const Patients: React.FC = () => {
     <div className="flex flex-col h-full">
       <PatientsHeader
         patients={patients}
+        totalPatients={data?.total ?? 0}
         searchQuery={searchQuery}
         selectedGender={selectedGender}
         onSearchChange={handleSearchChange}

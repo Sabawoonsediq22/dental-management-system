@@ -9,6 +9,7 @@ import {
 
 const PatientsHeader: React.FC<PatientsHeaderProps> = ({
   patients,
+  totalPatients,
   searchQuery,
   selectedGender,
   onSearchChange,
@@ -18,7 +19,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
   const { t } = useTranslation();
 
   const patientStats = useMemo(() => {
-    const total = patients.length;
+    const total = totalPatients;
     const now = new Date();
     const newThisMonth = patients.filter(
       (p) =>
@@ -27,7 +28,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
         new Date(p.last_visit).getFullYear() === now.getFullYear(),
     ).length;
     return { total, newThisMonth };
-  }, [patients]);
+  }, [patients, totalPatients]);
 
   return (
     <div className="space-y-4">

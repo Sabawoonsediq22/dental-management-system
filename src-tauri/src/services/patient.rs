@@ -17,14 +17,18 @@ impl PatientService {
         let offset = ((page.max(1) - 1) * per_page) as i64;
         let per_page_i64 = per_page as i64;
 
-        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
-            .fetch_one(pool)
-            .await?;
-
-        let items: Vec<Patient> = if let Some(q_str) = query {
+        let (total, items): (i64, Vec<Patient>) = if let Some(q_str) = query {
             if !q_str.trim().is_empty() {
                 let like = format!("%{}%", q_str.trim());
-                sqlx::query_as(
+                let count: i64 = sqlx::query_scalar(
+                    "SELECT COUNT(*) FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ?",
+                )
+                .bind(&like)
+                .bind(&like)
+                .bind(&like)
+                .fetch_one(pool)
+                .await?;
+                let items: Vec<Patient> = sqlx::query_as(
                     "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE full_name LIKE ? OR phone LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(&like)
@@ -33,62 +37,93 @@ impl PatientService {
                 .bind(per_page_i64)
                 .bind(offset)
                 .fetch_all(pool)
-                .await?
+                .await?;
+                (count, items)
             } else if let Some(g) = gender {
                 if g != "All" {
-                    sqlx::query_as(
+                    let count: i64 = sqlx::query_scalar(
+                        "SELECT COUNT(*) FROM patients WHERE gender = ?",
+                    )
+                    .bind(g)
+                    .fetch_one(pool)
+                    .await?;
+                    let items: Vec<Patient> = sqlx::query_as(
                         "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(g)
                     .bind(per_page_i64)
                     .bind(offset)
                     .fetch_all(pool)
-                    .await?
+                    .await?;
+                    (count, items)
                 } else {
-                    sqlx::query_as(
+                    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
+                        .fetch_one(pool)
+                        .await?;
+                    let items: Vec<Patient> = sqlx::query_as(
                         "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                     )
                     .bind(per_page_i64)
                     .bind(offset)
                     .fetch_all(pool)
-                    .await?
+                    .await?;
+                    (count, items)
                 }
             } else {
-                sqlx::query_as(
+                let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
+                    .fetch_one(pool)
+                    .await?;
+                let items: Vec<Patient> = sqlx::query_as(
                     "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
                 .fetch_all(pool)
-                .await?
+                .await?;
+                (count, items)
             }
         } else if let Some(g) = gender {
             if g != "All" {
-                sqlx::query_as(
+                let count: i64 = sqlx::query_scalar(
+                    "SELECT COUNT(*) FROM patients WHERE gender = ?",
+                )
+                .bind(g)
+                .fetch_one(pool)
+                .await?;
+                let items: Vec<Patient> = sqlx::query_as(
                     "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients WHERE gender = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(g)
                 .bind(per_page_i64)
                 .bind(offset)
                 .fetch_all(pool)
-                .await?
+                .await?;
+                (count, items)
             } else {
-                sqlx::query_as(
+                let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
+                    .fetch_one(pool)
+                    .await?;
+                let items: Vec<Patient> = sqlx::query_as(
                     "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
                 )
                 .bind(per_page_i64)
                 .bind(offset)
                 .fetch_all(pool)
-                .await?
+                .await?;
+                (count, items)
             }
         } else {
-            sqlx::query_as(
+            let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
+                .fetch_one(pool)
+                .await?;
+            let items: Vec<Patient> = sqlx::query_as(
                 "SELECT id, full_name, phone, age, gender, address, COALESCE((SELECT MAX(visit_date) FROM visits WHERE visits.patient_id = patients.id), '') as last_visit, created_at, updated_at FROM patients ORDER BY created_at DESC LIMIT ? OFFSET ?"
             )
             .bind(per_page_i64)
             .bind(offset)
             .fetch_all(pool)
-            .await?
+            .await?;
+            (count, items)
         };
 
         let total_pages = ((total + per_page_i64 - 1) / per_page_i64).max(1);

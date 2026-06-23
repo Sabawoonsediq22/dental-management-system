@@ -20,6 +20,7 @@ export const GENDER_FILTER_OPTIONS: GenderFilterValue[] = ["All", "Male", "Femal
 
 export interface PatientsHeaderProps {
   patients: Patient[];
+  totalPatients: number;
   searchQuery: string;
   selectedGender: GenderFilterValue;
   onSearchChange: (query: string) => void;
