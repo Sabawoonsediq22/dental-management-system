@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
@@ -7,6 +7,7 @@ import { TreatmentEntry } from "../../types/PatientTypes";
 import { Modal } from "../ui/Modal";
 import TreatmentHistoryFilterModal from "./TreatmentHistoryFilterModal";
 import TreatmentHistoryDownloadModal from "./TreatmentHistoryDownloadModal";
+import TreatmentStatusChangeModal from "./TreatmentStatusChangeModal";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { getCurrencySymbol } from "../common/getCurrencySymbol";
 
@@ -18,6 +19,7 @@ interface TreatmentHistoryTimelineProps {
   patientId?: string;
   patientName?: string;
   className?: string;
+  onStatusChange?: (visitId: string, newStatus: string) => void;
 }
 
 const statusConfig: Record<string, { bg: string; text: string }> = {
@@ -36,10 +38,6 @@ const statusConfig: Record<string, { bg: string; text: string }> = {
   Cancelled: {
     bg: "bg-gray-100 dark:bg-gray-700/30 hover:bg-gray-200 dark:hover:bg-gray-700/50",
     text: "text-gray-700 dark:text-gray-400",
-  },
-  Scheduled: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50",
-    text: "text-yellow-700 dark:text-yellow-400",
   },
 };
 
@@ -66,7 +64,7 @@ const flattenTreatments = (treatments: TreatmentEntry[]): FlattenedEntry[] => {
   treatments.forEach((treatment) => {
     treatment.procedures?.forEach((procedure, index) => {
       entries.push({
-        visitId: treatment.id,
+        visitId: treatment.visitId,
         date: treatment.date,
         time: treatment.time,
         status: treatment.status,
@@ -120,11 +118,17 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   patientId,
   patientName,
   className,
+  onStatusChange,
 }) => {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedEntryForStatus, setSelectedEntryForStatus] = useState<{
+    visitId: string;
+    currentStatus: string;
+  } | null>(null);
   const [filteredTreatments, setFilteredTreatments] = useState<TreatmentEntry[]>(initialTreatments);
 
   const toggleExpand = (key: string) => {
@@ -146,6 +150,15 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
   };
 
   const flattenedEntries = useMemo(() => flattenTreatments(filteredTreatments), [filteredTreatments]);
+
+  useEffect(() => {
+    setFilteredTreatments((prev) =>
+      prev.map((t) => {
+        const updated = initialTreatments.find((it) => it.id === t.id);
+        return updated ? { ...t, status: updated.status } : t;
+      }),
+    );
+  }, [initialTreatments]);
 
   return (
     <>
@@ -224,9 +237,22 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                   <span className="text-xs text-gray-500 dark:text-gray-400">
                                     {formatTime(entry.time)}
                                   </span>
-                                  <Badge className={cn(statusStyle.bg, statusStyle.text)}>
-                                    {entry.status.toUpperCase()}
-                                  </Badge>
+                                  <Badge
+                                   className={cn(
+                                     statusStyle.bg,
+                                     statusStyle.text,
+                                     onStatusChange && "cursor-pointer hover:opacity-80 transition-opacity",
+                                   )}
+                                   onClick={onStatusChange ? () => {
+                                     setSelectedEntryForStatus({
+                                       visitId: entry.visitId,
+                                       currentStatus: entry.status,
+                                     });
+                                     setShowStatusModal(true);
+                                   } : undefined}
+                                 >
+                                   {entry.status.toUpperCase()}
+                                 </Badge>
                                 </div>
                               </div>
                               <div className="flex items-center gap-3 ml-4">
@@ -393,6 +419,24 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         treatments={filteredTreatments.length > 0 ? filteredTreatments : initialTreatments}
         patientId={patientId}
         patientName={patientName}
+      />
+
+      <TreatmentStatusChangeModal
+        isOpen={showStatusModal}
+        onClose={() => setShowStatusModal(false)}
+        currentStatus={selectedEntryForStatus?.currentStatus || "Open"}
+        onSave={(newStatus) => {
+          if (selectedEntryForStatus && onStatusChange) {
+            setFilteredTreatments((prev) =>
+              prev.map((t) =>
+                t.visitId === selectedEntryForStatus.visitId
+                  ? { ...t, status: newStatus as TreatmentEntry["status"] }
+                  : t,
+              ),
+            );
+            onStatusChange(selectedEntryForStatus.visitId, newStatus);
+          }
+        }}
       />
     </>
   );

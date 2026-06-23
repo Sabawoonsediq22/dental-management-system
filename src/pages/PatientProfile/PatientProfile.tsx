@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Modal, LoadingSpinner } from "../../components/ui";
 import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient, useUpdatePatientMedicalInfo } from "../../hooks/usePatients";
-import { usePatientTreatmentHistory } from "../../hooks/useVisits";
+import { usePatientTreatmentHistory, useUpdateVisitStatus } from "../../hooks/useVisits";
 import { useQueryClient } from "@tanstack/react-query";
 import { AllergyAlert, TreatmentEntry } from "../../types/PatientTypes";
 import AllergiesMedicalAlertsCard from "../../components/patients/AllergiesMedicalAlertsCard";
@@ -43,6 +43,7 @@ const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntr
     visit.procedures.forEach((procedure, procedureIndex) => {
       const procedureEntry: TreatmentEntry = {
         id: `${visit.visit_id}-procedure-${procedureIndex}`,
+        visitId: visit.visit_id,
         title: procedure.procedure_name,
         tooth_number: procedure.teeth.length > 0 ? procedure.teeth[0].tooth_number : undefined,
         date: visit.visit_date,
@@ -184,6 +185,7 @@ const PatientProfile: React.FC = () => {
   };
 
   const updateMedicalInfoMutation = useUpdatePatientMedicalInfo();
+  const updateVisitStatusMutation = useUpdateVisitStatus();
 
   const handleSaveAllergies = () => {
     if (!patient) return;
@@ -219,6 +221,28 @@ const PatientProfile: React.FC = () => {
       },
       onError: (error) => {
         toast.error(`Failed to update medical information: ${String(error)}`);
+      },
+    });
+  };
+
+  const handleStatusChange = (visitId: string, newStatus: string) => {
+    const treatmentHistoryKey = ["treatment-history", patient?.id];
+    queryClient.setQueryData(treatmentHistoryKey, (old: any) => {
+      if (!old) return old;
+      return old.map((visit: any) =>
+        visit.visit_id === visitId ? { ...visit, status: newStatus } : visit
+      );
+    });
+
+    updateVisitStatusMutation.mutate({ id: visitId, status: newStatus as "Open" | "Completed" | "Cancelled" }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: treatmentHistoryKey, refetchType: "all" });
+        queryClient.invalidateQueries({ queryKey: ["patients", patient?.id, "statistics"], refetchType: "all" });
+        toast.success(`Treatment status updated to ${newStatus}`);
+      },
+      onError: (error) => {
+        queryClient.invalidateQueries({ queryKey: treatmentHistoryKey, refetchType: "all" });
+        toast.error(`Failed to update status: ${String(error)}`);
       },
     });
   };
@@ -366,11 +390,12 @@ const PatientProfile: React.FC = () => {
       {/* Treatment History */}
       <div className="mb-6">
         <TreatmentHistoryTimeline
-           treatments={treatmentHistory}
-           onViewAll={handleViewAllVisits}
-           patientId={patient?.id}
-           patientName={patient?.full_name}
-         />
+          treatments={treatmentHistory}
+          onViewAll={handleViewAllVisits}
+          patientId={patient?.id}
+          patientName={patient?.full_name}
+          onStatusChange={handleStatusChange}
+        />
       </div>
 
       {/* Delete Confirmation Dialog */}

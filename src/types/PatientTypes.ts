@@ -73,12 +73,13 @@ export interface AllergyAlert {
 
 export interface TreatmentEntry {
   id: string;
+  visitId: string;
   title: string;
   tooth_number?: number;
   date: string;
   time: string;
   cost: number;
-  status: "Open" | "Completed" | "Cancelled" | "Scheduled";
+  status: "Open" | "Completed" | "Cancelled";
   notes?: string;
   images?: string[];
   procedures?: {

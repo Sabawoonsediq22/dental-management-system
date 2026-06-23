@@ -101,7 +101,6 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
             .status { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
             .status-completed { background-color: #d1fae5; color: #065f46; }
             .status-open { background-color: #dbeafe; color: #1e40af; }
-            .status-scheduled { background-color: #fef3c7; color: #92400e; }
             .status-cancelled { background-color: #e5e7eb; color: #374151; }
             .footer { margin-top: 20px; text-align: center; color: #9ca3af; font-size: 12px; }
           </style>
@@ -196,7 +195,6 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
       `Status Breakdown:`,
       `  - Completed: ${statusCounts["Completed"] || 0}`,
       `  - Open: ${statusCounts["Open"] || 0}`,
-      `  - Scheduled: ${statusCounts["Scheduled"] || 0}`,
       `  - Cancelled: ${statusCounts["Cancelled"] || 0}`,
       ``,
       `Treatments:`,

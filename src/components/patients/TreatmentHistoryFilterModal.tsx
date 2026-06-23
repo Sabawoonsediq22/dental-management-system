@@ -15,7 +15,7 @@ interface TreatmentHistoryFilterModalProps {
 
 type TreatmentStatusFilter = TreatmentEntry["status"];
 
-const statusOptions: TreatmentStatusFilter[] = ["Open", "Completed", "Cancelled", "Scheduled"];
+const statusOptions: TreatmentStatusFilter[] = ["Open", "Completed", "Cancelled"];
 
 const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = ({
   isOpen,
@@ -24,7 +24,7 @@ const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = 
   onApplyFilter,
   className,
 }) => {
-  const [selectedStatuses, setSelectedStatuses] = useState<TreatmentStatusFilter[]>(["Open", "Completed", "Scheduled"]);
+  const [selectedStatuses, setSelectedStatuses] = useState<TreatmentStatusFilter[]>(["Open", "Completed"]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleStatusToggle = (status: TreatmentStatusFilter) => {
@@ -50,7 +50,7 @@ const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = 
   };
 
   const handleReset = () => {
-    setSelectedStatuses(["Open", "Completed", "Scheduled"]);
+    setSelectedStatuses(["Open", "Completed"]);
     setSearchQuery("");
     onApplyFilter(treatments);
   };
