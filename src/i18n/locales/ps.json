@@ -153,8 +153,14 @@
     "paidAmount": "ورکړل شوي پور",
     "paidAmountPlaceholder": "د پور مقدار هېښ کړئ",
     "outstanding": "باقي",
-    "totalDue": "مجموعي پور"
-   },
+    "totalDue": "مجموعي پور",
+    "selectedTeethLabel": "غاښونه ټاکل شوي",
+    "teeth": "غاښونه",
+    "addProcedure": "عملیه اضافه کړئ",
+    "noProceduresAdded": "هیڅ عملیه اضافه نه شوې. د پیل لپاره پورته عملیه وټاکئ.",
+    "discardDraft": "مسوده غfurt کړئ",
+    "saveAndPrintInvoice": "خوندي کړئ و چاپ کړئ"
+  },
   "newVisit": {
     "title": "نوی ملاقات",
     "visits": "ملاقاتونه",

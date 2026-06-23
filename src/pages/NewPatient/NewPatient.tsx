@@ -781,11 +781,11 @@ const NewPatient: React.FC = () => {
           <div className="p-6 space-y-6">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <FormField label={t("newPatient.procedure")} className="flex-1">
-                  <Select
-                    value={newProcedureName}
-                    onChange={(e) => {
-                      setNewProcedureName(e.target.value);
-                    }}
+                <Select
+                  value={newProcedureName}
+                  onChange={(e) => {
+                    setNewProcedureName(e.target.value);
+                  }}
                   className="cursor-pointer w-full"
                   disabled={isSubmitting}
                 >
@@ -808,41 +808,73 @@ const NewPatient: React.FC = () => {
               </Button>
             </div>
 
-            {selectedProcedures.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                {t("newPatient.noProceduresAdded")}
-              </p>
-            )}
-
-            <div className="space-y-6">
-              {selectedProcedures.map((proc, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
-                >
-                  <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                        #{index + 1}
+            {selectedProcedures.length === 0 ? (
+              <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {t("newPatient.noProceduresAdded")}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedProcedures.map((proc, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setActiveProcedureIndex(index)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        index === activeProcedureIndex
+                          ? "border-l-4 border-l-green-500 border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/20 dark:text-white"
+                          : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                      }`}
+                    >
+                      <span>#{index + 1} {proc.procedureName}</span>
+                      <span className="text-xs text-muted-foreground">
+                        x{proc.numberOfProcedures}
                       </span>
+                      {proc.selectedToothIds.length > 0 && (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          {proc.selectedToothIds.length} {t("newPatient.teeth")}
+                        </span>
+                      )}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeProcedure(index);
+                        }}
+                        className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                      >
+                        ×
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
                       <h4 className="text-base font-bold text-gray-900 dark:text-white">
-                        {proc.procedureName}
+                        {selectedProcedures[activeProcedureIndex]?.procedureName || t("newPatient.selectedProcedure")}
                       </h4>
                       <span className="text-sm text-muted-foreground">
-                        {formatCurrency(proc.procedurePrice)}{" "}
-                        {getCurrencySymbol(proc.procedureName)}
+                        {formatCurrency(selectedProcedures[activeProcedureIndex]?.procedurePrice || 0)}{" "}
+                        {getCurrencySymbol(selectedProcedures[activeProcedureIndex]?.procedureName || "")}
                       </span>
+                      {selectedProcedures[activeProcedureIndex]?.selectedToothIds.length ? (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                          {selectedProcedures[activeProcedureIndex].selectedToothIds.length} {t("newPatient.teeth")}
+                        </span>
+                      ) : null}
                     </div>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setActiveProcedureIndex(index);
-                        removeProcedure(index);
-                      }}
+                      onClick={() => removeProcedure(activeProcedureIndex)}
                       disabled={isSubmitting}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                     >
                       {t("newPatient.remove")}
                     </Button>
@@ -855,7 +887,7 @@ const NewPatient: React.FC = () => {
                             "newPatient.additionalNotesPlaceholder",
                             "Add procedure notes",
                           )}
-                          value={proc.additionalNotes}
+                          value={selectedProcedures[activeProcedureIndex]?.additionalNotes ?? ""}
                           onChange={(e) =>
                             updateActiveProcedure(
                               "additionalNotes",
@@ -870,7 +902,7 @@ const NewPatient: React.FC = () => {
                         <FormInput
                           type="number"
                           min={1}
-                          value={proc.numberOfProcedures}
+                          value={selectedProcedures[activeProcedureIndex]?.numberOfProcedures ?? 1}
                           onChange={(e) =>
                             updateActiveProcedure(
                               "numberOfProcedures",
@@ -882,22 +914,22 @@ const NewPatient: React.FC = () => {
                         />
                       </FormField>
                     </div>
-                    <DentalChart
-                      onToothSelect={handleSelectedToothChange}
-                      onMeasurementChange={handleToothMeasurements}
-                      selectedToothIds={proc.selectedToothIds}
-                      teethData={proc.sealedTeeth}
-                    />
-                    {proc.selectedToothIds.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {proc.selectedToothIds.length}{" "}
-                        {t("newPatient.selectedTeethLabel")}
+
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+                      <p className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {t("newPatient.dentalChart")}
                       </p>
-                    )}
+                      <DentalChart
+                        onToothSelect={handleSelectedToothChange}
+                        onMeasurementChange={handleToothMeasurements}
+                        selectedToothIds={selectedProcedures[activeProcedureIndex]?.selectedToothIds ?? []}
+                        teethData={selectedProcedures[activeProcedureIndex]?.sealedTeeth ?? []}
+                      />
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
 

@@ -165,7 +165,12 @@
     "outstanding": "Outstanding",
     "totalDue": "Total Due",
     "discardDraft": "Discard Draft",
-    "saveAndPrintInvoice": "Save & Print Invoice"
+    "saveAndPrintInvoice": "Save & Print Invoice",
+    "selectedTeethLabel": "teeth selected",
+    "teeth": "teeth",
+    "addProcedure": "Add Procedure",
+    "noProceduresAdded": "No procedures added yet. Select a procedure above to begin.",
+    "dentalChart": "Dental Chart"
   },
   "newVisit": {
     "title": "New Visit",
