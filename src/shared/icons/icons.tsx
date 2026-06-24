@@ -1035,6 +1035,7 @@ export const PlusIcon: React.FC<IconProps> = ({
 );
 
 /** Download icon */
+/** Download icon */
 export const DownloadIcon: React.FC<IconProps> = ({
   className = "",
   size = "md",
@@ -1090,6 +1091,78 @@ export const CurrencyIcon: React.FC<IconProps> = ({
       strokeLinejoin="round"
       strokeWidth={2}
       d="M12 6v2m0 8v2M6 12h2m8 0h2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-4-6l4-4m0 0l4-4m-4 4l-4-4m4 4l4 4"
+    />
+  </svg>
+);
+
+/** Payment icon */
+export const PaymentIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M17 9V7a4 4 0 00-8 0v2m8 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V9m8 0H9"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 15h.01"
+    />
+  </svg>
+);
+
+/** Receipt icon */
+export const ReceiptIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+    />
+  </svg>
+);
+
+/** Eye icon for view */
+export const EyeIcon: React.FC<IconProps> = ({
+  className = "",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
     />
   </svg>
 );

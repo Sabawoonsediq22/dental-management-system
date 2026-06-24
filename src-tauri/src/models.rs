@@ -426,6 +426,41 @@ pub struct AddPaymentInput {
     pub notes: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct InvoiceListItem {
+    pub id: String,
+    pub invoice_number: String,
+    pub patient_id: String,
+    pub patient_name: String,
+    pub patient_phone: Option<String>,
+    pub visit_id: String,
+    pub visit_date: String,
+    pub subtotal: f64,
+    pub discount: f64,
+    pub total_amount: f64,
+    pub paid_amount: f64,
+    pub outstanding_amount: f64,
+    pub status: String,
+    pub issued_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InvoicePageResult {
+    pub items: Vec<InvoiceListItem>,
+    pub total: i64,
+    pub page: u32,
+    pub per_page: u32,
+    pub total_pages: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InvoiceListParams {
+    pub query: Option<String>,
+    pub status: Option<String>,
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PatientPageResult {
     pub items: Vec<Patient>,

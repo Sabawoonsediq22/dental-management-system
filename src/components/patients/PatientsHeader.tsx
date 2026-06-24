@@ -44,7 +44,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
         />
         <Button onClick={onAddNewPatient} className="cursor-pointer">
           <AddIcon size="sm" />
-          <span>{t("patients.actions.add", "Add New Patient")}</span>
+          <span>{t("nav.newPatient", "Add New Patient")}</span>
         </Button>
       </div>
 

@@ -54,12 +54,39 @@ export interface PatientPageResult {
   total_pages: number;
 }
 
-export interface PatientListParams {
+export interface InvoicePageResult {
+  items: InvoiceListItem[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface InvoiceListItem {
+  id: string;
+  invoice_number: string;
+  patient_id: string;
+  patient_name: string;
+  patient_phone: string | null;
+  visit_id: string;
+  visit_date: string;
+  subtotal: number;
+  discount: number;
+  total_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  status: "Unpaid" | "Partial" | "Paid";
+  issued_at: string;
+}
+
+export interface InvoiceListParams {
   query?: string;
-  gender?: string;
+  status?: string;
   page?: number;
   perPage?: number;
 }
+
+export type InvoiceStatusFilter = "All" | "Unpaid" | "Partial" | "Paid";
 
 export interface CreatePatientInput {
   full_name: string;

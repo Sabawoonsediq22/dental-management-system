@@ -169,8 +169,7 @@
     "selectedTeethLabel": "teeth selected",
     "teeth": "teeth",
     "addProcedure": "Add Procedure",
-    "noProceduresAdded": "No procedures added yet. Select a procedure above to begin.",
-    "dentalChart": "Dental Chart"
+    "noProceduresAdded": "No procedures added yet. Select a procedure above to begin."
   },
   "newVisit": {
     "title": "New Visit",
@@ -231,7 +230,7 @@
     "previous": "Previous page",
     "next": "Next page"
   },
-  "search": {
+"search": {
     "placeholder": "Search patients or records by id, name or phone...",
     "recentSearches": "Recent Searches",
     "clearAll": "Clear All",
@@ -246,5 +245,46 @@
     },
     "emptyTitle": "No results found",
     "emptySubtitle": "Try searching by:"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Manage invoices, payments, and receipts for all patient visits.",
+    "searchPlaceholder": "Search by invoice number, patient name or phone...",
+    "totalInvoices": "Total Invoices",
+    "outstandingBalance": "Outstanding",
+    "outstanding": "Outstanding",
+    "paidThisMonth": "Paid",
+    "status": "Status",
+    "recordPayment": "Record Payment",
+    "paymentAmount": "Payment Amount",
+    "paymentMethod": "Payment Method",
+    "notes": "Notes",
+    "receipt": "Receipt",
+    "date": "Date",
+    "total": "Total",
+    "paid": "Paid",
+    "filters": {
+      "status": "Status",
+      "all": "All",
+      "unpaid": "Unpaid",
+      "partial": "Partial",
+      "paid": "Paid"
+    },
+    "table": {
+      "number": "No.",
+      "invoiceNumber": "INVOICE #",
+      "patient": "PATIENT",
+      "date": "DATE",
+      "total": "TOTAL",
+      "paid": "PAID",
+      "outstanding": "BALANCE",
+      "status": "STATUS",
+      "actions": "ACTIONS",
+      "empty": "No invoices found matching your criteria."
+    },
+    "notifications": {
+      "paymentAdded": "Payment recorded successfully",
+      "paymentError": "Failed to record payment"
+    }
   }
 }

@@ -185,11 +185,31 @@ async fn add_treatment_record(
 
 // Invoice commands
 #[tauri::command]
+async fn list_invoices(
+    state: State<'_, AppState>,
+    params: crate::models::InvoiceListParams,
+) -> Result<crate::models::InvoicePageResult, String> {
+    InvoiceService::list(&state.db, params)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn create_invoice(
     state: State<'_, AppState>,
     input: CreateInvoiceInput,
 ) -> Result<Invoice, String> {
     InvoiceService::create(&state.db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_invoice(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<Invoice, String> {
+    InvoiceService::find(&state.db, &id)
         .await
         .map_err(|e| e.to_string())
 }
@@ -394,7 +414,9 @@ pub fn run() {
             get_patient_treatment_history,
             add_treatment_record,
             create_invoice,
+            get_invoice,
             get_visit_invoice,
+            list_invoices,
             get_receipt_details,
             get_receipt_details_by_visit,
             add_payment,

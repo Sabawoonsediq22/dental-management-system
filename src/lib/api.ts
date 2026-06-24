@@ -13,7 +13,8 @@ import type {
   Procedure,
   CreateProcedureInput,
   Invoice,
-  CreateInvoiceInput,
+  InvoicePageResult,
+  InvoiceListParams,
   Payment,
   AddPaymentInput,
   ReportSummary,
@@ -24,6 +25,7 @@ import type {
   PatientStatisticsInfo,
   PatientVisitWithTreatments,
   ReceiptData,
+  CreateInvoiceInput,
 } from "../types/ApiTypes";
 
 import { SearchResult } from "../types/SearchTypes";
@@ -49,6 +51,14 @@ export const api = {
     upload_xray: (patient_id: string, treatment_record_id: string | null, filename: string, bytes: number[]) => invoke<Xray>("upload_xray", { patientId: patient_id, treatmentRecordId: treatment_record_id, filename, bytes }),
     getXrays: (patient_id: string) => invoke<Xray[]>("get_patient_xrays", { patientId: patient_id }),
   },
+  invoices: {
+    list: (params: InvoiceListParams) =>
+      invoke<InvoicePageResult>("list_invoices", { params }),
+    get: (id: string) => invoke<Invoice>("get_invoice", { id }),
+    create: (input: CreateInvoiceInput) => invoke<Invoice>("create_invoice", { input }),
+    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visitId }),
+    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
+  },
   visits: {
     create: (input: CreateVisitInput) => invoke<Visit>("create_visit", { input }),
     updateStatus: (id: string, status: Visit["status"]) => invoke<Visit>("update_visit_status", { id, status }),
@@ -57,11 +67,6 @@ export const api = {
   },
   treatments: {
     add: (input: CreateTreatmentRecordInput) => invoke<TreatmentRecord>("add_treatment_record", { input }),
-  },
-  invoices: {
-    create: (input: CreateInvoiceInput) => invoke<Invoice>("create_invoice", { input }),
-    getForVisit: (visitId: string) => invoke<Invoice | null>("get_visit_invoice", { visitId }),
-    getPayments: (invoiceId: string) => invoke<Payment[]>("get_invoice_payments", { invoiceId }),
   },
   receipts: {
     getByInvoiceId: (invoiceId: string) => invoke<ReceiptData>("get_receipt_details", { invoiceId }),
