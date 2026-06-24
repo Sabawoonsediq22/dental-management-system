@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { BillingTableProps } from "../../types/BillingTypes";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/button";
-import { PaymentIcon, ReceiptIcon } from "../../shared/icons/icons";
+import Popover from "../ui/Popover";
+import { MoreHorizontalIcon, PaymentIcon, ReceiptIcon } from "../../shared/icons/icons";
 
 function formatDate(date: string | null | undefined): string {
   if (!date) return "-";
@@ -136,28 +137,63 @@ const BillingTable: React.FC<BillingTableProps> = ({
                     {invoice.status.toUpperCase()}
                   </Badge>
                 </td>
+                {/* ... keep existing cells ... */}
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    {invoice.outstanding_amount > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onRecordPayment?.(invoice)}
-                        className="h-8 px-3 cursor-pointer"
-                      >
-                        <PaymentIcon size="xs" />
-                        <span className="ml-1 text-xs">Payment</span>
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onPrintReceipt?.(invoice)}
-                      className="h-8 px-3 cursor-pointer"
+                    {/* New Popover for more actions */}
+                    <Popover
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                        >
+                          <MoreHorizontalIcon size="xs" />
+                        </Button>
+                      }
+                      placement="bottom"
+                      offset={8}
                     >
-                      <ReceiptIcon size="xs" />
-                      <span className="ml-1 text-xs">Receipt</span>
-                    </Button>
+                      <div className="p-2 min-w-45">
+                        {invoice.outstanding_amount > 0 && (
+                          <button
+                            onClick={() => onRecordPayment?.(invoice)}
+                            className="
+                            flex items-center
+                          w-full
+                          px-3 py-2.5
+                          rounded-lg
+                          text-sm
+                          text-gray-700
+                          dark:text-gray-200
+                          hover:bg-gray-100
+                          dark:hover:bg-gray-800
+                          transition-colors cursor-pointer
+                        "
+                          >
+                            <PaymentIcon />
+                            <span className="ml-2 text-xs">Payment</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onPrintReceipt?.(invoice)}
+                          className="
+                            flex items-center
+                          w-full
+                          px-3 py-2.5
+                          rounded-lg
+                          text-sm
+                          text-gray-700
+                          dark:text-gray-200
+                          hover:bg-gray-100
+                          dark:hover:bg-gray-800
+                          transition-colors cursor-pointer"
+                        >
+                          <ReceiptIcon />
+                          <span className="ml-2">Receipt</span>
+                        </button>
+                      </div>
+                    </Popover>
                   </div>
                 </td>
               </tr>
@@ -191,7 +227,22 @@ const BillingTable: React.FC<BillingTableProps> = ({
               <span>Paid: {formatCurrency(invoice.paid_amount)} AFN</span>
               <span>Due: {formatCurrency(invoice.outstanding_amount)} AFN</span>
             </div>
-            <div className="mt-3 flex items-center gap-2">
+            {/* Mobile Popover */}
+                <Popover
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 cursor-pointer"
+                    >
+                      <MoreHorizontalIcon size="xs" />
+                    </Button>
+                  }
+                  placement="bottom"
+                  offset={8}
+                  className="min-w-45"
+                >
+                  <div className="mt-3 flex items-center gap-2">
               {invoice.outstanding_amount > 0 && (
                 <Button
                   variant="outline"
@@ -213,6 +264,7 @@ const BillingTable: React.FC<BillingTableProps> = ({
                 <span className="ml-1 text-xs">Receipt</span>
               </Button>
             </div>
+            </Popover>
           </div>
         ))}
       </div>

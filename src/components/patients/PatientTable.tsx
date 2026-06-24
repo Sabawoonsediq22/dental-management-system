@@ -1,9 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { PatientAvatar } from "../ui";
-import { EditIcon } from "../../shared/icons/icons";
+import { Button, PatientAvatar } from "../ui";
+import { EditIcon, MoreVerticalIcon, EyeIcon, MoreHorizontalIcon } from "../../shared/icons/icons";
 import { PatientTableProps } from "../../types/PatientTypes";
+import Popover from "../ui/Popover";
 
 function formatDate(date: string | null | undefined): string {
   if (!date) return "-";
@@ -61,8 +62,8 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
                 LAST VISIT
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
-                EDIT
+              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 w-16">
+                ACTIONS
               </th>
             </tr>
           </thead>
@@ -98,17 +99,67 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
                   {formatDate(patient.last_visit)}
                 </td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditPatient?.(patient);
-                    }}
-                    className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    aria-label={`Edit ${patient.full_name}`}
+                <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                  <Popover
+                    trigger={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                        >
+                          <MoreHorizontalIcon size="xs" />
+                        </Button>
+                      }
+                      placement="bottom"
+                      offset={8}
                   >
-                    <EditIcon size="sm" />
-                  </button>
+                    <div className="p-2 min-w-45">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditPatient?.(patient);
+                        }}
+                        className="flex items-center
+                          w-full
+                          px-3 py-2.5
+                          rounded-lg
+                          text-sm
+                          text-gray-700
+                          dark:text-gray-200
+                          hover:bg-gray-100
+                          dark:hover:bg-gray-800
+                          transition-colors cursor-pointer
+                        "
+                      >
+                        <EditIcon size="xs" className="mr-2" />
+                        {t("patients.actions.edit", "Edit")}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/patients/${patient.id}`);
+                        }}
+                        className="
+                          flex items-center
+                          w-full
+                          px-3 py-2.5
+                          rounded-lg
+                          text-sm
+                          text-gray-700
+                          dark:text-gray-200
+                          hover:bg-gray-100
+                          dark:hover:bg-gray-800
+                          transition-colors cursor-pointer
+                        "
+                      >
+                      <EyeIcon size="xs" className="mr-2" />
+                        {t("patients.actions.view", "View")}
+                      </button>
+                      </div>
+                  </Popover>
                 </td>
               </tr>
             ))}
@@ -136,16 +187,80 @@ const PatientTable: React.FC<PatientTableProps> = ({
                   </span>
                 </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditPatient?.(patient);
-                }}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-600 shrink-0 transition-colors"
-                aria-label={`Edit ${patient.full_name}`}
+              <div onClick={(e) => e.stopPropagation()}>
+                <Popover
+                  placement="bottom"
+                  trigger={
+                    <button
+                      type="button"
+                      aria-label={`More actions for ${patient.full_name}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="
+                        flex items-center justify-center
+                        h-9 w-9
+                        rounded-xl
+                        text-gray-500
+                      hover:bg-gray-100
+                      hover:text-gray-700
+                      dark:text-gray-400
+                      dark:hover:bg-gray-700
+                      dark:hover:text-white
+                      transition-all
+                    "
+                  >
+                    <MoreVerticalIcon size="sm" />
+                  </button>
+                }
               >
-                <EditIcon size="sm" />
-              </button>
+              <div className="p-2 min-w-45">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditPatient?.(patient);
+                  }}
+                  className="
+                    flex items-center
+                    w-full
+                    px-3 py-2.5
+                    rounded-lg
+                    text-sm
+                    text-gray-700
+                    dark:text-gray-200
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-800
+                    transition-colors
+                  "
+                >
+                  <EditIcon size="xs" className="mr-2" />
+                  {t("patients.actions.edit", "Edit")}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/patients/${patient.id}`);
+                  }}
+                  className="
+                    flex items-center
+                    w-full
+                    px-3 py-2.5
+                    rounded-lg
+                    text-sm
+                    text-gray-700
+                    dark:text-gray-200
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-800
+                    transition-colors
+                  "
+                >
+                  <EyeIcon size="xs" className="mr-2" />
+                  {t("patients.actions.view", "View")}
+                </button>
+              </div>
+              </Popover>
+              </div>
             </div>
             <div className="mt-2 ml-12 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
               <span>

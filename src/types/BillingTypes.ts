@@ -18,4 +18,8 @@ export interface BillingTableProps {
   invoices: InvoiceListItem[];
   onRecordPayment?: (invoice: InvoiceListItem) => void;
   onPrintReceipt?: (invoice: InvoiceListItem) => void;
+  onViewInvoice?: (invoice: InvoiceListItem) => void;
+  onDownloadInvoice?: (invoice: InvoiceListItem) => void;
+  onSendInvoice?: (invoice: InvoiceListItem) => void;
+  onDeleteInvoice?: (invoice: InvoiceListItem) => void;
 }
