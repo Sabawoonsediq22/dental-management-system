@@ -31,7 +31,7 @@ const Billing: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchQuery, selectedStatus, itemsPerPage]);
+  }, [debouncedSearchQuery]);
 
   const { data, isLoading, error } = useInvoices({
     query: debouncedSearchQuery || undefined,
@@ -48,6 +48,7 @@ const Billing: React.FC = () => {
 
   const handleStatusChange = (status: "All" | "Unpaid" | "Partial" | "Paid") => {
     setSelectedStatus(status);
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -58,6 +59,7 @@ const Billing: React.FC = () => {
 
   const handleItemsPerPageChange = (items: number) => {
     setItemsPerPage(items);
+    setCurrentPage(1);
   };
 
   const handleRecordPayment = (invoice: InvoiceListItem) => {

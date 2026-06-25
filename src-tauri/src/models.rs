@@ -454,6 +454,7 @@ pub struct InvoicePageResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InvoiceListParams {
     pub query: Option<String>,
     pub status: Option<String>,
