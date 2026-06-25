@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, PatientAvatar } from "../ui";
 import { EditIcon, MoreVerticalIcon, EyeIcon, MoreHorizontalIcon } from "../../shared/icons/icons";
 import { PatientTableProps } from "../../types/PatientTypes";
-import Popover from "../ui/Popover";
+import { Popover } from "../ui/Popover";
 
 function formatDate(date: string | null | undefined): string {
   if (!date) return "-";
@@ -101,65 +101,17 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </td>
                 <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                   <Popover
-                    trigger={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-                        >
-                          <MoreHorizontalIcon size="xs" />
-                        </Button>
-                      }
-                      placement="bottom"
-                      offset={8}
-                  >
-                    <div className="p-2 min-w-45">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditPatient?.(patient);
-                        }}
-                        className="flex items-center
-                          w-full
-                          px-3 py-2.5
-                          rounded-lg
-                          text-sm
-                          text-gray-700
-                          dark:text-gray-200
-                          hover:bg-gray-100
-                          dark:hover:bg-gray-800
-                          transition-colors cursor-pointer
-                        "
-                      >
-                        <EditIcon size="xs" className="mr-2" />
-                        {t("patients.actions.edit", "Edit")}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/patients/${patient.id}`);
-                        }}
-                        className="
-                          flex items-center
-                          w-full
-                          px-3 py-2.5
-                          rounded-lg
-                          text-sm
-                          text-gray-700
-                          dark:text-gray-200
-                          hover:bg-gray-100
-                          dark:hover:bg-gray-800
-                          transition-colors cursor-pointer
-                        "
-                      >
-                      <EyeIcon size="xs" className="mr-2" />
-                        {t("patients.actions.view", "View")}
-                      </button>
-                      </div>
-                  </Popover>
+                    actions={[
+                      {
+                        label: t("patients.actions.view", "View"),
+                        onClick: () => navigate(`/patients/${patient.id}`),
+                      },
+                      {
+                        label: t("patients.actions.edit", "Edit"),
+                        onClick: () => onEditPatient?.(patient),
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
@@ -188,78 +140,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </div>
               </div>
               <div onClick={(e) => e.stopPropagation()}>
-                <Popover
-                  placement="bottom"
-                  trigger={
-                    <button
-                      type="button"
-                      aria-label={`More actions for ${patient.full_name}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="
-                        flex items-center justify-center
-                        h-9 w-9
-                        rounded-xl
-                        text-gray-500
-                      hover:bg-gray-100
-                      hover:text-gray-700
-                      dark:text-gray-400
-                      dark:hover:bg-gray-700
-                      dark:hover:text-white
-                      transition-all
-                    "
-                  >
-                    <MoreVerticalIcon size="sm" />
-                  </button>
-                }
-              >
-              <div className="p-2 min-w-45">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditPatient?.(patient);
-                  }}
-                  className="
-                    flex items-center
-                    w-full
-                    px-3 py-2.5
-                    rounded-lg
-                    text-sm
-                    text-gray-700
-                    dark:text-gray-200
-                    hover:bg-gray-100
-                    dark:hover:bg-gray-800
-                    transition-colors
-                  "
-                >
-                  <EditIcon size="xs" className="mr-2" />
-                  {t("patients.actions.edit", "Edit")}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/patients/${patient.id}`);
-                  }}
-                  className="
-                    flex items-center
-                    w-full
-                    px-3 py-2.5
-                    rounded-lg
-                    text-sm
-                    text-gray-700
-                    dark:text-gray-200
-                    hover:bg-gray-100
-                    dark:hover:bg-gray-800
-                    transition-colors
-                  "
-                >
-                  <EyeIcon size="xs" className="mr-2" />
-                  {t("patients.actions.view", "View")}
-                </button>
-              </div>
-              </Popover>
+                
               </div>
             </div>
             <div className="mt-2 ml-12 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
