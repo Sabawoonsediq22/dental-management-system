@@ -1,8 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button, PatientAvatar } from "../ui";
-import { EditIcon, MoreVerticalIcon, EyeIcon, MoreHorizontalIcon } from "../../shared/icons/icons";
+import { PatientAvatar } from "../ui";
 import { PatientTableProps } from "../../types/PatientTypes";
 import { Popover } from "../ui/Popover";
 

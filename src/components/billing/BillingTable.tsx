@@ -2,9 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { BillingTableProps } from "../../types/BillingTypes";
 import { Badge } from "../ui/Badge";
-import { Button } from "../ui/button";
 import { Popover } from "../ui/Popover";
-import { MoreHorizontalIcon, PaymentIcon, ReceiptIcon } from "../../shared/icons/icons";
 
 function formatDate(date: string | null | undefined): string {
   if (!date) return "-";

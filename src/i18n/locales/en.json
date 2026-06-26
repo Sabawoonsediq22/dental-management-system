@@ -246,6 +246,55 @@
     "emptyTitle": "No results found",
     "emptySubtitle": "Try searching by:"
   },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Clinic Analytics",
+    "loading": "Loading reports...",
+    "error": "Error loading reports",
+    "stats": {
+      "activePatients": "Active Patients",
+      "totalVisits": "Total Visits",
+      "revenue": "Revenue",
+      "outstanding": "Outstanding"
+    },
+    "trend": {
+      "monthly": "This month"
+    },
+    "status": {
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "active": "Active"
+    },
+    "charts": {
+      "revenueTrend": "Revenue Trend",
+      "visitDistribution": "Visit Distribution",
+      "count": "Count",
+      "revenue": "Revenue"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    },
+    "export": {
+      "title": "Export Reports",
+      "patients": "Patient Report",
+      "patientsDesc": "Export patient records and statistics",
+      "financial": "Financial Report",
+      "financialDesc": "Export invoices and payment history",
+      "treatment": "Treatment Report",
+      "treatmentDesc": "Export treatment history and procedures"
+    }
+  },
   "billing": {
     "title": "Billing",
     "description": "Manage invoices, payments, and receipts for all patient visits.",
@@ -281,6 +330,10 @@
       "status": "STATUS",
       "actions": "ACTIONS",
       "empty": "No invoices found matching your criteria."
+    },
+    "actions": {
+      "recordPayment": "Record Payment",
+      "printReceipt": "Print Receipt"
     },
     "notifications": {
       "paymentAdded": "Payment recorded successfully",

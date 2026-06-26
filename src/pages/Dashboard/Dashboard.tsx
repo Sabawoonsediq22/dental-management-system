@@ -339,7 +339,7 @@ const Dashboard: React.FC = () => {
                           }
                         )}
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4" onClick={(e) => e.stopPropagation()}>
                         <Badge
                           variant={
                             patient.status === "Completed"
