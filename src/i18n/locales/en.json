@@ -339,5 +339,47 @@
       "paymentAdded": "Payment recorded successfully",
       "paymentError": "Failed to record payment"
     }
+  },
+  "help": {
+    "title": "Help",
+    "subtitle": "Support Center",
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "quickActions": "Quick Actions",
+      "features": "Key Features",
+      "faq": "Frequently Asked Questions",
+      "contact": "Contact Support"
+    },
+    "gettingStarted": {
+      "intro": "Welcome to the Dental Clinic Management System. Follow these steps to begin:",
+      "step1": "Add new patients through the Patients section",
+      "step2": "Record visits and treatments for each patient",
+      "step3": "Generate invoices and track payments",
+      "step4": "View reports and analytics in the Reports section"
+    },
+    "features": {
+      "dashboard": "Dashboard Overview",
+      "dashboardDesc": "View clinic statistics, patient flow, and procedure distribution at a glance",
+      "patients": "Patient Management",
+      "patientsDesc": "Manage patient records, treatments, and visit history",
+      "treatments": "Treatment Records",
+      "treatmentsDesc": "Record and track dental procedures with tooth-specific details",
+      "billing": "Billing & Invoices",
+      "billingDesc": "Create invoices, record payments, and manage outstanding balances"
+    },
+    "actions": {
+      "addPatient": "Add Patient",
+      "newVisit": "New Visit"
+    },
+    "faq": {
+      "q1": "How do I add a new patient?",
+      "a1": "Navigate to the Patients page and click 'Add New Patient'. Fill in the patient details, medical history, and treatment information to create a complete record.",
+      "q2": "How do I record a treatment?",
+      "a2": "Go to a patient's profile and click 'New Visit'. Select procedures, specify treated teeth, add clinical notes, and generate the invoice in one workflow.",
+      "q3": "How do I record a payment?",
+      "a3": "Visit the Billing page, find the invoice, and click 'Record Payment'. Enter the payment amount and notes, then save to update the invoice status.",
+      "q4": "Can I export patient data?",
+      "a4": "Yes, visit the Reports page to export patient, financial, or treatment reports. Select the report type and download in your preferred format."
+    }
   }
 }

@@ -139,18 +139,18 @@ const BillingTable: React.FC<BillingTableProps> = ({
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     {/* New Popover for more actions */}
-                    <Popover 
-                      actions={[
-                        {
-                          label: t("billing.actions.recordPayment", "Record Payment"),
-                          onClick: () => onRecordPayment?.(invoice),
-                        },
-                        {
-                          label: t("billing.actions.printReceipt", "Print Receipt"),
-                          onClick: () => onPrintReceipt?.(invoice),
-                        },
-                      ]}
-                    />
+                  <Popover 
+                    actions={[
+                      ...(invoice.outstanding_amount > 0 ? [{
+                        label: t("billing.actions.recordPayment", "Record Payment"),
+                        onClick: () => onRecordPayment?.(invoice),
+                      }] : []),
+                      {
+                        label: t("billing.actions.printReceipt", "Print Receipt"),
+                        onClick: () => onPrintReceipt?.(invoice),
+                      },
+                    ]}
+                  />
                   </div>
                 </td>
               </tr>
@@ -187,10 +187,10 @@ const BillingTable: React.FC<BillingTableProps> = ({
             {/* Mobile Popover */}
               <Popover
                 actions={[
-                  {
+                  ...(invoice.outstanding_amount > 0 ? [{
                     label: t("billing.actions.recordPayment", "Record Payment"),
                     onClick: () => onRecordPayment?.(invoice),
-                  },
+                  }] : []),
                   {
                     label: t("billing.actions.printReceipt", "Print Receipt"),
                     onClick: () => onPrintReceipt?.(invoice),

@@ -50,7 +50,6 @@ export const Popover: React.FC<ActionPopoverProps> = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener(
         "mousedown",
