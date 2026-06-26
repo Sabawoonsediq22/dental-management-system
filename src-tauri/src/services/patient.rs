@@ -152,14 +152,7 @@ impl PatientService {
 
     pub async fn create(pool: &SqlitePool, input: CreatePatientInput) -> AppResult<CreatedPatient> {
         let mut tx = pool.begin().await?;
-        let patient_count: i32 = sqlx::query_scalar("SELECT COUNT(*) FROM patients")
-            .fetch_one(&mut *tx)
-            .await?;
-        let id = format!(
-            "KD-{}-{:03}",
-            chrono::Local::now().format("%Y"),
-            patient_count + 1
-        );
+        let id = format!("KD-{}-{:06}", Utc::now().format("%Y%m%d"), Uuid::new_v4().simple().to_string().chars().take(6).collect::<String>());
 
         let gender_str = match input.gender {
             Gender::Male => "Male",
@@ -313,10 +306,7 @@ impl PatientService {
         clinical_notes: Option<&str>,
         now: &str,
     ) -> AppResult<String> {
-        let visit_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM visits")
-            .fetch_one(&mut **tx)
-            .await?;
-        let visit_id = format!("V-{}-{:06}", Utc::now().format("%Y%m%d"), visit_count + 1);
+        let visit_id = format!("V-{}-{:06}", Utc::now().format("%Y%m%d"), Uuid::new_v4().simple().to_string().chars().take(6).collect::<String>());
         let visit_date = Self::trimmed_optional(visit_date).unwrap_or_else(|| now.to_string());
         let chief_complaint = Self::trimmed_optional(chief_complaint);
         let clinical_notes = Self::trimmed_optional(clinical_notes);
