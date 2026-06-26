@@ -17,6 +17,7 @@ import {
   ChevronRightIcon,
   CalendarIcon,
   UsersIcon,
+  ChevronLeftIcon,
 } from "../../shared/icons/icons";
 import PatientAvatar from "../../components/ui/PatientAvatar";
 import {
@@ -47,6 +48,7 @@ import { statusConfig } from "../../components/common/badgeStatusConfig";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import TreatmentStatusChangeModal from "../../components/patients/TreatmentStatusChangeModal";
+import i18n from "../../i18n";
 
 const COLORS = [
   "#006A71",
@@ -56,6 +58,7 @@ const COLORS = [
   "#00C49A",
   "#FF6B6B",
 ];
+const isRTL = i18n.language === "ps";
 
 const StatCard: React.FC<{
   title: string;
@@ -66,7 +69,7 @@ const StatCard: React.FC<{
   loading?: boolean;
 }> = ({ title, value, icon, badge, trend, loading }) => (
   <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg border-0 shadow-sm group">
-    <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50" />
+    <div className="absolute inset-0 bg-linear-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50" />
     <CardContent className="relative p-4 sm:p-6">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -97,7 +100,7 @@ const StatCard: React.FC<{
             </div>
           )}
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-2.5 sm:p-3 text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
+        <div className="rounded-xl bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-2.5 sm:p-3 text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
           {icon}
         </div>
       </div>
@@ -142,7 +145,7 @@ const Dashboard: React.FC = () => {
   const [selectedPatientForStatus, setSelectedPatientForStatus] =
     useState<RecentPatient | null>(null);
 
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: stats } = useDashboardStats();
   const { data: flowData } = usePatientsFlow(flowMode);
   const { data: procData } = useProcedureDistribution();
   const { data: recentPatients, refetch: refetchRecentPatients } =
@@ -163,10 +166,10 @@ const Dashboard: React.FC = () => {
           id: selectedPatientForStatus.visit_id,
           status: newStatus as "Open" | "Completed" | "Cancelled",
         });
-        toast.success(`Status updated to ${newStatus}`);
+        toast.success({ title: `Status updated to ${newStatus}` });
         refetchRecentPatients();
       } catch (error) {
-        toast.error("Failed to update status");
+        toast.error({ title: "Failed to update status" });
       }
     },
     [selectedPatientForStatus, updateStatusMutation, refetchRecentPatients],
@@ -188,63 +191,26 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const statCards = [
-    {
-      title: t("dashboard.stats.dailyRevenue", "Daily Revenue"),
-      value: formatAFN(stats?.daily_revenue ?? 0),
-      icon: <CurrencyIcon size="lg" />,
-      trend: { value: "+12.5%", positive: true },
-      badge: (
-        <Badge
-          variant="success"
-          className="text-[10px] sm:text-xs font-bold px-2 py-0.5"
-        >
-          +12%
-        </Badge>
-      ),
-    },
-    {
-      title: t("dashboard.stats.patientsToday", "Patients Today"),
-      value: String(stats?.patients_today ?? 0),
-      icon: <PatientIcon size="lg" />,
-      trend: { value: "+3 from yesterday", positive: true },
-      badge: (
-        <Badge
-          variant="info"
-          className="text-[10px] sm:text-xs font-bold px-2 py-0.5"
-        >
-          Active
-        </Badge>
-      ),
-    },
-    {
-      title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"),
-      value: formatAFN(stats?.outstanding_balance ?? 0),
-      icon: <ClockIcon size="lg" />,
-      trend: { value: "-2.1%", positive: true },
-      badge: (
-        <Badge
-          variant="warning"
-          className="text-[10px] sm:text-xs font-bold px-2 py-0.5"
-        >
-          {t("common.high", "High")}
-        </Badge>
-      ),
-    },
-    {
-      title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"),
-      value: String(stats?.procedures_performed ?? 0).padStart(2, "0"),
-      icon: <ToothIcon size="lg" />,
-      badge: (
-        <Badge
-          variant="default"
-          className="text-[10px] sm:text-xs font-bold px-2 py-0.5"
-        >
-          Today
-        </Badge>
-      ),
-    },
-  ];
+  const statCards = React.useMemo(() => {
+    if (!stats) {
+      return [
+        { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: "...", icon: <CurrencyIcon size="lg" />, loading: true, badge: undefined },
+        { title: t("dashboard.stats.patientsToday", "Patients Today"), value: "...", icon: <PatientIcon size="lg" />, loading: true, badge: undefined },
+        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "...", icon: <ClockIcon size="lg" />, loading: true, badge: undefined },
+        { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: "...", icon: <ToothIcon size="lg" />, loading: true, badge: undefined },
+      ];
+    }
+    const outstandingBadge = stats.outstanding_balance > 0
+      ? <Badge variant="warning" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("common.high", "High")}</Badge>
+      : <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">Clear</Badge>;
+
+    return [
+      { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" /> },
+      { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" /> },
+      { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), icon: <ClockIcon size="lg" />, badge: outstandingBadge },
+      { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" /> },
+    ];
+  }, [stats, t]);
 
   return (
     <div className="space-y-4 sm:space-y-6 xl:space-y-8">
@@ -266,13 +232,15 @@ const Dashboard: React.FC = () => {
             />
           </div>
         </div>
+        <div className="flex items-center gap-2 sm:gap-3 w-full xl:w-auto">
           <Button
             onClick={() => navigate("/patients/new")}
-            className="gap-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] w-full xl:w-auto"
+            className="gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] w-full xl:w-auto"
           >
             <PlusIcon size="md" />
             <span>{t("nav.newPatient", "Add New Patient")}</span>
           </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
@@ -283,8 +251,7 @@ const Dashboard: React.FC = () => {
             value={stat.value}
             icon={stat.icon}
             badge={stat.badge}
-            trend={stat.trend}
-            loading={statsLoading}
+            loading={!stats}
           />
         ))}
       </div>
@@ -295,12 +262,12 @@ const Dashboard: React.FC = () => {
           className="col-span-1 lg:col-span-7"
           icon={<ActivityIcon size="md" />}
           action={
-            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden col-span-8">
+            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
               <button
                 onClick={() => setFlowMode("daily")}
                 className={`px-2.5 sm:px-4 py-1 sm:py-1.5 text-[10px] sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
                   flowMode === "daily"
-                    ? "bg-gradient-to-r from-[#006A71] to-[#005E8A] text-white shadow-sm"
+                    ? "bg-primary text-white shadow-sm"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
@@ -444,7 +411,7 @@ const Dashboard: React.FC = () => {
                       backgroundColor: "white",
                       fontSize: 12,
                     }}
-                    formatter={(value: number, name: string) => [value, name]}
+                     formatter={(value: unknown, name: unknown) => [value as number, name as string]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -472,7 +439,7 @@ const Dashboard: React.FC = () => {
                 variant="default"
                 className="text-[10px] font-bold px-2 py-0.5"
               >
-                {recentPatients.length} patients
+                {recentPatients.length} {t("nav.patients", "Patients")}
               </Badge>
             )}
           </div>
@@ -484,7 +451,7 @@ const Dashboard: React.FC = () => {
               onClick={() => navigate("/patients")}
             >
               {t("dashboard.viewAllPatients", "View All Patients")}
-              <ChevronRightIcon size="xs" />
+              {!isRTL ? <ChevronRightIcon size="xs" /> : <ChevronLeftIcon size="xs" />}
             </Button>
           </div>
         </CardHeader>
