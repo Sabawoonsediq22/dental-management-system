@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MoreHorizontalIcon } from "../../shared/icons/icons";
 export interface PopoverAction {
@@ -24,15 +24,35 @@ export const Popover: React.FC<ActionPopoverProps> = ({
     left: 0,
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
+    let top = rect.bottom + 8;
+    let left = rect.right - 180;
 
-    setPosition({
-      top: rect.bottom + 8,
-      left: rect.right - 180,
-    });
+    const popoverEl = popoverRef.current;
+    if (popoverEl) {
+      const { height, width } = popoverEl.getBoundingClientRect();
+
+      if (rect.bottom + 8 + height > window.innerHeight) {
+        top = rect.top - height - 8;
+      }
+
+      if (left + width > window.innerWidth) {
+        left = window.innerWidth - width - 8;
+      }
+      if (left < 8) {
+        left = 8;
+      }
+    } else {
+      if (rect.bottom + 300 > window.innerHeight) {
+        top = rect.top - 200;
+      }
+      left = Math.max(8, Math.min(left, window.innerWidth - 188));
+    }
+
+    setPosition({ top, left });
   }, [open]);
 
   useEffect(() => {
