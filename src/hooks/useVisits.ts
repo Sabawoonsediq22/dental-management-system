@@ -30,6 +30,7 @@ export function useUpdateVisitStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["visits"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["treatment-history"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     },
   });
 }

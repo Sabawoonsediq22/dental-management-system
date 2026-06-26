@@ -26,7 +26,7 @@ import {
   useProcedureDistribution,
   useRecentPatients,
 } from "../../hooks/useDashboard";
-import { useUpdateVisitStatus } from "../../hooks/useVisits";
+import { useUpdateVisitStatus, useReportSummary } from "../../hooks/useVisits";
 import {
   AreaChart,
   Area,
@@ -150,7 +150,19 @@ const Dashboard: React.FC = () => {
   const { data: procData } = useProcedureDistribution();
   const { data: recentPatients, refetch: refetchRecentPatients } =
     useRecentPatients(4);
+  const { data: reportSummary } = useReportSummary();
   const updateStatusMutation = useUpdateVisitStatus();
+
+  const dayOfMonth = new Date().getDate();
+
+  const computeTrend = (daily: number, monthlyTotal: number | undefined): { value: string; positive: boolean } | undefined => {
+    if (!monthlyTotal || monthlyTotal <= 0 || dayOfMonth <= 0) return undefined;
+    const monthlyAvg = monthlyTotal / dayOfMonth;
+    if (monthlyAvg <= 0) return undefined;
+    const pct = ((daily - monthlyAvg) / monthlyAvg) * 100;
+    const sign = pct >= 0 ? "+" : "";
+    return { value: `${sign}${pct.toFixed(1)}% vs avg`, positive: pct >= 0 };
+  };
 
   const formatAFN = (val: number) =>
     val.toLocaleString("en-US", {
@@ -194,10 +206,10 @@ const Dashboard: React.FC = () => {
   const statCards = React.useMemo(() => {
     if (!stats) {
       return [
-        { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: "...", icon: <CurrencyIcon size="lg" />, loading: true, badge: undefined },
-        { title: t("dashboard.stats.patientsToday", "Patients Today"), value: "...", icon: <PatientIcon size="lg" />, loading: true, badge: undefined },
-        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "...", icon: <ClockIcon size="lg" />, loading: true, badge: undefined },
-        { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: "...", icon: <ToothIcon size="lg" />, loading: true, badge: undefined },
+        { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: "...", icon: <CurrencyIcon size="lg" />, loading: true, badge: undefined, trend: undefined },
+        { title: t("dashboard.stats.patientsToday", "Patients Today"), value: "...", icon: <PatientIcon size="lg" />, loading: true, badge: undefined, trend: undefined },
+        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "...", icon: <ClockIcon size="lg" />, loading: true, badge: undefined, trend: undefined },
+        { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: "...", icon: <ToothIcon size="lg" />, loading: true, badge: undefined, trend: undefined },
       ];
     }
     const outstandingBadge = stats.outstanding_balance > 0
@@ -205,12 +217,12 @@ const Dashboard: React.FC = () => {
       : <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">Clear</Badge>;
 
     return [
-      { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" /> },
-      { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" /> },
+      { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month) },
+      { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" />, trend: computeTrend(stats.patients_today, reportSummary?.total_visits_this_month) },
       { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), icon: <ClockIcon size="lg" />, badge: outstandingBadge },
-      { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" /> },
+      { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" />, trend: computeTrend(stats.procedures_performed, (reportSummary?.completed_visits_this_month ?? 0) + (reportSummary?.cancelled_visits_this_month ?? 0)) },
     ];
-  }, [stats, t]);
+  }, [stats, reportSummary, t]);
 
   return (
     <div className="space-y-4 sm:space-y-6 xl:space-y-8">
@@ -251,6 +263,7 @@ const Dashboard: React.FC = () => {
             value={stat.value}
             icon={stat.icon}
             badge={stat.badge}
+            trend={stat.trend}
             loading={!stats}
           />
         ))}
@@ -489,7 +502,7 @@ const Dashboard: React.FC = () => {
                       {t("dashboard.table.lastVisit", "LAST VISIT")}
                     </th>
                     <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
-                      STATUS
+                      {t("billing.status")}
                     </th>
                   </tr>
                 </thead>
