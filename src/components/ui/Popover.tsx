@@ -28,8 +28,11 @@ export const Popover: React.FC<ActionPopoverProps> = ({
     if (!open || !triggerRef.current) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
+    const isRtl = document.dir === "rtl" || getComputedStyle(document.documentElement).direction === "rtl";
+    const popoverWidth = 176;
+
     let top = rect.bottom + 8;
-    let left = rect.right - 180;
+    let left = isRtl ? rect.left : rect.right - popoverWidth;
 
     const popoverEl = popoverRef.current;
     if (popoverEl) {
@@ -39,17 +42,31 @@ export const Popover: React.FC<ActionPopoverProps> = ({
         top = rect.top - height - 8;
       }
 
-      if (left + width > window.innerWidth) {
-        left = window.innerWidth - width - 8;
-      }
-      if (left < 8) {
-        left = 8;
+      if (isRtl) {
+        if (left + width > window.innerWidth) {
+          left = window.innerWidth - width - 8;
+        }
+        if (left < 8) {
+          left = 8;
+        }
+      } else {
+        if (left < 8) {
+          left = 8;
+        }
+        if (left + width > window.innerWidth) {
+          left = window.innerWidth - width - 8;
+        }
       }
     } else {
       if (rect.bottom + 300 > window.innerHeight) {
         top = rect.top - 200;
       }
-      left = Math.max(8, Math.min(left, window.innerWidth - 188));
+      if (isRtl) {
+        left = Math.min(left, window.innerWidth - popoverWidth - 8);
+        left = Math.max(8, left);
+      } else {
+        left = Math.max(8, Math.min(left, window.innerWidth - popoverWidth - 8));
+      }
     }
 
     setPosition({ top, left });
@@ -96,7 +113,7 @@ export const Popover: React.FC<ActionPopoverProps> = ({
               top: position.top,
               left: position.left,
             }}
-            className="fixed z-[9999] w-44 rounded-xl border bg-white p-1 shadow-lg dark:bg-zinc-900"
+            className="fixed z-[9999] w-44 rounded-xl border bg-white p-1 shadow-2xl dark:bg-zinc-900"
           >
             {actions.map((action, index) => (
               <button
