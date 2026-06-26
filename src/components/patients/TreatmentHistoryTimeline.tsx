@@ -170,7 +170,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className="absolute left-[18px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
+            <div className="absolute left-4.5 top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
             {flattenedEntries.length === 0 ? (
               <div className="relative flex gap-4">

@@ -364,4 +364,5 @@ export interface RecentPatient {
   address: string;
   visit_date: string;
   status: string;
+  visit_id?: string;
 }
