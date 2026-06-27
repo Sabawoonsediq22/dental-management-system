@@ -29,6 +29,12 @@ impl DashboardService {
         .fetch_one(pool)
         .await?;
 
+        let outstanding_invoices_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
+        )
+        .fetch_one(pool)
+        .await?;
+
         let procedures_performed: i64 = sqlx::query_scalar(
             "SELECT COALESCE(SUM(number_of_procedures), 0) FROM treatment_records WHERE date(performed_at) = ?"
         )
@@ -40,6 +46,7 @@ impl DashboardService {
             daily_revenue: daily_revenue.unwrap_or(0.0),
             patients_today,
             outstanding_balance: outstanding_balance.unwrap_or(0.0),
+            outstanding_invoices_count,
             procedures_performed,
         })
     }

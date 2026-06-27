@@ -304,6 +304,7 @@ pub struct DashboardStats {
     pub daily_revenue: f64,
     pub patients_today: i64,
     pub outstanding_balance: f64,
+    pub outstanding_invoices_count: i64,
     pub procedures_performed: i64,
 }
 
