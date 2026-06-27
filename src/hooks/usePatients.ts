@@ -48,6 +48,8 @@ export function useCreatePatient() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },
   });
 }
@@ -62,6 +64,8 @@ export function useUpdatePatient() {
       qc.invalidateQueries({ queryKey: ["patients", data.id], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["patients", data.id, "medical-info"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["patients", data.id, "statistics"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },
   });
 }
@@ -81,7 +85,11 @@ export function useDeletePatient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.patients.delete,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
+    },
   });
 }
 

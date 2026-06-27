@@ -18,6 +18,8 @@ export function useCreateVisit() {
       qc.invalidateQueries({ queryKey: ["visits", input.patient_id], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["treatment-history", input.patient_id], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["patients", input.patient_id, "statistics"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },
   });
 }
@@ -31,6 +33,8 @@ export function useUpdateVisitStatus() {
       qc.invalidateQueries({ queryKey: ["visits"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["treatment-history"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },
   });
 }
@@ -57,6 +61,8 @@ export function useAddTreatmentRecord() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["treatments"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["treatment-history"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },
   });
 }
@@ -73,7 +79,10 @@ export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.invoices.create,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
+    },
   });
 }
 
@@ -82,21 +91,6 @@ export function usePayments(invoiceId: string) {
     queryKey: ["payments", invoiceId],
     queryFn: () => api.invoices.getPayments(invoiceId),
     enabled: !!invoiceId,
-  });
-}
-
-export function useAddPayment() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: api.payments.add,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["payments"] }),
-  });
-}
-
-export function useReportSummary() {
-  return useQuery({
-    queryKey: ["reports", "summary"],
-    queryFn: () => api.reports.summary(),
   });
 }
 

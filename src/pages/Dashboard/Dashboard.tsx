@@ -12,7 +12,8 @@ import {
   ActivityIcon,
   PieChartIcon,
 } from "../../shared/icons/icons";
-import { useUpdateVisitStatus, useReportSummary } from "../../hooks/useVisits";
+import { useUpdateVisitStatus } from "../../hooks/useVisits";
+import { useReportSummary } from "../../hooks/useReports";
 import { useDashboardStats, usePatientsFlow, useProcedureDistribution, useRecentPatients } from "../../hooks/useDashboard";
 import StatCard from "../../components/dashboard/StatCard";
 import ChartCard from "../../components/dashboard/ChartCard";
