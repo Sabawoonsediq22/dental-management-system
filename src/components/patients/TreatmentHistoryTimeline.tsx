@@ -407,7 +407,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         isOpen={showStatusModal}
         onClose={() => setShowStatusModal(false)}
         currentStatus={selectedEntryForStatus?.currentStatus || "Open"}
-        onSave={(newStatus) => {
+        onSave={async (newStatus) => {
           if (selectedEntryForStatus && onStatusChange) {
             setFilteredTreatments((prev) =>
               prev.map((t) =>

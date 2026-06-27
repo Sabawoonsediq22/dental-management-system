@@ -172,7 +172,10 @@ const Dashboard: React.FC = () => {
 
   const handleStatusSave = useCallback(
     async (newStatus: string) => {
-      if (!selectedPatientForStatus?.visit_id) return;
+      if (!selectedPatientForStatus?.visit_id) {
+        toast.error({ title: "Cannot update status: missing visit ID" });
+        return;
+      }
       try {
         await updateStatusMutation.mutateAsync({
           id: selectedPatientForStatus.visit_id,

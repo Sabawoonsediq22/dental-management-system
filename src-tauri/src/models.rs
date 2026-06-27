@@ -331,6 +331,7 @@ pub struct RecentPatient {
     pub address: String,
     pub visit_date: String,
     pub status: String,
+    pub visit_id: String,
 }
 
 // Input DTOs

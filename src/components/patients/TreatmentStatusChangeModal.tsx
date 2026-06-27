@@ -8,7 +8,7 @@ interface TreatmentStatusChangeModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentStatus: string;
-  onSave: (newStatus: string) => void;
+  onSave: (newStatus: string) => Promise<void>;
   className?: string;
 }
 
@@ -54,8 +54,8 @@ const TreatmentStatusChangeModal: React.FC<TreatmentStatusChangeModalProps> = ({
     }
   }, [isOpen, currentStatus]);
 
-  const handleSave = () => {
-    onSave(selectedStatus);
+  const handleSave = async () => {
+    await onSave(selectedStatus);
     onClose();
   };
 
