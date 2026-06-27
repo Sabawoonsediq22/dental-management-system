@@ -459,6 +459,8 @@ const NewPatient: React.FC = () => {
       toast.success({ title: "Patient added successfully" });
       queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
       queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
       setCreatedPatientId(created.id);
       setReceiptInvoiceId(created.invoice_id);
     } catch (error) {
