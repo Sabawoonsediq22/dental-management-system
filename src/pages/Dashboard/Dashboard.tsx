@@ -50,6 +50,8 @@ import { cn } from "../../lib/utils";
 import TreatmentStatusChangeModal from "../../components/patients/TreatmentStatusChangeModal";
 import i18n from "../../i18n";
 
+const isRTL = i18n.language === "ps";
+
 const COLORS = [
   "#006A71",
   "#005E8A",
@@ -58,7 +60,7 @@ const COLORS = [
   "#00C49A",
   "#FF6B6B",
 ];
-const isRTL = i18n.language === "ps";
+
 
 const StatCard: React.FC<{
   title: string;
@@ -489,22 +491,22 @@ const Dashboard: React.FC = () => {
               <table className="w-full text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/50">
-                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
+                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 m-auto">
                       {t("dashboard.table.fullName", "PATIENT")}
                     </th>
-                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
+                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       {t("dashboard.table.phone", "CONTACT")}
                     </th>
-                    <th className="hidden md:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
-                      AGE
+                    <th className="hidden md:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      {t("dashboard.table.ageGender", "AGE / GENDER")}
                     </th>
-                    <th className="hidden lg:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
+                    <th className="hidden lg:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       {t("dashboard.table.address", "ADDRESS")}
                     </th>
-                    <th className="hidden md:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
+                    <th className="hidden md:table-cell px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       {t("dashboard.table.lastVisit", "LAST VISIT")}
                     </th>
-                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-left">
+                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       {t("billing.status")}
                     </th>
                   </tr>
