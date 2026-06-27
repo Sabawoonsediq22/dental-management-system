@@ -32,6 +32,7 @@ export function useAddPayment() {
       qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["payments"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     },
   });
 }
@@ -44,6 +45,7 @@ export function useRecordPayment() {
       qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["payments", variables.invoice_id], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     },
   });
 }

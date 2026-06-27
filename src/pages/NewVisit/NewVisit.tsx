@@ -353,26 +353,34 @@ const NewVisit: React.FC = () => {
          paid_amount: paidAmountValue,
        });
 
-       queryClient.invalidateQueries({
-         queryKey: ["patients", patientId],
-         refetchType: "all",
-       });
-       queryClient.invalidateQueries({
-         queryKey: ["patients", patientId, "statistics"],
-         refetchType: "all",
-       });
-       queryClient.invalidateQueries({
-         queryKey: ["treatment-history", patientId],
-         refetchType: "all",
-       });
-       queryClient.invalidateQueries({
-         queryKey: ["visits", patientId],
-         refetchType: "all",
-       });
-       queryClient.invalidateQueries({
-         queryKey: ["invoices", "visit", createdVisit.id],
-         refetchType: "all",
-       });
+        queryClient.invalidateQueries({
+          queryKey: ["patients", patientId],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["patients", patientId, "statistics"],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["treatment-history", patientId],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["visits", patientId],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["invoices"],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["reports"],
+          refetchType: "all",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["dashboard"],
+          refetchType: "all",
+        });
 
        setReceiptInvoiceId(createdInvoice.id);
 
