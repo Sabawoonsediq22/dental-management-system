@@ -1,0 +1,56 @@
+import React from "react";
+import { Card, CardContent } from "../../components/ui";
+import { TrendingUpIcon } from "../../shared/icons/icons";
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  badge?: React.ReactNode;
+  trend?: { value: string; positive: boolean };
+  loading?: boolean;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, loading }) => (
+  <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg border-0 shadow-sm group">
+    <div className="absolute inset-0 bg-linear-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50" />
+    <CardContent className="relative p-4 sm:p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] sm:text-xs font-bold tracking-wide text-gray-500 dark:text-gray-400">
+            {title}
+          </p>
+          <p className="mt-2 text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                ...
+              </span>
+            ) : (
+              value
+            )}
+          </p>
+          {trend && !loading && (
+            <div className="flex items-center gap-1 mt-1">
+              <TrendingUpIcon
+                size="xs"
+                className={`${trend.positive ? "text-green-500" : "text-red-500"}`}
+              />
+              <span
+                className={`text-[10px] sm:text-xs font-semibold ${trend.positive ? "text-green-600" : "text-red-600"}`}
+              >
+                {trend.value}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="rounded-xl bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-2.5 sm:p-3 text-primary shadow-sm group-hover:scale-110 transition-transform duration-300">
+          {icon}
+        </div>
+      </div>
+      {badge && <div className="mt-3 sm:mt-4">{badge}</div>}
+    </CardContent>
+  </Card>
+);
+
+export default StatCard;
