@@ -8,6 +8,7 @@ import { ReceiptPreviewModal } from "../../components/receipt";
 import { useInvoices, useAddPayment } from "../../hooks/useInvoices";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
 import type { InvoiceListItem } from "../../types/ApiTypes";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 const Billing: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { id } = useParams<{ id?: string }>();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<"All" | "Unpaid" | "Partial" | "Paid">("All");
@@ -26,6 +28,12 @@ const Billing: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceListItem | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      setSearchQuery(id);
+    }
+  }, [id]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
