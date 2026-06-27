@@ -13,12 +13,7 @@ import {
   PieChartIcon,
 } from "../../shared/icons/icons";
 import { useUpdateVisitStatus, useReportSummary } from "../../hooks/useVisits";
-import {
-  useDashboardStats,
-  usePatientsFlow,
-  useProcedureDistribution,
-  useRecentPatients,
-} from "../../hooks/useDashboard";
+import { useDashboardStats, usePatientsFlow, useProcedureDistribution, useRecentPatients } from "../../hooks/useDashboard";
 import StatCard from "../../components/dashboard/StatCard";
 import ChartCard from "../../components/dashboard/ChartCard";
 import RecentPatientsTable from "../../components/dashboard/RecentPatientsTable";
@@ -73,6 +68,7 @@ interface StatCardDef {
   icon: React.ReactNode;
   loading?: boolean;
   value?: string;
+  secondary?: string;
   badge?: React.ReactNode;
   trend?: { value: string; positive: boolean };
 }
@@ -98,7 +94,7 @@ const Dashboard: React.FC = () => {
   const dayOfMonth = new Date().getDate();
 
   const handleUpdateStatus = useCallback(
-    async (visitId: number, newStatus: string) => {
+    async (visitId: string, newStatus: string) => {
       await updateStatusMutation.mutateAsync({
         id: visitId,
         status: newStatus as "Open" | "Completed" | "Cancelled",
@@ -129,7 +125,7 @@ const Dashboard: React.FC = () => {
       return [
         { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: "0", icon: <CurrencyIcon size="lg" /> },
         { title: t("dashboard.stats.patientsToday", "Patients Today"), value: "0", icon: <PatientIcon size="lg" /> },
-        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "0 AFN", icon: <ClockIcon size="lg" /> },
+        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "0 AFN", secondary: "0 invoices", icon: <ClockIcon size="lg" /> },
         { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: "00", icon: <ToothIcon size="lg" /> },
       ];
     }
@@ -141,7 +137,7 @@ const Dashboard: React.FC = () => {
     return [
       { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month, dayOfMonth) },
       { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" />, trend: computeTrend(stats.patients_today, reportSummary?.total_visits_this_month, dayOfMonth) },
-      { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), icon: <ClockIcon size="lg" />, badge: outstandingBadge },
+      { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), secondary: `${stats.outstanding_invoices_count} ${t("dashboard.invoices", "invoice")}${stats.outstanding_invoices_count !== 1 ? "s" : ""}`, icon: <ClockIcon size="lg" />, badge: outstandingBadge },
       { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" />, trend: computeTrend(stats.procedures_performed, (reportSummary?.completed_visits_this_month ?? 0) + (reportSummary?.cancelled_visits_this_month ?? 0), dayOfMonth) },
     ];
   }, [stats, statsLoading, statsError, reportSummary, t, dayOfMonth]);
@@ -190,6 +186,7 @@ const Dashboard: React.FC = () => {
             badge={stat.badge}
             trend={stat.trend}
             loading={stat.loading ?? false}
+            secondary={stat.secondary}
           />
         ))}
       </div>

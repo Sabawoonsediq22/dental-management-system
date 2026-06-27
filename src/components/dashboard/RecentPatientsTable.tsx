@@ -35,7 +35,7 @@ const STATUS_DOT_COLORS: Record<string, string> = {
 
 interface RecentPatientsTableProps {
   patients: RecentPatient[];
-  onUpdateStatus: (visitId: number, newStatus: string) => Promise<void>;
+  onUpdateStatus: (visitId: string, newStatus: string) => Promise<void>;
   onRefetch: () => void;
 }
 

@@ -191,13 +191,13 @@ const PatientTable: React.FC<PatientTableProps> = ({
                         onClick: () => handleEditClick(patient),
                       },
                       {
+                        label: t("patients.actions.newVisit", "New Visit"),
+                        onClick: () => handleNewVisitClick(patient),
+                      },
+                      {
                         label: t("patients.actions.delete", "Delete"),
                         onClick: () => handleDeleteClick(patient),
                         className: "text-red-600",
-                      },
-                      {
-                        label: t("patients.actions.newVisit", "New Visit"),
-                        onClick: () => handleNewVisitClick(patient),
                       },
                     ]}
                   />

@@ -13,6 +13,8 @@
     "logo": "Khwaja Clinic",
     "title": "Dashboard",
     "welcome": "Welcome Back",
+    "clear": "Clear",
+    "invoices": "invoice",
     "stats": {
       "dailyRevenue": "Daily Revenue",
       "patientsToday": "Patients Today",

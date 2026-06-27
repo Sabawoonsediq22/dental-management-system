@@ -9,9 +9,10 @@ interface StatCardProps {
   badge?: React.ReactNode;
   trend?: { value: string; positive: boolean };
   loading?: boolean;
+  secondary?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, loading }) => (
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, loading, secondary }) => (
   <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg border-0 shadow-sm group">
     <div className="absolute inset-0 bg-linear-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50" />
     <CardContent className="relative p-4 sm:p-6">
@@ -30,6 +31,11 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, l
               value
             )}
           </p>
+          {secondary && !loading && (
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
+              {secondary}
+            </p>
+          )}
           {trend && !loading && (
             <div className="flex items-center gap-1 mt-1">
               <TrendingUpIcon

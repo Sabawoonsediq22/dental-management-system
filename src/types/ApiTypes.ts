@@ -340,6 +340,7 @@ export interface DashboardStats {
   daily_revenue: number;
   patients_today: number;
   outstanding_balance: number;
+  outstanding_invoices_count: number;
   procedures_performed: number;
 }
 
