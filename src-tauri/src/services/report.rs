@@ -36,14 +36,14 @@ impl ReportService {
         .await?;
 
         let revenue_this_month: Option<f64> = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(paid_amount), 0) FROM invoices WHERE strftime('%Y', issued_at) = ?"
+            "SELECT COALESCE(SUM(paid_amount), 0.0) FROM invoices WHERE strftime('%Y', issued_at) = ?"
         )
         .bind(&year)
         .fetch_one(pool)
         .await?;
 
         let outstanding_balance: Option<f64> = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(outstanding_amount), 0) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
+            "SELECT COALESCE(SUM(outstanding_amount), 0.0) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
         )
         .fetch_one(pool)
         .await?;

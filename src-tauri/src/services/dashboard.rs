@@ -10,7 +10,7 @@ impl DashboardService {
         let today = Utc::now().format("%Y-%m-%d").to_string();
 
         let daily_revenue: Option<f64> = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(received_at) = ?"
+            "SELECT COALESCE(SUM(amount), 0.0) FROM payments WHERE date(received_at) = ?"
         )
         .bind(&today)
         .fetch_one(pool)
@@ -24,7 +24,7 @@ impl DashboardService {
         .await?;
 
         let outstanding_balance: Option<f64> = sqlx::query_scalar(
-            "SELECT COALESCE(SUM(outstanding_amount), 0) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
+            "SELECT COALESCE(SUM(outstanding_amount), 0.0) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
         )
         .fetch_one(pool)
         .await?;
