@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { PatientAvatar } from "../ui";
 import { PatientTableProps } from "../../types/PatientTypes";
+import type { Patient } from "../../types/ApiTypes";
 import { Popover } from "../ui/Popover";
+import { Modal, Button, toast } from "../ui";
+import { useUpdatePatient, useDeletePatient } from "../../hooks/usePatients";
 
 function formatDate(date: string | null | undefined): string {
   if (!date) return "-";
@@ -17,11 +21,88 @@ function formatDate(date: string | null | undefined): string {
 const PatientTable: React.FC<PatientTableProps> = ({
   patients,
   onEditPatient,
+  onDeletePatient,
+  onNewVisit,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const getGenderLabel = (gender: string) =>
     t(`patients.filters.${gender.toLowerCase()}`, gender);
+
+  const [activePatient, setActivePatient] = useState<Patient | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    full_name: "",
+    phone: "",
+    age: 0,
+    gender: "Male" as "Male" | "Female" | "Other",
+    address: "",
+  });
+
+  const updatePatientMutation = useUpdatePatient();
+  const deletePatientMutation = useDeletePatient();
+
+  const handleEditClick = (patient: Patient) => {
+    setEditFormData({
+      full_name: patient.full_name,
+      phone: patient.phone,
+      age: patient.age,
+      gender: patient.gender,
+      address: patient.address || "",
+    });
+    setActivePatient(patient);
+    setShowEditModal(true);
+    onEditPatient?.(patient);
+  };
+
+  const handleSavePersonalInfo = () => {
+    if (!activePatient) return;
+    updatePatientMutation.mutate(
+      {
+        id: activePatient.id,
+        input: {
+          full_name: editFormData.full_name,
+          phone: editFormData.phone,
+          age: editFormData.age,
+          gender: editFormData.gender,
+          address: editFormData.address || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+          toast.success({ title: "Patient updated successfully" });
+        },
+      },
+    );
+    setShowEditModal(false);
+    setActivePatient(null);
+  };
+
+  const handleDeleteClick = (patient: Patient) => {
+    setActivePatient(patient);
+    setShowDeleteConfirm(true);
+    onDeletePatient?.(patient);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!activePatient) return;
+    deletePatientMutation.mutate(activePatient.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+        toast.success({ title: "Patient deleted successfully" });
+      },
+    });
+    setShowDeleteConfirm(false);
+    setActivePatient(null);
+  };
+
+  const handleNewVisitClick = (patient: Patient) => {
+    onNewVisit?.(patient);
+    navigate(`/patients/${patient.id}/visits/new`);
+  };
 
   if (patients.length === 0) {
     return (
@@ -107,7 +188,16 @@ const PatientTable: React.FC<PatientTableProps> = ({
                       },
                       {
                         label: t("patients.actions.edit", "Edit"),
-                        onClick: () => onEditPatient?.(patient),
+                        onClick: () => handleEditClick(patient),
+                      },
+                      {
+                        label: t("patients.actions.delete", "Delete"),
+                        onClick: () => handleDeleteClick(patient),
+                        className: "text-red-600",
+                      },
+                      {
+                        label: t("patients.actions.newVisit", "New Visit"),
+                        onClick: () => handleNewVisitClick(patient),
                       },
                     ]}
                   />
@@ -139,7 +229,27 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 </div>
               </div>
               <div onClick={(e) => e.stopPropagation()}>
-                
+                <Popover
+                  actions={[
+                    {
+                      label: t("patients.actions.view", "View"),
+                      onClick: () => navigate(`/patients/${patient.id}`),
+                    },
+                    {
+                      label: t("patients.actions.edit", "Edit"),
+                      onClick: () => handleEditClick(patient),
+                    },
+                    {
+                      label: t("patients.actions.delete", "Delete"),
+                      onClick: () => handleDeleteClick(patient),
+                      className: "text-red-600",
+                    },
+                    {
+                      label: t("patients.actions.newVisit", "New Visit"),
+                      onClick: () => handleNewVisitClick(patient),
+                    },
+                  ]}
+                />
               </div>
             </div>
             <div className="mt-2 ml-12 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
@@ -151,6 +261,123 @@ const PatientTable: React.FC<PatientTableProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Edit Personal Info Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Personal Information"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <input
+              type="text"
+              value={editFormData.full_name}
+              onChange={(e) =>
+                setEditFormData({ ...editFormData, full_name: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <input
+              type="tel"
+              value={editFormData.phone}
+              onChange={(e) =>
+                setEditFormData({ ...editFormData, phone: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Age</label>
+              <input
+                type="number"
+                value={editFormData.age}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    age: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Gender</label>
+              <select
+                value={editFormData.gender}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    gender: e.target.value as "Male" | "Female" | "Other",
+                  })
+                }
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <textarea
+              value={editFormData.address}
+              onChange={(e) =>
+                setEditFormData({ ...editFormData, address: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-md"
+              rows={3}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowEditModal(false)}>
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={handleSavePersonalInfo}
+            disabled={updatePatientMutation.isPending}
+          >
+            {updatePatientMutation.isPending
+              ? t("common.saving", "Saving...")
+              : "Save Changes"}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Delete Patient"
+        description={
+          activePatient
+            ? `Are you sure you want to delete ${activePatient.full_name}? This action cannot be undone.`
+            : ""
+        }
+      >
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirmDelete}
+            disabled={deletePatientMutation.isPending}
+          >
+            {deletePatientMutation.isPending
+              ? t("common.saving", "Deleting...")
+              : "Delete Patient"}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

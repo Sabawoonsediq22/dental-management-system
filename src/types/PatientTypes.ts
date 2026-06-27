@@ -37,6 +37,8 @@ export interface PatientTableProps {
   onPageChange: (page: number) => void;
   onItemsPerPageChange?: (items: number) => void;
   onEditPatient?: (patient: Patient) => void;
+  onDeletePatient?: (patient: Patient) => void;
+  onNewVisit?: (patient: Patient) => void;
 }
 
 export interface SearchBarProps {

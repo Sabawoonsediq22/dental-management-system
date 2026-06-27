@@ -33,7 +33,12 @@
       "lastVisit": "وروستی ملاقات",
       "status": "حالت"
     },
-    "noRecentPatients": "هیڅ وروستي مریض نشته"
+    "lastUpdated": "آخر به روز شوی",
+    "realTimeSync": "ریئل-ټایم سنک",
+    "liveDataFromDb": "ژوندی معلومات له ډاټابېس څخه",
+    "autoRefresh": "خپلکاره ښلود هر ۵ دقیقو کې",
+    "noDataAvailable": "هیڅ معلومات شته نه دی",
+    "clear": "پاک"
   },
   "settings": {
     "language": "ژبه"
@@ -47,6 +52,9 @@
     "actions": {
       "add": "مریض اضافه کړئ",
       "view": "کتل",
+      "edit": "تغییر ورکړئ",
+      "delete": "حذف کړئ",
+      "newVisit": "نوی ملاقات",
       "addNew": "نوی مریض اضافه کړئ"
     },
     "filters": {

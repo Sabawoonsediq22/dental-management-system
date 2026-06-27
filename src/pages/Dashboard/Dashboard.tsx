@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
     }
     const outstandingBadge = stats.outstanding_balance > 0
       ? <Badge variant="warning" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("common.high", "High")}</Badge>
-      : <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">Clear</Badge>;
+      : <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.clear", "Clear")}</Badge>;
 
     return [
       { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month) },
@@ -236,11 +236,11 @@ const Dashboard: React.FC = () => {
           </h1>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] text-gray-400 dark:text-gray-500">
-              Last updated: {format(lastUpdated, "HH:mm:ss")}
+              {t("dashboard.lastUpdated", "Last updated")}: {format(lastUpdated, "HH:mm:ss")}
             </span>
             <div
               className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
-              title="Real-time sync"
+              title={t("dashboard.realTimeSync", "Real-time sync")}
             />
           </div>
         </div>
@@ -431,7 +431,7 @@ const Dashboard: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 gap-2">
                 <PieChartIcon size="xl" />
-                <span className="text-xs font-medium">No data available</span>
+                <span className="text-xs font-medium">{t("dashboard.noDataAvailable", "No data available")}</span>
               </div>
             )}
           </div>
@@ -610,12 +610,12 @@ const Dashboard: React.FC = () => {
 
       <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500 px-1">
         <div className="flex items-center gap-3">
-          <span>Live data from database</span>
+          <span>{t("dashboard.liveDataFromDb", "Live data from database")}</span>
           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
         </div>
         <div className="flex items-center gap-1.5">
           <ActivityIcon size="xs" />
-          <span>Auto-refresh every 5 min</span>
+          <span>{t("dashboard.autoRefresh", "Auto-refresh every 5 min")}</span>
         </div>
       </div>
 

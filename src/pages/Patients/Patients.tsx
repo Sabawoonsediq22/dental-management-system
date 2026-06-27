@@ -49,6 +49,14 @@ const Patients: React.FC = () => {
     console.log("Edit patient:", patient);
   };
 
+  const handleDeletePatient = (patient: Patient) => {
+    console.log("Delete patient:", patient);
+  };
+
+  const handleNewVisit = (patient: Patient) => {
+    console.log("New visit for patient:", patient);
+  };
+
   const patients = data?.items ?? [];
 
   return (
@@ -83,6 +91,8 @@ const Patients: React.FC = () => {
               onPageChange={handlePageChange}
               onItemsPerPageChange={handleItemsPerPageChange}
               onEditPatient={handleEditPatient}
+              onDeletePatient={handleDeletePatient}
+              onNewVisit={handleNewVisit}
               />
           )}
       </div>

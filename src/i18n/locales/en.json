@@ -47,6 +47,9 @@
     "actions": {
       "add": "Add patient",
       "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "newVisit": "New Visit",
       "addNew": "Add New Patient"
     },
     "filters": {
