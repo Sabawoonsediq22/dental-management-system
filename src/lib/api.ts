@@ -17,6 +17,7 @@ import type {
   InvoiceListParams,
   Payment,
   AddPaymentInput,
+  MonthlyRevenuePoint,
   ReportSummary,
   AppSettings,
   UpdateSettingsInput,
@@ -83,6 +84,7 @@ export const api = {
   },
   reports: {
     summary: () => invoke<ReportSummary>("get_report_summary"),
+    monthlyRevenue: () => invoke<MonthlyRevenuePoint[]>("get_monthly_revenue"),
   },
   settings: {
     get: () => invoke<AppSettings>("get_settings"),

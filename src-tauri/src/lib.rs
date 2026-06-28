@@ -282,6 +282,13 @@ async fn get_report_summary(state: State<'_, AppState>) -> Result<ReportSummary,
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn get_monthly_revenue(state: State<'_, AppState>) -> Result<Vec<MonthlyRevenuePoint>, String> {
+    ReportService::monthly_revenue(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 // Dashboard commands
 #[tauri::command]
 async fn get_dashboard_stats(state: State<'_, AppState>) -> Result<DashboardStats, String> {
@@ -425,6 +432,7 @@ pub fn run() {
             list_procedures,
             find_procedure_by_name,
             get_report_summary,
+            get_monthly_revenue,
             get_settings,
             update_settings,
             global_search,

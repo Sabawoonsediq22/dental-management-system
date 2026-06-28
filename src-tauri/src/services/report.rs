@@ -57,4 +57,17 @@ impl ReportService {
             cancelled_visits_this_month,
         })
     }
+
+    pub async fn monthly_revenue(pool: &SqlitePool) -> AppResult<Vec<MonthlyRevenuePoint>> {
+        let rows: Vec<(String, f64)> = sqlx::query_as(
+            "SELECT strftime('%Y-%m', issued_at) as month, COALESCE(SUM(paid_amount), 0.0) as revenue
+             FROM invoices
+             WHERE issued_at >= date('now', '-12 months')
+             GROUP BY strftime('%Y-%m', issued_at)
+             ORDER BY month ASC"
+        )
+        .fetch_all(pool)
+        .await?;
+        Ok(rows.into_iter().map(|(month, revenue)| MonthlyRevenuePoint { month, revenue }).collect())
+    }
 }

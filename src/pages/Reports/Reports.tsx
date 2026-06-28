@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, LoadingSpinner } from "../../components/ui";
-import { useReportSummary } from "../../hooks/useReports";
+import { useReportSummary, useMonthlyRevenue } from "../../hooks/useReports";
 import {
   AreaChart,
   Area,
@@ -15,6 +15,12 @@ import {
   Cell,
 } from "recharts";
 import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon } from "../../shared/icons/icons";
+import type { MonthlyRevenuePoint } from "../../types/ApiTypes";
+
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 interface StatCardProps {
   title: string;
@@ -52,11 +58,35 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, change }) => (
 const formatAFN = (val: number) =>
   val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " AFN";
 
+const formatMonth = (monthStr: string) => {
+  const [, m] = monthStr.split("-");
+  return MONTH_NAMES[parseInt(m, 10) - 1] || monthStr;
+};
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { value: number; name: string }[];
+  label?: string;
+}
+
+const RevenueTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/95">
+      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+        {formatAFN(payload[0].value)}
+      </p>
+    </div>
+  );
+};
+
 const Reports: React.FC = () => {
   const { t } = useTranslation();
   const { data: summary, isLoading, error } = useReportSummary();
+  const { data: monthlyRevenue, isLoading: revenueLoading } = useMonthlyRevenue();
 
-  if (isLoading) {
+  if (isLoading || revenueLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <LoadingSpinner size="lg" text={t("reports.loading", "Loading reports...")} />
@@ -74,13 +104,18 @@ const Reports: React.FC = () => {
     );
   }
 
-  const reportData = [
-    {
-      name: t("reports.months.jan", "Jan"),
-      revenue: summary?.revenue_this_month ? summary.revenue_this_month / 12 : 0,
-      visits: (summary?.total_visits_this_month || 0) / 12,
-    },
-  ];
+  const chartData: (MonthlyRevenuePoint & { monthLabel: string })[] =
+    monthlyRevenue && monthlyRevenue.length > 0
+      ? monthlyRevenue.map((p) => ({ ...p, monthLabel: formatMonth(p.month) }))
+      : summary
+        ? [
+            {
+              month: new Date().toISOString().slice(0, 7),
+              revenue: summary.revenue_this_month,
+              monthLabel: formatMonth(new Date().toISOString().slice(0, 7)),
+            },
+          ]
+        : [];
 
   const visitStatusData = summary
     ? [
@@ -149,42 +184,52 @@ const Reports: React.FC = () => {
           <CardContent>
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={reportData}>
+                <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#005eb8" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#005eb8" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#0d9488" stopOpacity={0.35} />
+                      <stop offset="50%" stopColor="#0d9488" stopOpacity={0.12} />
+                      <stop offset="100%" stopColor="#0d9488" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-700" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#e5e7eb"
+                    vertical={false}
+                    className="dark:stroke-gray-700"
+                  />
                   <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    dataKey="monthLabel"
+                    tick={{ fontSize: 11, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
+                    interval="preserveStartEnd"
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    tick={{ fontSize: 11, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(val) => formatAFN(val)}
+                    tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : String(val)}
+                    width={40}
                   />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 8,
-                      border: "1px solid #e5e7eb",
-                      boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-                      backgroundColor: "var(--tooltip-bg, #ffffff)",
-                    }}
-                  />
+                  <Tooltip content={<RevenueTooltip />} cursor={{ stroke: "#0d9488", strokeWidth: 1, strokeDasharray: "4 4" }} />
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#005eb8"
-                    strokeWidth={2}
+                    stroke="#0d9488"
+                    strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorRevenue)"
                     name={t("reports.charts.revenue", "Revenue")}
+                    dot={false}
+                    activeDot={{
+                      r: 5,
+                      fill: "#0d9488",
+                      stroke: "#fff",
+                      strokeWidth: 2,
+                    }}
+                    animationDuration={800}
+                    animationEasing="ease-out"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -202,28 +247,30 @@ const Reports: React.FC = () => {
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={visitStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-700" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} className="dark:stroke-gray-700" />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    tick={{ fontSize: 11, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    tick={{ fontSize: 11, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
+                    width={30}
                   />
                   <Tooltip
                     contentStyle={{
-                      borderRadius: 8,
+                      borderRadius: 12,
                       border: "1px solid #e5e7eb",
                       boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
                       backgroundColor: "#ffffff",
                     }}
+                    cursor={{ fill: "#f9fafb" }}
                   />
-                  <Bar dataKey="value" name={t("reports.charts.count", "Count")} radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="value" name={t("reports.charts.count", "Count")} radius={[6, 6, 0, 0]} maxBarSize={48}>
                     {visitStatusData.map((entry) => (
                       <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                     ))}

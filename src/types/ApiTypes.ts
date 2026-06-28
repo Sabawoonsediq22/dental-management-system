@@ -306,6 +306,11 @@ export interface Xray {
   uploaded_at: string;
 }
 
+export interface MonthlyRevenuePoint {
+  month: string;
+  revenue: number;
+}
+
 export interface ReportSummary {
   active_patients: number;
   total_visits_this_month: number;

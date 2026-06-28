@@ -7,3 +7,10 @@ export function useReportSummary() {
     queryFn: () => api.reports.summary(),
   });
 }
+
+export function useMonthlyRevenue() {
+  return useQuery({
+    queryKey: ["reports", "monthlyRevenue"],
+    queryFn: () => api.reports.monthlyRevenue(),
+  });
+}

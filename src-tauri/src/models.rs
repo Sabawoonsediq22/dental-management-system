@@ -298,6 +298,12 @@ pub struct ReportSummary {
     pub cancelled_visits_this_month: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MonthlyRevenuePoint {
+    pub month: String,
+    pub revenue: f64,
+}
+
 // Dashboard
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DashboardStats {
