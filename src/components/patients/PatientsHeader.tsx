@@ -32,7 +32,7 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="flex flex-col lg:flex-row justify-between items-center gap-3">
         <SearchInput
           value={searchQuery}
           onChange={onSearchChange}
@@ -40,9 +40,9 @@ const PatientsHeader: React.FC<PatientsHeaderProps> = ({
             "patients.searchPlaceholder",
             "Search by name, phone, or Patient ID",
           )}
-          className="w-full sm:w-lg"
+          className="w-full md:w-lg"
         />
-        <Button onClick={onAddNewPatient} className="cursor-pointer">
+        <Button onClick={onAddNewPatient} className="gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] w-full xl:w-auto">
           <AddIcon size="sm" />
           <span>{t("nav.newPatient", "Add New Patient")}</span>
         </Button>

@@ -157,7 +157,7 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 dark:bg-gray-800">
                 {patients.map((patient: RecentPatient) => {
                   const statusStyle =
                     statusConfig[patient.status] || statusConfig.Completed;

@@ -25,7 +25,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, icon, children, action, cl
           {action}
         </div>
       </CardHeader>
-      <CardContent className="p-3 sm:p-5">{children}</CardContent>
+      <CardContent className="p-3 sm:p-5 dark:bg-gray-800">{children}</CardContent>
     </Card>
   </div>
 );
