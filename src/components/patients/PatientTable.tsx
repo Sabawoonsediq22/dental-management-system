@@ -150,7 +150,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
             {patients.map((patient, index) => (
               <tr
-                key={patient.id}
+                key={`${patient.id}-${index}`}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
                 onClick={() => navigate(`/patients/${patient.id}`)}
               >
@@ -210,9 +210,9 @@ const PatientTable: React.FC<PatientTableProps> = ({
 
       {/* Mobile Card List */}
       <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700/60">
-        {patients.map((patient) => (
+        {patients.map((patient, idx) => (
           <div
-            key={patient.id}
+            key={`${patient.id}-${idx}`}
             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
             onClick={() => navigate(`/patients/${patient.id}`)}
           >

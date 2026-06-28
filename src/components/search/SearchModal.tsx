@@ -46,54 +46,70 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const recentSearches = React.useMemo(() => getSearches(), [recentVersion, getSearches]);
   const isRTL = i18n.language === "ps";
 
-  const categoryLabels: Record<string, string> = {
+  const categoryLabels = React.useMemo((): Record<string, string> => ({
     patient: t("search.category.patients", "PATIENTS"),
     invoice: t("search.category.invoices", "INVOICES"),
     receipt: t("search.category.receipts", "RECEIPTS"),
     visit: t("search.category.visits", "VISITS"),
     treatment: t("search.category.treatments", "TREATMENTS"),
     payment: t("search.category.payments", "PAYMENTS"),
-  };
+  }), [t]);
 
   const showRecent = debouncedQuery.length === 0;
-  const flatResults = React.useMemo(() => results, [results]);
 
-  React.useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
-    if (isOpen) {
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(-1);
+  const resetState = React.useCallback(() => {
+    setQuery("");
+    setResults([]);
+    setSelectedIndex(-1);
+    setRecentVersion((v) => v + 1);
+  }, []);
+
+  const handleSelect = React.useCallback((result: SearchResult) => {
+    const q = query.trim();
+    if (q) {
+      addSearch(q);
       setRecentVersion((v) => v + 1);
     }
-  }, [isOpen]);
+    onClose();
+    if (result.route) {
+      navigate(result.route);
+    }
+  }, [query, addSearch, onClose, navigate]);
 
   React.useEffect(() => {
-    const performSearch = async () => {
-      if (!debouncedQuery.trim()) {
-        setResults([]);
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const data = await api.search.globalSearch(debouncedQuery.trim());
+    if (isOpen) {
+      resetState();
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [isOpen, resetState]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const q = debouncedQuery.trim();
+    if (!q) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    api.search.globalSearch(q)
+      .then((data) => {
+        if (cancelled) return;
         setResults(data);
         setSelectedIndex(-1);
         if (listRef.current) {
           listRef.current.scrollTop = 0;
         }
-      } catch (error) {
+      })
+      .catch((error) => {
+        if (cancelled) return;
         console.error("Search failed:", error);
         setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    performSearch();
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [debouncedQuery]);
 
   React.useEffect(() => {
@@ -103,64 +119,51 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
+        return;
       }
+      if (results.length === 0) return;
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        if (flatResults.length > 0) {
-          setSelectedIndex((prev) => {
-            const next = prev < flatResults.length - 1 ? prev + 1 : 0;
-            scrollToIndex(next);
-            return next;
-          });
-        }
-      }
-      if (e.key === "ArrowUp") {
+        setSelectedIndex((prev) => {
+          const next = prev < results.length - 1 ? prev + 1 : 0;
+          scrollToIndex(next);
+          return next;
+        });
+      } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        if (flatResults.length > 0) {
-          setSelectedIndex((prev) => {
-            const next = prev > 0 ? prev - 1 : flatResults.length - 1;
-            scrollToIndex(next);
-            return next;
-          });
-        }
-      }
-      if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < flatResults.length) {
+        setSelectedIndex((prev) => {
+          const next = prev > 0 ? prev - 1 : results.length - 1;
+          scrollToIndex(next);
+          return next;
+        });
+      } else if (e.key === "Enter" && selectedIndex >= 0 && selectedIndex < results.length) {
         e.preventDefault();
-        handleSelect(flatResults[selectedIndex]);
+        handleSelect(results[selectedIndex]);
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, flatResults, selectedIndex, onClose]);
+  }, [isOpen, results, selectedIndex, onClose, handleSelect]);
 
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = React.useCallback((index: number) => {
     if (!listRef.current) return;
     const items = listRef.current.querySelectorAll("[data-search-index]");
     const target = items[index] as HTMLElement | undefined;
     target?.scrollIntoView({ block: "nearest" });
-  };
+  }, []);
 
-  const handleSelect = (result: SearchResult) => {
-    addSearch(query.trim());
-    setRecentVersion((v) => v + 1);
-    onClose();
-    if (result.route) {
-      navigate(result.route);
-    }
-  };
-
-  const handleRecentClick = (recentQuery: string) => {
+  const handleRecentClick = React.useCallback((recentQuery: string) => {
     setQuery(recentQuery);
     addSearch(recentQuery);
     setRecentVersion((v) => v + 1);
-  };
+  }, [addSearch]);
 
-  const handleClearRecent = (e: React.MouseEvent, recentQuery: string) => {
+  const handleClearRecent = React.useCallback((e: React.MouseEvent, recentQuery: string) => {
     e.stopPropagation();
     removeSearch(recentQuery);
     setRecentVersion((v) => v + 1);
-  };
+  }, [removeSearch]);
 
   const clearAllRecent = React.useCallback(() => {
     clearSearches();
@@ -189,8 +192,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         )}
         role="dialog"
         aria-modal="true"
+        aria-label={t("search.openGlobalSearch", "Global search")}
       >
-        {/* Search Input */}
         <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-200 dark:border-gray-700">
           <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
           <Input
@@ -206,42 +209,31 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                isRTL ? "text-right" : "text-left",
              )}
            />
-          {query && (
-            <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-              ESC
-            </span>
-          )}
+          <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 whitespace-nowrap font-mono">
+            ESC
+          </span>
         </div>
 
-        {/* Results */}
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
-          {/* Loading skeleton */}
           {loading && (
-            <div className="p-4 space-y-3">
-              <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-                  <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-2.5 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                </div>
-              ))}
-              <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-4" />
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i + 3} className="flex items-center gap-3 px-3 py-2.5">
-                  <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-2.5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
+            <div className="p-4 space-y-4">
+              {Array.from({ length: 2 }).map((_, gi) => (
+                <div key={gi}>
+                  <div className="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+                  {Array.from({ length: 2 }).map((_, ri) => (
+                    <div key={ri} className="flex items-center gap-3 px-3 py-2.5">
+                      <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-2.5 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Recent searches */}
           {!loading && showRecent && recentSearches.length > 0 && (
             <div className="p-2">
               <div className="flex items-center justify-between px-2 py-2">
@@ -284,7 +276,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Empty state */}
           {!loading && !showRecent && results.length === 0 && (
             <div className="px-4 py-10 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
@@ -315,11 +306,15 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Grouped results */}
           {!loading && results.length > 0 && (
             <div className="p-2 space-y-4">
+              <div className="flex items-center justify-between px-2 pb-1 border-b border-gray-100 dark:border-gray-700">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  {results.length} {results.length === 1 ? "result" : "results"} for &ldquo;{query}&rdquo;
+                </span>
+              </div>
               {Object.entries(groupedResults).map(([type, typeResults]) => {
-                const startIndex = flatResults.indexOf(typeResults[0]);
+                const startIndex = results.indexOf(typeResults[0]);
                 return (
                   <div key={type}>
                     <div className="flex items-center gap-2 px-2 py-1.5">
@@ -339,6 +334,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                             key={`${result.type}-${result.id}`}
                             data-search-index={globalIndex}
                             onClick={() => handleSelect(result)}
+                            onMouseEnter={() => setSelectedIndex(globalIndex)}
                             className={cn(
                               "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all cursor-pointer",
                               isSelected
@@ -383,7 +379,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Initial hint when modal opens */}
           {!loading && showRecent && recentSearches.length === 0 && (
             <div className="px-4 py-10 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
@@ -396,6 +391,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                 {t("search.hints.patientName", "Patient Name")} &middot;{" "}
                 {t("search.hints.phone", "Phone Number")} &middot;{" "}
                 {t("search.hints.patientId", "Patient ID")}
+              </p>
+              <p className="mt-4 text-[10px] text-gray-400 dark:text-gray-500">
+                Use <kbd className="px-1 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-[10px] font-mono">↑</kbd> <kbd className="px-1 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-[10px] font-mono">↓</kbd> to navigate &middot; <kbd className="px-1 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-[10px] font-mono">Enter</kbd> to select &middot; <kbd className="px-1 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-[10px] font-mono">Esc</kbd> to close
               </p>
             </div>
           )}

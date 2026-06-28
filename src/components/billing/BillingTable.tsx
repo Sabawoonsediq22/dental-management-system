@@ -89,7 +89,7 @@ const BillingTable: React.FC<BillingTableProps> = ({
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
             {invoices.map((invoice, index) => (
               <tr
-                key={invoice.id}
+                key={`${invoice.id}-${index}`}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
               >
                 <td className="py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
@@ -160,9 +160,9 @@ const BillingTable: React.FC<BillingTableProps> = ({
       </div>
 
       <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700/60">
-        {invoices.map((invoice) => (
+        {invoices.map((invoice, idx) => (
           <div
-            key={invoice.id}
+            key={`${invoice.id}-${idx}`}
             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
           >
             <div className="flex items-center justify-between gap-3">

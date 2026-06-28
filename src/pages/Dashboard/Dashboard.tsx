@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
           }
         >
           <div className="h-56 sm:h-64 lg:h-72 w-full -ml-2">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={flowData ?? []} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
         >
           <div className="h-56 sm:h-64 lg:h-72 w-full">
             {procData && procData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={procData} margin={{ top: 20, right: 8, left: -8, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} className="dark:stroke-gray-700" />
                   <XAxis

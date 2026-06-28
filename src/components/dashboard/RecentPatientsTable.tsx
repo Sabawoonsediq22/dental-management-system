@@ -158,12 +158,12 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 dark:bg-gray-800">
-                {patients.map((patient: RecentPatient) => {
+                {patients.map((patient: RecentPatient, idx: number) => {
                   const statusStyle =
                     statusConfig[patient.status] || statusConfig.Completed;
                   return (
                     <tr
-                      key={patient.id}
+                      key={`${patient.id}-${idx}`}
                       className="group cursor-pointer transition-all duration-200 hover:bg-gray-50/70 dark:hover:bg-gray-800/30"
                       onClick={() => navigate(`/patients/${patient.id}`)}
                     >

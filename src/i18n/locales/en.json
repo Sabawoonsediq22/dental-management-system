@@ -448,11 +448,13 @@
       "welcomeTitle": "Welcome to the System",
       "welcomeDesc": "The Dental Clinic Management System helps you manage patients, record treatments, handle billing, and generate reports — all in one place. Use the sidebar on the left to navigate between sections.",
       "quickStartTitle": "Quick Start Workflow",
-      "quickStartStep1": "Add a patient via Patients → Add New Patient",
-      "quickStartStep2": "Record a visit with procedures and clinical notes",
-      "quickStartStep3": "Generate invoice and collect payment",
-      "quickStartStep4": "View analytics on the Dashboard and Reports pages",
-      "quickStartStep5": "Export data as PDF or CSV for your records",
+      "quickStartSteps": [
+        "Add a patient via Patients → Add New Patient",
+        "Record a visit with procedures and clinical notes",
+        "Generate invoice and collect payment",
+        "View analytics on the Dashboard and Reports pages",
+        "Export data as PDF or CSV for your records"
+      ],
       "navGuideTitle": "Navigation Guide",
       "navGuideDesc": "Click any card below to jump directly to that section"
     },
