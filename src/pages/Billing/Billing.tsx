@@ -101,10 +101,14 @@ const Billing: React.FC = () => {
         invoices={invoices}
         totalInvoices={data?.total ?? 0}
         totalOutstanding={totalOutstanding}
+        totalOutstandingAmount={data?.total_outstanding ?? 0}
         searchQuery={searchQuery}
         selectedStatus={selectedStatus}
         onSearchChange={handleSearchChange}
         onStatusChange={handleStatusChange}
+        unpaidCount={data?.unpaid_count}
+        partialCount={data?.partial_count}
+        paidCount={data?.paid_count}
       />
 
       <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 mb-3">

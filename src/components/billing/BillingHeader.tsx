@@ -7,19 +7,23 @@ const BillingHeader: React.FC<BillingHeaderProps> = ({
   invoices,
   totalInvoices,
   totalOutstanding,
+  totalOutstandingAmount,
   searchQuery,
   selectedStatus,
   onSearchChange,
   onStatusChange,
+  unpaidCount,
+  partialCount,
+  paidCount,
 }) => {
   const { t } = useTranslation();
 
   const stats = useMemo(() => {
-    const unpaid = invoices.filter((i) => i.status === "Unpaid").length;
-    const partial = invoices.filter((i) => i.status === "Partial").length;
-    const paid = invoices.filter((i) => i.status === "Paid").length;
+    const unpaid = unpaidCount ?? invoices.filter((i) => i.status === "Unpaid").length;
+    const partial = partialCount ?? invoices.filter((i) => i.status === "Partial").length;
+    const paid = paidCount ?? invoices.filter((i) => i.status === "Paid").length;
     return { unpaid, partial, paid };
-  }, [invoices]);
+  }, [invoices, unpaidCount, partialCount, paidCount]);
 
   const getStatusLabel = (status: string) => {
     return t(`billing.filters.${status.toLowerCase()}`, status);
@@ -54,7 +58,7 @@ const BillingHeader: React.FC<BillingHeaderProps> = ({
               {t("billing.outstandingBalance", "Outstanding")} |{" "}
             </span>
             <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
-              {totalOutstanding.toLocaleString()} AFN
+              {totalOutstandingAmount.toLocaleString()} AFN
             </span>
           </div>
         </div>

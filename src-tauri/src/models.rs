@@ -453,6 +453,10 @@ pub struct InvoicePageResult {
     pub page: u32,
     pub per_page: u32,
     pub total_pages: i64,
+    pub unpaid_count: i64,
+    pub partial_count: i64,
+    pub paid_count: i64,
+    pub total_outstanding: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

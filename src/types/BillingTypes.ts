@@ -8,10 +8,14 @@ export interface BillingHeaderProps {
   invoices: InvoiceListItem[];
   totalInvoices: number;
   totalOutstanding: number;
+  totalOutstandingAmount: number;
   searchQuery: string;
   selectedStatus: InvoiceStatusFilter;
   onSearchChange: (query: string) => void;
   onStatusChange: (status: InvoiceStatusFilter) => void;
+  unpaidCount?: number;
+  partialCount?: number;
+  paidCount?: number;
 }
 
 export interface BillingTableProps {

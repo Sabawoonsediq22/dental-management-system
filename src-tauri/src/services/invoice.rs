@@ -17,98 +17,179 @@ fn calculate_invoice_status(outstanding_amount: f64, paid_amount: f64) -> Invoic
 
 impl InvoiceService {
     pub async fn list(pool: &SqlitePool, params: crate::models::InvoiceListParams) -> AppResult<InvoicePageResult> {
-    let page = params.page.unwrap_or(1).max(1);
-    let per_page = params.per_page.unwrap_or(10).max(1);
-    let offset = ((page - 1) * per_page) as i64;
-    let per_page_i64 = per_page as i64;
+        let page = params.page.unwrap_or(1).max(1);
+        let per_page = params.per_page.unwrap_or(10).max(1);
+        let offset = ((page - 1) * per_page) as i64;
+        let per_page_i64 = per_page as i64;
 
-    let mut conditions: Vec<String> = Vec::new();
-    let mut bind_values: Vec<String> = Vec::new();
+        let mut conditions: Vec<String> = Vec::new();
+        let mut bind_values: Vec<String> = Vec::new();
 
-    if let Some(ref q) = params.query {
-        if !q.trim().is_empty() {
-            conditions.push("(i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?)".to_string());
-            let like = format!("%{}%", q.trim());
-            bind_values.push(like.clone());
-            bind_values.push(like.clone());
-            bind_values.push(like.clone());
-            bind_values.push(q.trim().to_string());
-        }
-    }
-
-    if let Some(ref s) = params.status {
-        if s != "All" {
-            conditions.push("i.status = ?".to_string());
-            bind_values.push(s.clone());
-        }
-    }
-
-    let where_clause = if conditions.is_empty() {
-        String::new()
-    } else {
-        format!(" WHERE {}", conditions.join(" AND "))
-    };
-
-    // Build total query
-    let total_query_str = if bind_values.is_empty() {
-        "SELECT COUNT(*) FROM invoices i".to_string()
-    } else {
-        format!("SELECT COUNT(*) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id {}", where_clause)
-    };
-    
-    let mut total_query = sqlx::query_scalar(&total_query_str);
-    for val in &bind_values {
-        total_query = total_query.bind(val);
-    }
-    let total = total_query.fetch_one(pool).await?;
-
-    // Build main query
-    let query_str = format!(
-        "SELECT i.id, i.invoice_number, i.subtotal, i.discount, i.total_amount, i.paid_amount, i.outstanding_amount, i.status, i.issued_at, v.patient_id, p.full_name, p.phone, v.visit_date FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id {} ORDER BY i.issued_at DESC LIMIT ? OFFSET ?",
-        where_clause
-    );
-
-    // FIXED: Build query with all 13 columns
-    let mut query = sqlx::query_as::<_, (String, String, f64, f64, f64, f64, f64, String, String, String, String, Option<String>, String)>(&query_str);
-    
-    // FIXED: Bind values using a different approach
-    for val in bind_values {
-        query = query.bind(val);
-    }
-    query = query.bind(per_page_i64).bind(offset);
-
-    let rows = query.fetch_all(pool).await?;
-
-    let items: Vec<InvoiceListItem> = rows
-        .into_iter()
-        .map(|(id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at, patient_id, patient_name, patient_phone, visit_date)| {
-            InvoiceListItem {
-                id: id.clone(),
-                invoice_number,
-                patient_id,
-                patient_name,
-                patient_phone,
-                visit_id: id,
-                visit_date,
-                subtotal,
-                discount,
-                total_amount,
-                paid_amount,
-                outstanding_amount,
-                status,
-                issued_at,
+        if let Some(ref q) = params.query {
+            if !q.trim().is_empty() {
+                conditions.push("(i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?)".to_string());
+                let like = format!("%{}%", q.trim());
+                bind_values.push(like.clone());
+                bind_values.push(like.clone());
+                bind_values.push(like.clone());
+                bind_values.push(q.trim().to_string());
             }
-        })
-        .collect();
+        }
 
-    Ok(InvoicePageResult {
-        items,
-        total,
-        page,
-        per_page,
-        total_pages: ((total + per_page_i64 - 1) / per_page_i64).max(1),
-    })
-}
+        if let Some(ref s) = params.status {
+            if s != "All" {
+                conditions.push("i.status = ?".to_string());
+                bind_values.push(s.clone());
+            }
+        }
+
+        let where_clause = if conditions.is_empty() {
+            String::new()
+        } else {
+            format!(" WHERE {}", conditions.join(" AND "))
+        };
+
+        // Build total query
+        let total_query_str = if bind_values.is_empty() {
+            "SELECT COUNT(*) FROM invoices i".to_string()
+        } else {
+            format!("SELECT COUNT(*) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id {}", where_clause)
+        };
+        
+        let mut total_query = sqlx::query_scalar(&total_query_str);
+        for val in &bind_values {
+            total_query = total_query.bind(val);
+        }
+        let total = total_query.fetch_one(pool).await?;
+
+        // Prepare status count query values (respecting query filter but ignoring status filter)
+        let mut status_bind_values: Vec<String> = Vec::new();
+        if let Some(ref q) = params.query {
+            if !q.trim().is_empty() {
+                let like = format!("%{}%", q.trim());
+                status_bind_values.push(like.clone());
+                status_bind_values.push(like.clone());
+                status_bind_values.push(like.clone());
+                status_bind_values.push(q.trim().to_string());
+            }
+        }
+
+        // Query status counts
+        let unpaid_count_sql = if status_bind_values.is_empty() {
+            "SELECT COUNT(*) FROM invoices WHERE status = 'Unpaid'"
+        } else {
+            "SELECT COUNT(*) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id WHERE (i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?) AND i.status = 'Unpaid'"
+        };
+        
+        let unpaid_count: i64 = if status_bind_values.is_empty() {
+            sqlx::query_scalar(unpaid_count_sql).fetch_one(pool).await?
+        } else {
+            let mut q = sqlx::query_scalar(unpaid_count_sql);
+            for val in &status_bind_values {
+                q = q.bind(val);
+            }
+            q.fetch_one(pool).await?
+        };
+
+        let partial_count_sql = if status_bind_values.is_empty() {
+            "SELECT COUNT(*) FROM invoices WHERE status = 'Partial'"
+        } else {
+            "SELECT COUNT(*) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id WHERE (i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?) AND i.status = 'Partial'"
+        };
+        
+        let partial_count: i64 = if status_bind_values.is_empty() {
+            sqlx::query_scalar(partial_count_sql).fetch_one(pool).await?
+        } else {
+            let mut q = sqlx::query_scalar(partial_count_sql);
+            for val in &status_bind_values {
+                q = q.bind(val);
+            }
+            q.fetch_one(pool).await?
+        };
+
+        let paid_count_sql = if status_bind_values.is_empty() {
+            "SELECT COUNT(*) FROM invoices WHERE status = 'Paid'"
+        } else {
+            "SELECT COUNT(*) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id WHERE (i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?) AND i.status = 'Paid'"
+        };
+        
+        let paid_count: i64 = if status_bind_values.is_empty() {
+            sqlx::query_scalar(paid_count_sql).fetch_one(pool).await?
+        } else {
+            let mut q = sqlx::query_scalar(paid_count_sql);
+            for val in &status_bind_values {
+                q = q.bind(val);
+            }
+            q.fetch_one(pool).await?
+        };
+
+        let total_outstanding_sql = if status_bind_values.is_empty() {
+            "SELECT COALESCE(SUM(outstanding_amount), 0.0) FROM invoices WHERE status IN ('Unpaid', 'Partial')"
+        } else {
+            "SELECT COALESCE(SUM(i.outstanding_amount), 0.0) FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id WHERE (i.invoice_number LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ? OR i.id = ?) AND i.status IN ('Unpaid', 'Partial')"
+        };
+        
+        let total_outstanding: f64 = if status_bind_values.is_empty() {
+            sqlx::query_scalar(total_outstanding_sql).fetch_one(pool).await?
+        } else {
+            let mut q = sqlx::query_scalar(total_outstanding_sql);
+            for val in &status_bind_values {
+                q = q.bind(val);
+            }
+            q.fetch_one(pool).await?
+        };
+
+        // Build main query
+        let query_str = format!(
+            "SELECT i.id, i.invoice_number, i.subtotal, i.discount, i.total_amount, i.paid_amount, i.outstanding_amount, i.status, i.issued_at, v.patient_id, p.full_name, p.phone, v.visit_date FROM invoices i JOIN visits v ON v.id = i.visit_id JOIN patients p ON p.id = v.patient_id {} ORDER BY i.issued_at DESC LIMIT ? OFFSET ?",
+            where_clause
+        );
+
+        // FIXED: Build query with all 13 columns
+        let mut query = sqlx::query_as::<_, (String, String, f64, f64, f64, f64, f64, String, String, String, String, Option<String>, String)>(&query_str);
+        
+        // FIXED: Bind values using a different approach
+        for val in bind_values {
+            query = query.bind(val);
+        }
+        query = query.bind(per_page_i64).bind(offset);
+
+        let rows = query.fetch_all(pool).await?;
+
+        let items: Vec<InvoiceListItem> = rows
+            .into_iter()
+            .map(|(id, invoice_number, subtotal, discount, total_amount, paid_amount, outstanding_amount, status, issued_at, patient_id, patient_name, patient_phone, visit_date)| {
+                InvoiceListItem {
+                    id: id.clone(),
+                    invoice_number,
+                    patient_id,
+                    patient_name,
+                    patient_phone,
+                    visit_id: id,
+                    visit_date,
+                    subtotal,
+                    discount,
+                    total_amount,
+                    paid_amount,
+                    outstanding_amount,
+                    status,
+                    issued_at,
+                }
+            })
+            .collect();
+
+        Ok(InvoicePageResult {
+            items,
+            total,
+            page,
+            per_page,
+            total_pages: ((total + per_page_i64 - 1) / per_page_i64).max(1),
+            unpaid_count,
+            partial_count,
+            paid_count,
+            total_outstanding,
+        })
+    }
 
     pub async fn create(pool: &SqlitePool, input: CreateInvoiceInput) -> AppResult<Invoice> {
         let id = format!("INV-{}", uuid::Uuid::new_v4().simple());

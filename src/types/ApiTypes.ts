@@ -60,6 +60,10 @@ export interface InvoicePageResult {
   page: number;
   per_page: number;
   total_pages: number;
+  unpaid_count: number;
+  partial_count: number;
+  paid_count: number;
+  total_outstanding: number;
 }
 
 export interface InvoiceListItem {
