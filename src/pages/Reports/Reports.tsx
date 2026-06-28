@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, LoadingSpinner } from "../../components/ui";
 import { useReportSummary, useMonthlyRevenue } from "../../hooks/useReports";
@@ -14,8 +14,11 @@ import {
   Bar,
   Cell,
 } from "recharts";
-import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon } from "../../shared/icons/icons";
+import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon, DownloadIcon } from "../../shared/icons/icons";
 import type { MonthlyRevenuePoint } from "../../types/ApiTypes";
+import { exportPatientsReport, exportFinancialReport, exportTreatmentReport } from "../../lib/export";
+import type { ReportFormat } from "../../lib/export";
+import { toast } from "../../lib/toast-utils";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -85,6 +88,8 @@ const Reports: React.FC = () => {
   const { t } = useTranslation();
   const { data: summary, isLoading, error } = useReportSummary();
   const { data: monthlyRevenue, isLoading: revenueLoading } = useMonthlyRevenue();
+  const [exporting, setExporting] = useState<string | null>(null);
+  const [format, setFormat] = useState<ReportFormat>("pdf");
 
   if (isLoading || revenueLoading) {
     return (
@@ -116,6 +121,18 @@ const Reports: React.FC = () => {
             },
           ]
         : [];
+
+  const handleExport = async (type: string, fn: (format: ReportFormat) => Promise<void>) => {
+    setExporting(type);
+    try {
+      await fn(format);
+      toast.success({ title: t("reports.export.success", "Report exported successfully") });
+    } catch (err) {
+      toast.error({ title: t("reports.export.error", "Failed to export report"), description: String(err) });
+    } finally {
+      setExporting(null);
+    }
+  };
 
   const visitStatusData = summary
     ? [
@@ -284,17 +301,39 @@ const Reports: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base sm:text-lg font-semibold">
-            {t("reports.export.title", "Export Reports")}
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="text-base sm:text-lg font-semibold">
+              {t("reports.export.title", "Export Reports")}
+            </CardTitle>
+            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden self-start">
+              {(["pdf", "csv"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFormat(f)}
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
+                    format === f
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
-              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
-              onClick={() => console.log("Export patients report")}
+              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => handleExport("patients", exportPatientsReport)}
+              disabled={exporting !== null}
             >
-              <PatientIcon size="md" className="mb-3 text-primary" />
+              {exporting === "patients" ? (
+                <LoadingSpinner size="md" />
+              ) : (
+                <PatientIcon size="md" className="mb-3 text-primary" />
+              )}
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {t("reports.export.patients", "Patient Report")}
               </span>
@@ -303,10 +342,15 @@ const Reports: React.FC = () => {
               </span>
             </button>
             <button
-              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
-              onClick={() => console.log("Export financial report")}
+              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => handleExport("financial", exportFinancialReport)}
+              disabled={exporting !== null}
             >
-              <CurrencyIcon size="md" className="mb-3 text-primary" />
+              {exporting === "financial" ? (
+                <LoadingSpinner size="md" />
+              ) : (
+                <DownloadIcon size="md" className="mb-3 text-primary" />
+              )}
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {t("reports.export.financial", "Financial Report")}
               </span>
@@ -315,10 +359,15 @@ const Reports: React.FC = () => {
               </span>
             </button>
             <button
-              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
-              onClick={() => console.log("Export treatment report")}
+              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => handleExport("treatment", exportTreatmentReport)}
+              disabled={exporting !== null}
             >
-              <ToothIcon size="md" className="mb-3 text-primary" />
+              {exporting === "treatment" ? (
+                <LoadingSpinner size="md" />
+              ) : (
+                <ToothIcon size="md" className="mb-3 text-primary" />
+              )}
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {t("reports.export.treatment", "Treatment Report")}
               </span>
