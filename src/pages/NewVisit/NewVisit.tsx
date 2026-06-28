@@ -36,6 +36,7 @@ import { PROCEDURES } from "../../shared/constants/Procedures";
 import PatientAvatarWithStatus from "../../components/patients/PatientAvatarWithStatus";
 import { ReceiptPreviewModal } from "../../components/receipt/ReceiptPreviewModal";
 import { getCurrencySymbol } from "../../components/common/getCurrencySymbol";
+import { validateNewVisitForm as validateFormFields } from "../../validation/newVisitValidation";
 
 const getTodayDateString = () => new Date().toISOString().split("T")[0];
 
@@ -251,40 +252,18 @@ const NewVisit: React.FC = () => {
   };
 
    const validateNewVisitForm = () => {
-     const nextErrors: Record<string, string> = {};
-
-     if (!patientId) {
-       return false;
-     }
-
-     if (!visitDate) {
-       nextErrors.visitDate = t("newVisit.errors.dateRequired");
-     }
-
-     if (!chiefComplaint.trim()) {
-       nextErrors.chiefComplaint = t("newVisit.errors.chiefComplaintRequired");
-     }
-
-     for (const proc of selectedProcedures) {
-       const qty = parseInt(proc.numberOfProcedures.toString(), 10) || 0;
-       if (qty < 1) {
-         nextErrors.numberOfProcedures = t("newVisit.errors.quantityRequired");
-         break;
-       }
-     }
-
-     if (discountAmount < 0) {
-       nextErrors.discount = t("newVisit.errors.nonNegativeAmount");
-     }
-
-     if (paidAmountValue < 0) {
-       nextErrors.paidAmount = t("newVisit.errors.nonNegativeAmount");
-     }
-
-     setErrors(nextErrors);
-
-     return Object.keys(nextErrors).length === 0;
-   };
+      const result = validateFormFields(
+        patientId,
+        visitDate,
+        chiefComplaint,
+        selectedProcedures,
+        discountAmount,
+        paidAmountValue,
+        t,
+      );
+      setErrors(result.errors);
+      return result.isValid;
+    };
 
   const handleReceiptClose = () => {
     setReceiptInvoiceId(null);
@@ -541,7 +520,7 @@ const NewVisit: React.FC = () => {
                     value={chiefComplaint}
                     onChange={(event) => setChiefComplaint(event.target.value)}
                     placeholder={t("newVisit.chiefComplaintPlaceholder")}
-                    className="min-h-[110px] w-full"
+                    className="min-h-27.5 w-full"
                     disabled={isSubmitting}
                   />
                 </FormField>
@@ -550,7 +529,7 @@ const NewVisit: React.FC = () => {
                   value={clinicalNotes}
                   onChange={(event) => setClinicalNotes(event.target.value)}
                   placeholder={t("newVisit.clinicalNotesPlaceholder")}
-                  className="min-h-[110px] w-full"
+                  className="min-h-27.5 w-full"
                   disabled={isSubmitting}
                 />
               </FormField>
@@ -861,7 +840,7 @@ const NewVisit: React.FC = () => {
               />
             </div>
 
-            <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50 p-5 dark:border-gray-700 dark:from-gray-700/50 dark:to-gray-700/30">
+            <div className="rounded-xl border-2 border-amber-200 bg-linear-to-b from-amber-50 to-orange-50 p-5 dark:border-gray-700 dark:from-gray-700/50 dark:to-gray-700/30">
               <div className="mb-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
                   {t("newVisit.billingSummary")}
