@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   AboutIcon,
   BillingIcon,
@@ -29,6 +29,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isRTL = i18n.language === "ps";
   const [isDark, setIsDark] = useState(false);
@@ -63,6 +64,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   useKeyboardShortcut("k", openSearch, "ctrl");
   useKeyboardShortcut("k", openSearch, "meta");
+
+  const goTo = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
+
+  useKeyboardShortcut("n", () => goTo("/patients/new"), "ctrl");
+  useKeyboardShortcut("b", () => goTo("/billing"), "ctrl");
+  useKeyboardShortcut("r", () => goTo("/reports"), "ctrl");
+  useKeyboardShortcut("d", () => goTo("/dashboard"), "ctrl");
+  useKeyboardShortcut(",", () => goTo("/settings"), "ctrl");
+  useKeyboardShortcut("?", () => goTo("/help"));
 
   // Initialize isDark from localStorage or OS on mount
   useEffect(() => {
