@@ -33,207 +33,33 @@ interface FaqEntry {
   a: string;
 }
 
-const sections: GuideEntry[] = [
-  {
-    id: "dashboard",
-    title: "Dashboard",
-    description: "Monitor clinic performance with real-time stats, charts, and patient flow tracking.",
-    icon: DashboardIcon,
-    steps: [
-      "View key metrics: Daily Revenue, Patients Today, Outstanding Balance, and Procedures Performed in the stat cards at the top.",
-      "Toggle between Daily and Weekly views on the Patients Flow chart to spot visit patterns.",
-      "Hover over any chart to see detailed tooltips with exact values.",
-      "Check the Procedure Distribution chart (right side) to see which treatments are most common.",
-      "Scroll down to the Recent Patients table to see the latest visits and update their status.",
-      "Data auto-refreshes every 5 minutes — the green pulse indicator confirms live sync.",
-    ],
-    tips: [
-      "Click a patient row in the Recent Patients table to jump to their full profile.",
-      "Use the daily/weekly toggle to compare today's activity against the weekly trend.",
-      "The outstanding balance badge turns red when the amount is high.",
-    ],
-    links: [
-      { label: "Go to Dashboard", href: "/dashboard" },
-    ],
-  },
-  {
-    id: "patients",
-    title: "Patient Management",
-    description: "Add, search, and manage patients. Record visits, treatments, and track history.",
-    icon: PatientIcon,
-    steps: [
-      "Navigate to Patients and click 'Add New Patient' to open the registration form.",
-      "Fill in patient details (name, phone, age, gender, address) and optionally add medical history (allergies, medications, conditions).",
-      "Add procedures directly during registration — select procedure names, specify tooth numbers, and set quantities.",
-      "Set a discount and initial payment amount, then the system automatically generates the visit + invoice.",
-      "Click on any patient in the list to open their profile with full treatment history, x-rays, and billing info.",
-      "Use the search bar to quickly find patients by name or phone number.",
-    ],
-    tips: [
-      "You can add multiple procedures at once during patient registration.",
-      "Tooth numbers are entered as comma-separated values (e.g., 18, 19, 20).",
-      "The patient list shows initials avatars and last visit date at a glance.",
-    ],
-    links: [
-      { label: "View All Patients", href: "/patients" },
-      { label: "Add New Patient", href: "/patients/new" },
-    ],
-  },
-  {
-    id: "visits",
-    title: "Visits & Treatments",
-    description: "Record new visits, add procedures, and manage treatment records per patient.",
-    icon: ToothIcon,
-    steps: [
-      "From a patient's profile, click 'New Visit' to start a new treatment session.",
-      "Select the date (defaults to today) and enter the chief complaint and clinical notes.",
-      "Choose procedures from the dropdown — each with quantity and tooth-specific details.",
-      "The dental chart visually highlights selected teeth for easy reference.",
-      "After saving, the treatment appears in the patient's timeline with status tracking.",
-      "Update visit status (Open → Completed → Cancelled) as the treatment progresses.",
-    ],
-    tips: [
-      "Use the dental chart for a visual overview — it's faster than typing tooth numbers.",
-      "Clinical notes are preserved and viewable in the treatment history.",
-      "A single visit can include multiple procedures across different teeth.",
-    ],
-    links: [
-      { label: "Browse Patients", href: "/patients" },
-    ],
-  },
-  {
-    id: "billing",
-    title: "Billing & Invoices",
-    description: "Create invoices, record payments, and track outstanding balances.",
-    icon: BillingIcon,
-    steps: [
-      "Invoices are auto-generated when you create a visit with procedures and a paid amount.",
-      "Visit the Billing page to see all invoices with status filters (All, Unpaid, Partial, Paid).",
-      "Search invoices by patient name or invoice number using the search bar.",
-      "Click any invoice to view details, including itemized procedures, payments, and receipt.",
-      "Click 'Record Payment' on an unpaid or partially paid invoice to log a new payment.",
-      "Select payment method (Cash, Card, Mobile, Insurance) and add optional notes.",
-      "Outstanding balances update automatically — the Billing page shows the total owed at the top.",
-    ],
-    tips: [
-      "Use the status filter tabs to quickly find unpaid invoices needing follow-up.",
-      "The summary bar shows total outstanding, unpaid, partial, and paid counts.",
-      "Each invoice can have multiple payments recorded against it.",
-    ],
-    links: [
-      { label: "Go to Billing", href: "/billing" },
-    ],
-  },
-  {
-    id: "reports",
-    title: "Reports & Export",
-    description: "View analytics and export data in CSV or PDF format.",
-    icon: ReportsIcon,
-    steps: [
-      "The Reports page shows summary stat cards for active patients, visits, revenue, and outstanding balance.",
-      "The Revenue Trend chart displays monthly revenue over the past year — hover for exact values.",
-      "The Visit Distribution bar chart breaks down visits by status (Completed, Cancelled, Active).",
-      "To export data, choose your format (PDF or CSV) using the toggle at the top of the Export section.",
-      "Click Patient Report, Financial Report, or Treatment Report to download immediately.",
-      "PDF exports include professional formatting with headers, dates, and styled tables.",
-    ],
-    tips: [
-      "PDF is best for sharing with colleagues or printing; CSV is best for spreadsheet analysis.",
-      "The revenue chart shows 12 months of data — useful for year-over-year comparisons.",
-      "Exported files are named with the current date for easy organization.",
-    ],
-    links: [
-      { label: "View Reports", href: "/reports" },
-    ],
-  },
-  {
-    id: "settings",
-    title: "Settings & Preferences",
-    description: "Configure clinic information, language, and appearance.",
-    icon: SettingsIcon,
-    steps: [
-      "Click the gear icon in the top-right header or navigate to Settings.",
-      "Update clinic name, phone, and address — this info appears on receipts and exports.",
-      "Switch between English and Pashto using the language toggle at the bottom of the sidebar.",
-      "Toggle dark/light theme using the sun/moon icon in the header.",
-      "All settings are saved automatically and persist across app restarts.",
-    ],
-    tips: [
-      "The clinic name on receipts comes from your Settings — keep it up to date.",
-      "Language and theme preferences are stored in the database.",
-    ],
-    links: [
-      { label: "Open Settings", href: "/settings" },
-    ],
-  },
-];
-
-const faqs: FaqEntry[] = [
-  {
-    q: "How do I add a new patient with a treatment?",
-    a: "Go to Patients → 'Add New Patient'. Fill in their details, then scroll to 'Procedures' to add treatments right away. Set a discount and payment — the system creates the patient, visit, and invoice in one step.",
-  },
-  {
-    q: "How do I record a payment on an existing invoice?",
-    a: "Go to Billing, find the invoice (use the search or status filter), click on it to open details, then click 'Record Payment'. Enter the amount, select method, and save.",
-  },
-  {
-    q: "Can I export treatment data for a single patient?",
-    a: "Yes! Open the patient's profile, scroll to their treatment history, and click the download icon. You can export as CSV (spreadsheet), PDF (formatted report), or plain text summary.",
-  },
-  {
-    q: "How do I search for a patient?",
-    a: "Press Ctrl+K (Cmd+K on Mac) to open the global search modal from anywhere in the app. Type the patient's name or phone number. You can also use the search bar on the Patients page.",
-  },
-  {
-    q: "What do the visit statuses mean?",
-    a: "Open = Treatment is in progress. Completed = Treatment is finished. Cancelled = The visit was cancelled. You can change status from the dashboard's Recent Patients table or the patient's profile.",
-  },
-  {
-    q: "How do I print a receipt?",
-    a: "From the Billing page, open an invoice and scroll to the receipt section. Use your browser's print function (Ctrl+P) or export the invoice details as PDF from the Reports page.",
-  },
-  {
-    q: "Is my data backed up?",
-    a: "The application stores data locally in a SQLite database. The Reports page does not currently include an automatic backup feature — periodically export your data via the Reports page for safekeeping.",
-  },
-  {
-    q: "How do I change the language?",
-    a: "Open the sidebar (left panel) and scroll to the bottom. You'll see a language toggle — tap it to switch between English and Pashto. The UI updates immediately.",
-  },
-];
-
-const shortcuts = [
-  { keys: ["Ctrl", "K"], action: "Open global search" },
-  { keys: ["Ctrl", "N"], action: "Add new patient" },
-  { keys: ["Ctrl", "B"], action: "Go to Billing" },
-  { keys: ["Ctrl", "R"], action: "Go to Reports" },
-  { keys: ["Ctrl", "D"], action: "Go to Dashboard" },
-  { keys: ["Ctrl", ","], action: "Open Settings" },
-  { keys: ["?"], action: "Open this Help page" },
-];
-
 const SearchGuide: React.FC<{
   query: string;
   results: { section: string; entry: GuideEntry; matchType: string }[];
   onSelect: (id: string) => void;
   onClear: () => void;
 }> = ({ query, results, onSelect, onClear }) => {
+  const { t } = useTranslation();
   if (!query.trim()) return null;
 
   return (
     <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto">
       <div className="p-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-500">
-          {results.length} result{results.length !== 1 ? "s" : ""}
+          {t("help.search.resultsCount", {
+            count: results.length,
+            plural: results.length === 1
+              ? t("help.search.result", "result")
+              : t("help.search.results", "results"),
+          })}
         </span>
         <button onClick={onClear} className="text-xs text-primary hover:underline cursor-pointer">
-          Clear
+          {t("help.search.clear", "Clear")}
         </button>
       </div>
       {results.length === 0 ? (
         <div className="p-6 text-center text-sm text-gray-400">
-          No results found for "{query}"
+          {t("help.search.noResults", `No results found for "${query}"`)}
         </div>
       ) : (
         <div className="p-2 space-y-1">
@@ -270,6 +96,186 @@ const Help: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  const sections = useMemo<GuideEntry[]>(() => [
+    {
+      id: "dashboard",
+      title: t("help.guide.dashboard.title", "Dashboard"),
+      description: t("help.guide.dashboard.description", "Monitor clinic performance with real-time stats, charts, and patient flow tracking."),
+      icon: DashboardIcon,
+      steps: [
+        t("help.guide.dashboard.step1", "View key metrics: Daily Revenue, Patients Today, Outstanding Balance, and Procedures Performed in the stat cards at the top."),
+        t("help.guide.dashboard.step2", "Toggle between Daily and Weekly views on the Patients Flow chart to spot visit patterns."),
+        t("help.guide.dashboard.step3", "Hover over any chart to see detailed tooltips with exact values."),
+        t("help.guide.dashboard.step4", "Check the Procedure Distribution chart (right side) to see which treatments are most common."),
+        t("help.guide.dashboard.step5", "Scroll down to the Recent Patients table to see the latest visits and update their status."),
+        t("help.guide.dashboard.step6", "Data auto-refreshes every 5 minutes — the green pulse indicator confirms live sync."),
+      ],
+      tips: [
+        t("help.guide.dashboard.tip1", "Click a patient row in the Recent Patients table to jump to their full profile."),
+        t("help.guide.dashboard.tip2", "Use the daily/weekly toggle to compare today's activity against the weekly trend."),
+        t("help.guide.dashboard.tip3", "The outstanding balance badge turns red when the amount is high."),
+      ],
+      links: [
+        { label: t("help.guide.dashboard.link1", "Go to Dashboard"), href: "/dashboard" },
+      ],
+    },
+    {
+      id: "patients",
+      title: t("help.guide.patients.title", "Patient Management"),
+      description: t("help.guide.patients.description", "Add, search, and manage patients. Record visits, treatments, and track history."),
+      icon: PatientIcon,
+      steps: [
+        t("help.guide.patients.step1", "Navigate to Patients and click 'Add New Patient' to open the registration form."),
+        t("help.guide.patients.step2", "Fill in patient details (name, phone, age, gender, address) and optionally add medical history (allergies, medications, conditions)."),
+        t("help.guide.patients.step3", "Add procedures directly during registration — select procedure names, specify tooth numbers, and set quantities."),
+        t("help.guide.patients.step4", "Set a discount and initial payment amount, then the system automatically generates the visit + invoice."),
+        t("help.guide.patients.step5", "Click on any patient in the list to open their profile with full treatment history, x-rays, and billing info."),
+        t("help.guide.patients.step6", "Use the search bar to quickly find patients by name or phone number."),
+      ],
+      tips: [
+        t("help.guide.patients.tip1", "You can add multiple procedures at once during patient registration."),
+        t("help.guide.patients.tip2", "Tooth numbers are entered as comma-separated values (e.g., 18, 19, 20)."),
+        t("help.guide.patients.tip3", "The patient list shows initials avatars and last visit date at a glance."),
+      ],
+      links: [
+        { label: t("help.guide.patients.link1", "View All Patients"), href: "/patients" },
+        { label: t("help.guide.patients.link2", "Add New Patient"), href: "/patients/new" },
+      ],
+    },
+    {
+      id: "visits",
+      title: t("help.guide.visits.title", "Visits & Treatments"),
+      description: t("help.guide.visits.description", "Record new visits, add procedures, and manage treatment records per patient."),
+      icon: ToothIcon,
+      steps: [
+        t("help.guide.visits.step1", "From a patient's profile, click 'New Visit' to start a new treatment session."),
+        t("help.guide.visits.step2", "Select the date (defaults to today) and enter the chief complaint and clinical notes."),
+        t("help.guide.visits.step3", "Choose procedures from the dropdown — each with quantity and tooth-specific details."),
+        t("help.guide.visits.step4", "The dental chart visually highlights selected teeth for easy reference."),
+        t("help.guide.visits.step5", "After saving, the treatment appears in the patient's timeline with status tracking."),
+        t("help.guide.visits.step6", "Update visit status (Open → Completed → Cancelled) as the treatment progresses."),
+      ],
+      tips: [
+        t("help.guide.visits.tip1", "Use the dental chart for a visual overview — it's faster than typing tooth numbers."),
+        t("help.guide.visits.tip2", "Clinical notes are preserved and viewable in the treatment history."),
+        t("help.guide.visits.tip3", "A single visit can include multiple procedures across different teeth."),
+      ],
+      links: [
+        { label: t("help.guide.visits.link1", "Browse Patients"), href: "/patients" },
+      ],
+    },
+    {
+      id: "billing",
+      title: t("help.guide.billing.title", "Billing & Invoices"),
+      description: t("help.guide.billing.description", "Create invoices, record payments, and track outstanding balances."),
+      icon: BillingIcon,
+      steps: [
+        t("help.guide.billing.step1", "Invoices are auto-generated when you create a visit with procedures and a paid amount."),
+        t("help.guide.billing.step2", "Visit the Billing page to see all invoices with status filters (All, Unpaid, Partial, Paid)."),
+        t("help.guide.billing.step3", "Search invoices by patient name or invoice number using the search bar."),
+        t("help.guide.billing.step4", "Click any invoice to view details, including itemized procedures, payments, and receipt."),
+        t("help.guide.billing.step5", "Click 'Record Payment' on an unpaid or partially paid invoice to log a new payment."),
+        t("help.guide.billing.step6", "Select payment method (Cash, Card, Mobile, Insurance) and add optional notes."),
+        t("help.guide.billing.step7", "Outstanding balances update automatically — the Billing page shows the total owed at the top."),
+      ],
+      tips: [
+        t("help.guide.billing.tip1", "Use the status filter tabs to quickly find unpaid invoices needing follow-up."),
+        t("help.guide.billing.tip2", "The summary bar shows total outstanding, unpaid, partial, and paid counts."),
+        t("help.guide.billing.tip3", "Each invoice can have multiple payments recorded against it."),
+      ],
+      links: [
+        { label: t("help.guide.billing.link1", "Go to Billing"), href: "/billing" },
+      ],
+    },
+    {
+      id: "reports",
+      title: t("help.guide.reports.title", "Reports & Export"),
+      description: t("help.guide.reports.description", "View analytics and export data in CSV or PDF format."),
+      icon: ReportsIcon,
+      steps: [
+        t("help.guide.reports.step1", "The Reports page shows summary stat cards for active patients, visits, revenue, and outstanding balance."),
+        t("help.guide.reports.step2", "The Revenue Trend chart displays monthly revenue over the past year — hover for exact values."),
+        t("help.guide.reports.step3", "The Visit Distribution bar chart breaks down visits by status (Completed, Cancelled, Active)."),
+        t("help.guide.reports.step4", "To export data, choose your format (PDF or CSV) using the toggle at the top of the Export section."),
+        t("help.guide.reports.step5", "Click Patient Report, Financial Report, or Treatment Report to download immediately."),
+        t("help.guide.reports.step6", "PDF exports include professional formatting with headers, dates, and styled tables."),
+      ],
+      tips: [
+        t("help.guide.reports.tip1", "PDF is best for sharing with colleagues or printing; CSV is best for spreadsheet analysis."),
+        t("help.guide.reports.tip2", "The revenue chart shows 12 months of data — useful for year-over-year comparisons."),
+        t("help.guide.reports.tip3", "Exported files are named with the current date for easy organization."),
+      ],
+      links: [
+        { label: t("help.guide.reports.link1", "View Reports"), href: "/reports" },
+      ],
+    },
+    {
+      id: "settings",
+      title: t("help.guide.settings.title", "Settings & Preferences"),
+      description: t("help.guide.settings.description", "Configure clinic information, language, and appearance."),
+      icon: SettingsIcon,
+      steps: [
+        t("help.guide.settings.step1", "Click the gear icon in the top-right header or navigate to Settings."),
+        t("help.guide.settings.step2", "Update clinic name, phone, and address — this info appears on receipts and exports."),
+        t("help.guide.settings.step3", "Switch between English and Pashto using the language toggle at the bottom of the sidebar."),
+        t("help.guide.settings.step4", "Toggle dark/light theme using the sun/moon icon in the header."),
+        t("help.guide.settings.step5", "All settings are saved automatically and persist across app restarts."),
+      ],
+      tips: [
+        t("help.guide.settings.tip1", "The clinic name on receipts comes from your Settings — keep it up to date."),
+        t("help.guide.settings.tip2", "Language and theme preferences are stored in the database."),
+      ],
+      links: [
+        { label: t("help.guide.settings.link1", "Open Settings"), href: "/settings" },
+      ],
+    },
+  ], [t]);
+
+  const faqs = useMemo<FaqEntry[]>(() => [
+    {
+      q: t("help.faq.q1", "How do I add a new patient with a treatment?"),
+      a: t("help.faq.a1", "Go to Patients → 'Add New Patient'. Fill in their details, then scroll to 'Procedures' to add treatments right away. Set a discount and payment — the system creates the patient, visit, and invoice in one step."),
+    },
+    {
+      q: t("help.faq.q2", "How do I record a payment on an existing invoice?"),
+      a: t("help.faq.a2", "Go to Billing, find the invoice (use the search or status filter), click on it to open details, then click 'Record Payment'. Enter the amount, select method, and save."),
+    },
+    {
+      q: t("help.faq.q3", "Can I export treatment data for a single patient?"),
+      a: t("help.faq.a3", "Yes! Open the patient's profile, scroll to their treatment history, and click the download icon. You can export as CSV (spreadsheet), PDF (formatted report), or plain text summary."),
+    },
+    {
+      q: t("help.faq.q4", "How do I search for a patient?"),
+      a: t("help.faq.a4", "Press Ctrl+K (Cmd+K on Mac) to open the global search modal from anywhere in the app. Type the patient's name or phone number. You can also use the search bar on the Patients page."),
+    },
+    {
+      q: t("help.faq.q5", "What do the visit statuses mean?"),
+      a: t("help.faq.a5", "Open = Treatment is in progress. Completed = Treatment is finished. Cancelled = The visit was cancelled. You can change status from the dashboard's Recent Patients table or the patient's profile."),
+    },
+    {
+      q: t("help.faq.q6", "How do I print a receipt?"),
+      a: t("help.faq.a6", "From the Billing page, open an invoice and scroll to the receipt section. Use your browser's print function (Ctrl+P) or export the invoice details as PDF from the Reports page."),
+    },
+    {
+      q: t("help.faq.q7", "Is my data backed up?"),
+      a: t("help.faq.a7", "The application stores data locally in a SQLite database. The Reports page does not currently include an automatic backup feature — periodically export your data via the Reports page for safekeeping."),
+    },
+    {
+      q: t("help.faq.q8", "How do I change the language?"),
+      a: t("help.faq.a8", "Open the sidebar (left panel) and scroll to the bottom. You'll see a language toggle — tap it to switch between English and Pashto. The UI updates immediately."),
+    },
+  ], [t]);
+
+  const shortcuts = useMemo(() => [
+    { keys: ["Ctrl", "K"], action: t("help.shortcuts.openSearch", "Open global search") },
+    { keys: ["Ctrl", "N"], action: t("help.shortcuts.newPatient", "Add new patient") },
+    { keys: ["Ctrl", "B"], action: t("help.shortcuts.goToBilling", "Go to Billing") },
+    { keys: ["Ctrl", "R"], action: t("help.shortcuts.goToReports", "Go to Reports") },
+    { keys: ["Ctrl", "D"], action: t("help.shortcuts.goToDashboard", "Go to Dashboard") },
+    { keys: ["Ctrl", ","], action: t("help.shortcuts.openSettings", "Open Settings") },
+    { keys: ["?"], action: t("help.shortcuts.openHelp", "Open this Help page") },
+  ], [t]);
+
   const searchResults = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return [];
@@ -278,16 +284,16 @@ const Help: React.FC = () => {
 
     for (const entry of sections) {
       if (entry.title.toLowerCase().includes(q)) {
-        results.push({ section: entry.title, entry, matchType: "Title" });
+        results.push({ section: entry.title, entry, matchType: t("help.search.matchType.title", "Title") });
         continue;
       }
       if (entry.description.toLowerCase().includes(q)) {
-        results.push({ section: entry.title, entry, matchType: "Description" });
+        results.push({ section: entry.title, entry, matchType: t("help.search.matchType.description", "Description") });
         continue;
       }
       for (const step of entry.steps) {
         if (step.toLowerCase().includes(q)) {
-          results.push({ section: entry.title, entry, matchType: "Step" });
+          results.push({ section: entry.title, entry, matchType: t("help.search.matchType.step", "Step") });
           break;
         }
       }
@@ -297,14 +303,14 @@ const Help: React.FC = () => {
       for (const faq of faqs) {
         if (faq.q.toLowerCase().includes(q) || faq.a.toLowerCase().includes(q)) {
           const entry = sections.find((s) => s.id === "patients")!;
-          results.push({ section: "FAQ", entry, matchType: "FAQ" });
+          results.push({ section: t("help.search.matchType.faq", "FAQ"), entry, matchType: t("help.search.matchType.faq", "FAQ") });
           break;
         }
       }
     }
 
     return results;
-  }, [searchQuery]);
+  }, [searchQuery, sections, faqs, t]);
 
   const handleSearchSelect = useCallback((id: string) => {
     setActiveTab(id);
@@ -335,7 +341,7 @@ const Help: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search guides, steps, FAQs..."
+            placeholder={t("help.searchPlaceholder", "Search guides, steps, FAQs...")}
             className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
@@ -350,10 +356,10 @@ const Help: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap gap-1 bg-transparent p-0 border-b border-gray-200 dark:border-gray-700 rounded-none w-full overflow-x-auto">
           {[
-            { id: "getting-started", label: "Getting Started", icon: HelpIcon },
+            { id: "getting-started", label: t("help.tabs.gettingStarted", "Getting Started"), icon: HelpIcon },
             ...sections.map((s) => ({ id: s.id, label: s.title, icon: s.icon })),
-            { id: "faq", label: "FAQ", icon: HelpIcon },
-            { id: "shortcuts", label: "Shortcuts", icon: HelpIcon },
+            { id: "faq", label: t("help.tabs.faq", "FAQ"), icon: HelpIcon },
+            { id: "shortcuts", label: t("help.tabs.shortcuts", "Shortcuts"), icon: HelpIcon },
           ].map((tab) => (
             <TabsTrigger
               key={tab.id}
@@ -372,14 +378,12 @@ const Help: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                   <span className="flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300 text-sm font-bold">1</span>
-                  Welcome to the System
+                  {t("help.gettingStarted.welcomeTitle", "Welcome to the System")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                  The Dental Clinic Management System helps you manage patients, record treatments,
-                  handle billing, and generate reports — all in one place. Use the sidebar on the left
-                  to navigate between sections.
+                  {t("help.gettingStarted.welcomeDesc", "The Dental Clinic Management System helps you manage patients, record treatments, handle billing, and generate reports — all in one place. Use the sidebar on the left to navigate between sections.")}
                 </p>
               </CardContent>
             </Card>
@@ -388,17 +392,17 @@ const Help: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                   <span className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-sm font-bold">2</span>
-                  Quick Start Workflow
+                  {t("help.gettingStarted.quickStartTitle", "Quick Start Workflow")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ol className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                   {[
-                    "Add a patient via Patients → Add New Patient",
-                    "Record a visit with procedures and clinical notes",
-                    "Generate invoice and collect payment",
-                    "View analytics on the Dashboard and Reports pages",
-                    "Export data as PDF or CSV for your records",
+                    t("help.gettingStarted.quickStartStep1", "Add a patient via Patients → Add New Patient"),
+                    t("help.gettingStarted.quickStartStep2", "Record a visit with procedures and clinical notes"),
+                    t("help.gettingStarted.quickStartStep3", "Generate invoice and collect payment"),
+                    t("help.gettingStarted.quickStartStep4", "View analytics on the Dashboard and Reports pages"),
+                    t("help.gettingStarted.quickStartStep5", "Export data as PDF or CSV for your records"),
                   ].map((step, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold shrink-0 mt-0.5">
@@ -414,8 +418,8 @@ const Help: React.FC = () => {
 
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg font-semibold">Navigation Guide</CardTitle>
-              <CardDescription>Click any card below to jump directly to that section</CardDescription>
+              <CardTitle className="text-base sm:text-lg font-semibold">{t("help.gettingStarted.navGuideTitle", "Navigation Guide")}</CardTitle>
+              <CardDescription>{t("help.gettingStarted.navGuideDesc", "Click any card below to jump directly to that section")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
@@ -458,7 +462,7 @@ const Help: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                       <span className="w-6 h-6 rounded bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">✓</span>
-                      Step-by-Step Guide
+                      {t("help.section.stepByStep", "Step-by-Step Guide")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -482,7 +486,7 @@ const Help: React.FC = () => {
                     <CardHeader>
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <span className="text-amber-500 text-base">💡</span>
-                        Pro Tips
+                        {t("help.section.proTips", "Pro Tips")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -501,7 +505,7 @@ const Help: React.FC = () => {
                 {section.links && section.links.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm font-semibold">Quick Links</CardTitle>
+                      <CardTitle className="text-sm font-semibold">{t("help.section.quickLinks", "Quick Links")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {section.links.map((link, i) => (
@@ -522,17 +526,17 @@ const Help: React.FC = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm font-semibold">Need Help?</CardTitle>
+                    <CardTitle className="text-sm font-semibold">{t("help.section.needHelp", "Need Help?")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                      Search above or check the FAQ tab for answers to common questions.
+                      {t("help.section.needHelpDesc", "Search above or check the FAQ tab for answers to common questions.")}
                     </p>
                     <button
                       onClick={() => setActiveTab("faq")}
                       className="text-xs font-medium text-primary hover:underline cursor-pointer"
                     >
-                      Browse FAQs →
+                      {t("help.section.browseFaqs", "Browse FAQs →")}
                     </button>
                   </CardContent>
                 </Card>
@@ -545,10 +549,10 @@ const Help: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base sm:text-lg font-semibold">
-                Frequently Asked Questions
+                {t("help.faq.title", "Frequently Asked Questions")}
               </CardTitle>
               <CardDescription>
-                Click a question to expand the answer. {faqs.length} topics covered.
+                {t("help.faq.description", "Click a question to expand the answer. {{count}} topics covered.", { count: faqs.length })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -584,10 +588,10 @@ const Help: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                ⌨ Keyboard Shortcuts
+                ⌨ {t("help.shortcuts.title", "Keyboard Shortcuts")}
               </CardTitle>
               <CardDescription>
-                Speed up your workflow with these keyboard shortcuts.
+                {t("help.shortcuts.description", "Speed up your workflow with these keyboard shortcuts.")}
               </CardDescription>
             </CardHeader>
             <CardContent>

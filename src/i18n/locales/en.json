@@ -423,45 +423,163 @@
     "description": "About Us."
   },
   "help": {
-    "title": "Help",
-    "subtitle": "Support Center",
-    "sections": {
+    "title": "Help & Documentation",
+    "subtitle": "SUPPORT CENTER",
+    "searchPlaceholder": "Search guides, steps, FAQs...",
+    "search": {
+      "resultsCount": "{{count}} {{plural}}",
+      "result": "result",
+      "results": "results",
+      "clear": "Clear",
+      "noResults": "No results found for \"{{query}}\"",
+      "matchType": {
+        "title": "Title",
+        "description": "Description",
+        "step": "Step",
+        "faq": "FAQ"
+      }
+    },
+    "tabs": {
       "gettingStarted": "Getting Started",
-      "quickActions": "Quick Actions",
-      "features": "Key Features",
-      "faq": "Frequently Asked Questions",
-      "contact": "Contact Support"
+      "faq": "FAQ",
+      "shortcuts": "Shortcuts"
     },
     "gettingStarted": {
-      "intro": "Welcome to the Dental Clinic Management System. Follow these steps to begin:",
-      "step1": "Add new patients through the Patients section",
-      "step2": "Record visits and treatments for each patient",
-      "step3": "Generate invoices and track payments for each visit.",
-      "step4": "View reports and analytics in the Reports section"
+      "welcomeTitle": "Welcome to the System",
+      "welcomeDesc": "The Dental Clinic Management System helps you manage patients, record treatments, handle billing, and generate reports — all in one place. Use the sidebar on the left to navigate between sections.",
+      "quickStartTitle": "Quick Start Workflow",
+      "quickStartStep1": "Add a patient via Patients → Add New Patient",
+      "quickStartStep2": "Record a visit with procedures and clinical notes",
+      "quickStartStep3": "Generate invoice and collect payment",
+      "quickStartStep4": "View analytics on the Dashboard and Reports pages",
+      "quickStartStep5": "Export data as PDF or CSV for your records",
+      "navGuideTitle": "Navigation Guide",
+      "navGuideDesc": "Click any card below to jump directly to that section"
     },
-    "features": {
-      "dashboard": "Dashboard Overview",
-      "dashboardDesc": "View clinic statistics, patient flow, and procedure distribution at a glance",
-      "patients": "Patient Management",
-      "patientsDesc": "Manage patient records, treatments, and visit history",
-      "treatments": "Treatment Records",
-      "treatmentsDesc": "Record and track dental procedures with tooth-specific details",
-      "billing": "Billing & Invoices",
-      "billingDesc": "Create invoices, record payments, and manage outstanding balances"
+    "guide": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Monitor clinic performance with real-time stats, charts, and patient flow tracking.",
+        "step1": "View key metrics: Daily Revenue, Patients Today, Outstanding Balance, and Procedures Performed in the stat cards at the top.",
+        "step2": "Toggle between Daily and Weekly views on the Patients Flow chart to spot visit patterns.",
+        "step3": "Hover over any chart to see detailed tooltips with exact values.",
+        "step4": "Check the Procedure Distribution chart (right side) to see which treatments are most common.",
+        "step5": "Scroll down to the Recent Patients table to see the latest visits and update their status.",
+        "step6": "Data auto-refreshes every 5 minutes — the green pulse indicator confirms live sync.",
+        "tip1": "Click a patient row in the Recent Patients table to jump to their full profile.",
+        "tip2": "Use the daily/weekly toggle to compare today's activity against the weekly trend.",
+        "tip3": "The outstanding balance badge turns red when the amount is high.",
+        "link1": "Go to Dashboard"
+      },
+      "patients": {
+        "title": "Patient Management",
+        "description": "Add, search, and manage patients. Record visits, treatments, and track history.",
+        "step1": "Navigate to Patients and click 'Add New Patient' to open the registration form.",
+        "step2": "Fill in patient details (name, phone, age, gender, address) and optionally add medical history (allergies, medications, conditions).",
+        "step3": "Add procedures directly during registration — select procedure names, specify tooth numbers, and set quantities.",
+        "step4": "Set a discount and initial payment amount, then the system automatically generates the visit + invoice.",
+        "step5": "Click on any patient in the list to open their profile with full treatment history, x-rays, and billing info.",
+        "step6": "Use the search bar to quickly find patients by name or phone number.",
+        "tip1": "You can add multiple procedures at once during patient registration.",
+        "tip2": "Tooth numbers are entered as comma-separated values (e.g., 18, 19, 20).",
+        "tip3": "The patient list shows initials avatars and last visit date at a glance.",
+        "link1": "View All Patients",
+        "link2": "Add New Patient"
+      },
+      "visits": {
+        "title": "Visits & Treatments",
+        "description": "Record new visits, add procedures, and manage treatment records per patient.",
+        "step1": "From a patient's profile, click 'New Visit' to start a new treatment session.",
+        "step2": "Select the date (defaults to today) and enter the chief complaint and clinical notes.",
+        "step3": "Choose procedures from the dropdown — each with quantity and tooth-specific details.",
+        "step4": "The dental chart visually highlights selected teeth for easy reference.",
+        "step5": "After saving, the treatment appears in the patient's timeline with status tracking.",
+        "step6": "Update visit status (Open → Completed → Cancelled) as the treatment progresses.",
+        "tip1": "Use the dental chart for a visual overview — it's faster than typing tooth numbers.",
+        "tip2": "Clinical notes are preserved and viewable in the treatment history.",
+        "tip3": "A single visit can include multiple procedures across different teeth.",
+        "link1": "Browse Patients"
+      },
+      "billing": {
+        "title": "Billing & Invoices",
+        "description": "Create invoices, record payments, and track outstanding balances.",
+        "step1": "Invoices are auto-generated when you create a visit with procedures and a paid amount.",
+        "step2": "Visit the Billing page to see all invoices with status filters (All, Unpaid, Partial, Paid).",
+        "step3": "Search invoices by patient name or invoice number using the search bar.",
+        "step4": "Click any invoice to view details, including itemized procedures, payments, and receipt.",
+        "step5": "Click 'Record Payment' on an unpaid or partially paid invoice to log a new payment.",
+        "step6": "Select payment method (Cash, Card, Mobile, Insurance) and add optional notes.",
+        "step7": "Outstanding balances update automatically — the Billing page shows the total owed at the top.",
+        "tip1": "Use the status filter tabs to quickly find unpaid invoices needing follow-up.",
+        "tip2": "The summary bar shows total outstanding, unpaid, partial, and paid counts.",
+        "tip3": "Each invoice can have multiple payments recorded against it.",
+        "link1": "Go to Billing"
+      },
+      "reports": {
+        "title": "Reports & Export",
+        "description": "View analytics and export data in CSV or PDF format.",
+        "step1": "The Reports page shows summary stat cards for active patients, visits, revenue, and outstanding balance.",
+        "step2": "The Revenue Trend chart displays monthly revenue over the past year — hover for exact values.",
+        "step3": "The Visit Distribution bar chart breaks down visits by status (Completed, Cancelled, Active).",
+        "step4": "To export data, choose your format (PDF or CSV) using the toggle at the top of the Export section.",
+        "step5": "Click Patient Report, Financial Report, or Treatment Report to download immediately.",
+        "step6": "PDF exports include professional formatting with headers, dates, and styled tables.",
+        "tip1": "PDF is best for sharing with colleagues or printing; CSV is best for spreadsheet analysis.",
+        "tip2": "The revenue chart shows 12 months of data — useful for year-over-year comparisons.",
+        "tip3": "Exported files are named with the current date for easy organization.",
+        "link1": "View Reports"
+      },
+      "settings": {
+        "title": "Settings & Preferences",
+        "description": "Configure clinic information, language, and appearance.",
+        "step1": "Click the gear icon in the top-right header or navigate to Settings.",
+        "step2": "Update clinic name, phone, and address — this info appears on receipts and exports.",
+        "step3": "Switch between English and Pashto using the language toggle at the bottom of the sidebar.",
+        "step4": "Toggle dark/light theme using the sun/moon icon in the header.",
+        "step5": "All settings are saved automatically and persist across app restarts.",
+        "tip1": "The clinic name on receipts comes from your Settings — keep it up to date.",
+        "tip2": "Language and theme preferences are stored in the database.",
+        "link1": "Open Settings"
+      }
     },
-    "actions": {
-      "addPatient": "Add Patient",
-      "newVisit": "New Visit"
+    "section": {
+      "stepByStep": "Step-by-Step Guide",
+      "proTips": "Pro Tips",
+      "quickLinks": "Quick Links",
+      "needHelp": "Need Help?",
+      "needHelpDesc": "Search above or check the FAQ tab for answers to common questions.",
+      "browseFaqs": "Browse FAQs →"
     },
     "faq": {
-      "q1": "How do I add a new patient?",
-      "a1": "Navigate to the Patients page and click 'Add New Patient'. Fill in the patient details, medical history, and treatment information to create a complete record.",
-      "q2": "How do I record a treatment?",
-      "a2": "Go to a patient's profile and click 'New Visit'. Select procedures, specify treated teeth, add clinical notes, and generate the invoice in one workflow.",
-      "q3": "How do I record a payment?",
-      "a3": "Visit the Billing page, find the invoice, and click 'Record Payment'. Enter the payment amount and notes, then save to update the invoice status.",
-      "q4": "Can I export patient data?",
-      "a4": "Yes, visit the Reports page to export patient, financial, or treatment reports. Select the report type and download in your preferred format."
+      "title": "Frequently Asked Questions",
+      "description": "Click a question to expand the answer. {{count}} topics covered.",
+      "q1": "How do I add a new patient with a treatment?",
+      "a1": "Go to Patients → 'Add New Patient'. Fill in their details, then scroll to 'Procedures' to add treatments right away. Set a discount and payment — the system creates the patient, visit, and invoice in one step.",
+      "q2": "How do I record a payment on an existing invoice?",
+      "a2": "Go to Billing, find the invoice (use the search or status filter), click on it to open details, then click 'Record Payment'. Enter the amount, select method, and save.",
+      "q3": "Can I export treatment data for a single patient?",
+      "a3": "Yes! Open the patient's profile, scroll to their treatment history, and click the download icon. You can export as CSV (spreadsheet), PDF (formatted report), or plain text summary.",
+      "q4": "How do I search for a patient?",
+      "a4": "Press Ctrl+K (Cmd+K on Mac) to open the global search modal from anywhere in the app. Type the patient's name or phone number. You can also use the search bar on the Patients page.",
+      "q5": "What do the visit statuses mean?",
+      "a5": "Open = Treatment is in progress. Completed = Treatment is finished. Cancelled = The visit was cancelled. You can change status from the dashboard's Recent Patients table or the patient's profile.",
+      "q6": "How do I print a receipt?",
+      "a6": "From the Billing page, open an invoice and scroll to the receipt section. Use your browser's print function (Ctrl+P) or export the invoice details as PDF from the Reports page.",
+      "q7": "Is my data backed up?",
+      "a7": "The application stores data locally in a SQLite database. The Reports page does not currently include an automatic backup feature — periodically export your data via the Reports page for safekeeping.",
+      "q8": "How do I change the language?",
+      "a8": "Open the sidebar (left panel) and scroll to the bottom. You'll see a language toggle — tap it to switch between English and Pashto. The UI updates immediately."
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "description": "Speed up your workflow with these keyboard shortcuts.",
+      "openSearch": "Open global search",
+      "newPatient": "Add new patient",
+      "goToBilling": "Go to Billing",
+      "goToReports": "Go to Reports",
+      "goToDashboard": "Go to Dashboard",
+      "openSettings": "Open Settings",
+      "openHelp": "Open this Help page"
     }
   },
   "patientProfile": {
