@@ -6,7 +6,6 @@ import { BillingHeaderProps, INVOICE_STATUS_FILTER_OPTIONS } from "../../types/B
 const BillingHeader: React.FC<BillingHeaderProps> = ({
   invoices,
   totalInvoices,
-  totalOutstanding,
   totalOutstandingAmount,
   searchQuery,
   selectedStatus,

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "../../components/ui";
-import { TrendingUpIcon } from "../../shared/icons/icons";
+import { TrendingDownIcon, TrendingUpIcon } from "../../shared/icons/icons";
 
 interface StatCardProps {
   title: string;
@@ -38,10 +38,11 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, l
           )}
           {trend && !loading && (
             <div className="flex items-center gap-1 mt-1">
-              <TrendingUpIcon
-                size="xs"
-                className={`${trend.positive ? "text-green-500" : "text-red-500"}`}
-              />
+              {trend.positive ? (
+                <TrendingUpIcon size="xs" className="text-green-600"/>
+              ) : (
+                <TrendingDownIcon size="xs" className="text-red-600"/>
+              )}
               <span
                 className={`text-[10px] sm:text-xs font-semibold ${trend.positive ? "text-green-600" : "text-red-600"}`}
               >

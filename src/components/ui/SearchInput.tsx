@@ -8,18 +8,13 @@ export interface SearchInputProps extends Omit<
 > {
   value: string;
   onChange: (value: string) => void;
-  onClear?: () => void;
-  showClearButton?: boolean;
   containerClassName?: string;
 }
-
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   (
     {
       value,
       onChange,
-      onClear,
-      showClearButton = true,
       className,
       containerClassName,
       ...props
