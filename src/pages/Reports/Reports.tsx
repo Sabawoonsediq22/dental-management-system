@@ -305,20 +305,45 @@ const Reports: React.FC = () => {
             <CardTitle className="text-base sm:text-lg font-semibold">
               {t("reports.export.title", "Export Reports")}
             </CardTitle>
-            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden self-start">
-              {(["pdf", "csv"] as const).map((f) => (
+            <div className="flex items-center gap-2 self-start">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {t("reports.export.format", "Format:")}
+              </span>
+              <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <button
-                  key={f}
-                  onClick={() => setFormat(f)}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
-                    format === f
+                  onClick={() => setFormat("pdf")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    format === "pdf"
                       ? "bg-primary text-white shadow-sm"
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
-                  {f}
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  PDF
                 </button>
-              ))}
+                <button
+                  onClick={() => setFormat("csv")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    format === "csv"
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                  CSV
+                </button>
+              </div>
             </div>
           </div>
         </CardHeader>
