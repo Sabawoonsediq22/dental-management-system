@@ -1,7 +1,15 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { SearchIcon, ChevronRightIcon } from "../../shared/icons/icons";
+import {
+  SearchIcon,
+  ChevronRightIcon,
+  PatientIcon,
+  ReceiptIcon,
+  PaymentIcon,
+  ToothIcon,
+  ActivityIcon,
+} from "../../shared/icons/icons";
 import { cn } from "../../lib/utils";
 import { useDebounce } from "../../hooks/useDebounce";
 import { api } from "../../lib/api";
@@ -10,12 +18,12 @@ import { useRecentSearches } from "../../hooks/useDebounce";
 import { Input } from "../ui";
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  patient: <span className="text-lg">👤</span>,
-  invoice: <span className="text-lg">📄</span>,
-  receipt: <span className="text-lg">🧾</span>,
-  visit: <span className="text-lg">📋</span>,
-  treatment: <span className="text-lg">🦷</span>,
-  payment: <span className="text-lg">💰</span>,
+  patient: <PatientIcon size="sm" />,
+  invoice: <ReceiptIcon size="sm" />,
+  receipt: <ReceiptIcon size="sm" />,
+  visit: <ActivityIcon size="sm" />,
+  treatment: <ToothIcon size="sm" />,
+  payment: <PaymentIcon size="sm" />,
 };
 
 interface SearchModalProps {
@@ -30,11 +38,12 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
+  const [recentVersion, setRecentVersion] = React.useState(0);
   const debouncedQuery = useDebounce(query, 300);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { getSearches, addSearch, removeSearch } = useRecentSearches();
-  const recentSearches = getSearches();
+  const { getSearches, addSearch, removeSearch, clearSearches } = useRecentSearches();
+  const recentSearches = React.useMemo(() => getSearches(), [recentVersion, getSearches]);
   const isRTL = i18n.language === "ps";
 
   const categoryLabels: Record<string, string> = {
@@ -57,6 +66,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
       setQuery("");
       setResults([]);
       setSelectedIndex(-1);
+      setRecentVersion((v) => v + 1);
     }
   }, [isOpen]);
 
@@ -72,6 +82,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         const data = await api.search.globalSearch(debouncedQuery.trim());
         setResults(data);
         setSelectedIndex(-1);
+        if (listRef.current) {
+          listRef.current.scrollTop = 0;
+        }
       } catch (error) {
         console.error("Search failed:", error);
         setResults([]);
@@ -130,6 +143,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
 
   const handleSelect = (result: SearchResult) => {
     addSearch(query.trim());
+    setRecentVersion((v) => v + 1);
     onClose();
     if (result.route) {
       navigate(result.route);
@@ -139,12 +153,19 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const handleRecentClick = (recentQuery: string) => {
     setQuery(recentQuery);
     addSearch(recentQuery);
+    setRecentVersion((v) => v + 1);
   };
 
   const handleClearRecent = (e: React.MouseEvent, recentQuery: string) => {
     e.stopPropagation();
     removeSearch(recentQuery);
+    setRecentVersion((v) => v + 1);
   };
+
+  const clearAllRecent = React.useCallback(() => {
+    clearSearches();
+    setRecentVersion((v) => v + 1);
+  }, [clearSearches]);
 
   const groupedResults = React.useMemo(() => {
     const groups: Record<string, SearchResult[]> = {};
@@ -160,12 +181,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]" dir={isRTL ? "rtl" : "ltr"}>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div
         className={cn(
           "relative z-50 w-full max-w-xl mx-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden",
-          isRTL && "direction-rtl",
         )}
         role="dialog"
         aria-modal="true"
@@ -187,68 +207,76 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
              )}
            />
           {query && (
-            <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+            <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 whitespace-nowrap">
               ESC
             </span>
           )}
         </div>
 
         {/* Results */}
-        <div
-          ref={listRef}
-          className={cn(
-            "max-h-[60vh] overflow-y-auto",
-            isRTL && "text-right",
-          )}
-        >
+        <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
+          {/* Loading skeleton */}
           {loading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="p-4 space-y-3">
+              <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                  <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-2.5 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
+              <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-4" />
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i + 3} className="flex items-center gap-3 px-3 py-2.5">
+                  <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-2.5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
+          {/* Recent searches */}
           {!loading && showRecent && recentSearches.length > 0 && (
             <div className="p-2">
-              <div className={cn(
-                "flex items-center justify-between px-2 py-2",
-                isRTL && "flex-row-reverse",
-              )}>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <div className="flex items-center justify-between px-2 py-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {t("search.recentSearches", "Recent Searches")}
                 </span>
                 <button
-                  onClick={() => {
-                    localStorage.removeItem("dental-recent-searches");
-                    setResults([]);
-                  }}
-                  className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                  onClick={clearAllRecent}
+                  className="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                 >
                   {t("search.clearAll", "Clear All")}
                 </button>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {recentSearches.map((recent, index) => (
                   <div
                     key={`${recent}-${index}`}
                     onClick={() => handleRecentClick(recent)}
                     className={cn(
                       "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300",
-                      "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer",
-                      isRTL && "flex-row-reverse text-right",
+                      "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer group",
                     )}
                   >
-                    <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <SearchIcon className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span>{recent}</span>
+                      <span className="truncate">{recent}</span>
                     </div>
                     <button
                       onClick={(e) => handleClearRecent(e, recent)}
-                      className={cn(
-                        "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded cursor-pointer",
-                        isRTL && "order-first",
-                      )}
+                      className="text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded opacity-0 group-hover:opacity-100 transition-all cursor-pointer shrink-0"
+                      aria-label={`Remove ${recent}`}
                     >
-                      ✕
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
                   </div>
                 ))}
@@ -256,35 +284,53 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {/* Empty state */}
           {!loading && !showRecent && results.length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-              {t("search.emptyTitle", "No results found")}
-              <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            <div className="px-4 py-10 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
+                <SearchIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("search.emptyTitle", "No results found")}
+              </p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {t("search.emptySubtitle", "Try searching by:")}
-                <ul className="mt-1 space-y-0.5">
-                  <li>• {t("search.hints.patientName", "Patient Name")}</li>
-                  <li>• {t("search.hints.phone", "Phone Number")}</li>
-                  <li>• {t("search.hints.patientId", "Patient ID")}</li>
-                  <li>• {t("search.hints.invoiceNumber", "Invoice Number")}</li>
-                  <li>• {t("search.hints.treatmentName", "Treatment Name")}</li>
-                </ul>
+              </p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {[
+                  t("search.hints.patientName", "Patient Name"),
+                  t("search.hints.phone", "Phone Number"),
+                  t("search.hints.patientId", "Patient ID"),
+                  t("search.hints.invoiceNumber", "Invoice Number"),
+                  t("search.hints.treatmentName", "Treatment Name"),
+                ].map((hint) => (
+                  <span
+                    key={hint}
+                    className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  >
+                    {hint}
+                  </span>
+                ))}
               </div>
             </div>
           )}
 
+          {/* Grouped results */}
           {!loading && results.length > 0 && (
-            <div className="p-2 space-y-3">
+            <div className="p-2 space-y-4">
               {Object.entries(groupedResults).map(([type, typeResults]) => {
                 const startIndex = flatResults.indexOf(typeResults[0]);
                 return (
                   <div key={type}>
-                    <div className={cn(
-                      "px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
-                      isRTL && "text-right",
-                    )}>
-                      {categoryLabels[type] || type.toUpperCase()}
+                    <div className="flex items-center gap-2 px-2 py-1.5">
+                      <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {categoryLabels[type] || type.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 font-medium">
+                        {typeResults.length}
+                      </span>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {typeResults.map((result, idx) => {
                         const globalIndex = startIndex + idx;
                         const isSelected = globalIndex === selectedIndex;
@@ -294,10 +340,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                             data-search-index={globalIndex}
                             onClick={() => handleSelect(result)}
                             className={cn(
-                              "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors cursor-pointer",
-                              isRTL && "flex-row-reverse text-right",
+                              "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all cursor-pointer",
                               isSelected
-                                ? "bg-primary text-white"
+                                ? "bg-primary text-white shadow-sm"
                                 : "hover:bg-gray-100 dark:hover:bg-gray-700",
                             )}
                           >
@@ -316,7 +361,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                                 {result.title}
                               </p>
                               <p className={cn(
-                                "text-xs truncate",
+                                "text-xs truncate mt-0.5",
                                 isSelected ? "text-white/80" : "text-gray-500 dark:text-gray-400",
                               )}>
                                 {result.subtitle}
@@ -326,7 +371,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                               className={cn(
                                 "h-4 w-4 shrink-0",
                                 isSelected ? "text-white" : "text-gray-400",
-                                isRTL && "transform rotate-180",
                               )}
                             />
                           </button>
@@ -336,6 +380,23 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Initial hint when modal opens */}
+          {!loading && showRecent && recentSearches.length === 0 && (
+            <div className="px-4 py-10 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3">
+                <SearchIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("search.placeholder", "Search patients or records by id, name or phone...")}
+              </p>
+              <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                {t("search.hints.patientName", "Patient Name")} &middot;{" "}
+                {t("search.hints.phone", "Phone Number")} &middot;{" "}
+                {t("search.hints.patientId", "Patient ID")}
+              </p>
             </div>
           )}
         </div>

@@ -322,27 +322,36 @@ const Help: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-400">
-            {t("help.subtitle", "SUPPORT CENTER")}
-          </p>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            {t("help.title", "Help & Documentation")}
-          </h1>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary/90 to-primary/70 dark:from-primary/90 dark:via-primary/80 dark:to-primary/60 p-6 sm:p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4" />
+        <div className="relative flex items-center gap-4 sm:gap-6">
+          <div className="hidden sm:flex items-center justify-center w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm shadow-lg">
+            <HelpIcon size="xl" className="text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">
+              {t("help.subtitle", "SUPPORT CENTER")}
+            </p>
+            <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-white">
+              {t("help.title", "Help & Documentation")}
+            </h1>
+          </div>
         </div>
       </div>
 
+      {/* Search */}
       <div className="relative">
-        <div className="relative">
-          <SearchIcon size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="relative group">
+          <SearchIcon size="sm" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t("help.searchPlaceholder", "Search guides, steps, FAQs...")}
-            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-sm"
           />
         </div>
         <SearchGuide
@@ -353,8 +362,9 @@ const Help: React.FC = () => {
         />
       </div>
 
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap gap-1 bg-transparent p-0 border-b border-gray-200 dark:border-gray-700 rounded-none w-full overflow-x-auto">
+        <TabsList className="flex-wrap gap-1.5 bg-transparent p-0 border-b border-gray-200 dark:border-gray-700 rounded-none w-full overflow-x-auto pb-px">
           {[
             { id: "getting-started", label: t("help.tabs.gettingStarted", "Getting Started"), icon: HelpIcon },
             ...sections.map((s) => ({ id: s.id, label: s.title, icon: s.icon })),
@@ -364,7 +374,7 @@ const Help: React.FC = () => {
             <TabsTrigger
               key={tab.id}
               value={tab.id}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm hover:text-gray-700 dark:hover:text-gray-300 transition-all"
             >
               <tab.icon size="xs" />
               {tab.label}
@@ -372,12 +382,14 @@ const Help: React.FC = () => {
           ))}
         </TabsList>
 
-        <TabsContent value="getting-started">
+        {/* Getting Started */}
+        <TabsContent value="getting-started" className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <Card>
+            <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-primary/40 to-primary/60" />
               <CardHeader>
-                <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                  <span className="flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300 text-sm font-bold">1</span>
+                <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-3">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold shadow-sm">1</span>
                   {t("help.gettingStarted.welcomeTitle", "Welcome to the System")}
                 </CardTitle>
               </CardHeader>
@@ -388,15 +400,16 @@ const Help: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-400 to-blue-600" />
               <CardHeader>
-                <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                  <span className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-sm font-bold">2</span>
+                <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-3">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-sm font-bold shadow-sm">2</span>
                   {t("help.gettingStarted.quickStartTitle", "Quick Start Workflow")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ol className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <ol className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
                   {[
                     t("help.gettingStarted.quickStartStep1", "Add a patient via Patients → Add New Patient"),
                     t("help.gettingStarted.quickStartStep2", "Record a visit with procedures and clinical notes"),
@@ -404,11 +417,11 @@ const Help: React.FC = () => {
                     t("help.gettingStarted.quickStartStep4", "View analytics on the Dashboard and Reports pages"),
                     t("help.gettingStarted.quickStartStep5", "Export data as PDF or CSV for your records"),
                   ].map((step, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold shrink-0 mt-0.5">
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-bold shrink-0 mt-0.5">
                         {i + 1}
                       </span>
-                      <span>{step}</span>
+                      <span className="leading-relaxed">{step}</span>
                     </li>
                   ))}
                 </ol>
@@ -416,7 +429,7 @@ const Help: React.FC = () => {
             </Card>
           </div>
 
-          <Card className="mt-4">
+          <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base sm:text-lg font-semibold">{t("help.gettingStarted.navGuideTitle", "Navigation Guide")}</CardTitle>
               <CardDescription>{t("help.gettingStarted.navGuideDesc", "Click any card below to jump directly to that section")}</CardDescription>
@@ -427,10 +440,12 @@ const Help: React.FC = () => {
                   <button
                     key={s.id}
                     onClick={() => setActiveTab(s.id)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-all cursor-pointer"
+                    className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/30 hover:shadow-md hover:bg-white dark:hover:bg-gray-750 transition-all duration-200 cursor-pointer"
                   >
-                    <s.icon size="lg" className="text-primary" />
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">
+                    <div className="p-2.5 rounded-lg bg-primary/5 text-primary group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-200">
+                      <s.icon size="lg" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                       {s.title}
                     </span>
                   </button>
@@ -440,39 +455,48 @@ const Help: React.FC = () => {
           </Card>
         </TabsContent>
 
+        {/* Section detail pages */}
         {sections.map((section) => (
-          <TabsContent key={section.id} value={section.id}>
+          <TabsContent key={section.id} value={section.id} className="pt-4 sm:pt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="lg:col-span-2 space-y-4">
-                <Card>
+              <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                {/* Section header */}
+                <Card className="relative overflow-hidden border-0 shadow-sm">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-r" />
                   <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-lg bg-blue-50 p-2.5 text-primary dark:bg-blue-900/30">
+                    <div className="flex items-center gap-4">
+                      <div className="rounded-xl bg-linear-to-br from-primary/10 to-primary/5 p-3 text-primary shadow-sm shrink-0">
                         <section.icon size="lg" />
                       </div>
                       <div>
                         <CardTitle className="text-lg font-semibold">{section.title}</CardTitle>
-                        <CardDescription>{section.description}</CardDescription>
+                        <CardDescription className="text-sm mt-0.5">{section.description}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                 </Card>
 
-                <Card>
+                {/* Step-by-step */}
+                <Card className="border-0 shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <span className="w-6 h-6 rounded bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">✓</span>
+                    <CardTitle className="text-base font-semibold flex items-center gap-2.5">
+                      <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shadow-sm">✓</span>
                       {t("help.section.stepByStep", "Step-by-Step Guide")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ol className="space-y-3">
+                    <ol className="space-y-0">
                       {section.steps.map((step, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">
+                        <li key={i} className="flex items-start gap-4 pb-4 last:pb-0 relative">
+                          {i < section.steps.length - 1 && (
+                            <div className="absolute left-3 top-8 bottom-0 w-px bg-gray-200 dark:bg-gray-700" />
+                          )}
+                          <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5 shadow-sm">
                             {i + 1}
                           </span>
-                          <span className="leading-relaxed">{step}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pt-0.5">
+                            {step}
+                          </span>
                         </li>
                       ))}
                     </ol>
@@ -480,9 +504,12 @@ const Help: React.FC = () => {
                 </Card>
               </div>
 
+              {/* Sidebar */}
               <div className="space-y-4">
+                {/* Pro Tips */}
                 {section.tips && section.tips.length > 0 && (
-                  <Card>
+                  <Card className="relative overflow-hidden border-0 shadow-sm">
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-amber-400 to-amber-500" />
                     <CardHeader>
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <span className="text-amber-500 text-base">💡</span>
@@ -490,11 +517,11 @@ const Help: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2.5">
                         {section.tips.map((tip, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-                            <span className="text-amber-500 mt-0.5">•</span>
-                            <span>{tip}</span>
+                          <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
+                            <span className="leading-relaxed">{tip}</span>
                           </li>
                         ))}
                       </ul>
@@ -502,39 +529,45 @@ const Help: React.FC = () => {
                   </Card>
                 )}
 
+                {/* Quick Links */}
                 {section.links && section.links.length > 0 && (
-                  <Card>
+                  <Card className="border-0 shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-sm font-semibold">{t("help.section.quickLinks", "Quick Links")}</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-1.5">
                       {section.links.map((link, i) => (
                         <button
                           key={i}
                           onClick={() => handleNav(link.href)}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer text-left"
+                          className="group w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary/30 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all cursor-pointer text-left"
                         >
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">
                             {link.label}
                           </span>
-                          <ChevronRightIcon size="xs" className="text-gray-400" />
+                          <ChevronRightIcon size="xs" className="text-gray-400 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                         </button>
                       ))}
                     </CardContent>
                   </Card>
                 )}
 
-                <Card>
+                {/* Need Help? */}
+                <Card className="relative overflow-hidden border-0 bg-linear-to-br from-primary/[0.04] to-primary/[0.02] dark:from-primary/[0.08] dark:to-primary/[0.04] shadow-sm">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,94,184,0.06),transparent_50%)]" />
                   <CardHeader>
-                    <CardTitle className="text-sm font-semibold">{t("help.section.needHelp", "Need Help?")}</CardTitle>
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs">?</span>
+                      {t("help.section.needHelp", "Need Help?")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 leading-relaxed">
                       {t("help.section.needHelpDesc", "Search above or check the FAQ tab for answers to common questions.")}
                     </p>
                     <button
                       onClick={() => setActiveTab("faq")}
-                      className="text-xs font-medium text-primary hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
                     >
                       {t("help.section.browseFaqs", "Browse FAQs →")}
                     </button>
@@ -545,10 +578,12 @@ const Help: React.FC = () => {
           </TabsContent>
         ))}
 
-        <TabsContent value="faq">
-          <Card>
+        {/* FAQ */}
+        <TabsContent value="faq" className="pt-4 sm:pt-6">
+          <Card className="border-0 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg font-semibold">
+              <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2.5">
+                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary text-sm">?</span>
                 {t("help.faq.title", "Frequently Asked Questions")}
               </CardTitle>
               <CardDescription>
@@ -556,23 +591,25 @@ const Help: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700/60 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {faqs.map((faq, i) => (
                   <div key={i} className="last:border-0">
                     <button
                       onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      className="flex w-full items-center justify-between gap-4 px-4 sm:px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
+                      className="flex w-full items-center justify-between gap-4 px-4 sm:px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
                     >
-                      <span className="text-sm font-medium text-gray-900 dark:text-white pr-4">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white pr-4 group-hover:text-primary transition-colors">
                         {faq.q}
                       </span>
-                      <span className={`text-lg text-gray-400 shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-45" : ""}`}>
-                        +
+                      <span className={`flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 dark:border-gray-600 text-gray-400 shrink-0 transition-all duration-300 ${openFaq === i ? "bg-primary border-primary text-white rotate-45" : "group-hover:border-gray-400 dark:group-hover:border-gray-500"}`}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
                       </span>
                     </button>
                     {openFaq === i && (
-                      <div className="px-4 sm:px-6 pb-4 -mt-1">
-                        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                      <div className="px-4 sm:px-6 pb-5 -mt-1">
+                        <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 text-sm text-gray-600 dark:text-gray-300 leading-relaxed shadow-sm">
                           {faq.a}
                         </div>
                       </div>
@@ -584,31 +621,37 @@ const Help: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="shortcuts">
-          <Card>
+        {/* Shortcuts */}
+        <TabsContent value="shortcuts" className="pt-4 sm:pt-6">
+          <Card className="border-0 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                ⌨ {t("help.shortcuts.title", "Keyboard Shortcuts")}
+              <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2.5">
+                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                  </svg>
+                </span>
+                {t("help.shortcuts.title", "Keyboard Shortcuts")}
               </CardTitle>
               <CardDescription>
                 {t("help.shortcuts.description", "Speed up your workflow with these keyboard shortcuts.")}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {shortcuts.map((shortcut, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+                    className="group flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/20 hover:shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all"
                   >
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                       {shortcut.action}
                     </span>
                     <div className="flex items-center gap-1">
                       {shortcut.keys.map((key, j) => (
                         <React.Fragment key={key}>
                           {j > 0 && <span className="text-xs text-gray-400">+</span>}
-                          <kbd className="px-2 py-0.5 text-xs font-mono font-bold rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm">
+                          <kbd className="px-2 py-1 text-xs font-mono font-bold rounded-lg border border-gray-300 dark:border-gray-600 bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-750 text-gray-700 dark:text-gray-200 shadow-sm">
                             {key}
                           </kbd>
                         </React.Fragment>
