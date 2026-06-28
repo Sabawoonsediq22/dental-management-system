@@ -312,6 +312,9 @@ pub struct DashboardStats {
     pub outstanding_balance: f64,
     pub outstanding_invoices_count: i64,
     pub procedures_performed: i64,
+    pub yesterday_revenue: f64,
+    pub yesterday_patients: i64,
+    pub yesterday_procedures: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

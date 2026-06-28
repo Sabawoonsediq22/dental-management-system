@@ -12,7 +12,6 @@ import {
   ActivityIcon,
 } from "../../shared/icons/icons";
 import { useUpdateVisitStatus } from "../../hooks/useVisits";
-import { useReportSummary } from "../../hooks/useReports";
 import { useDashboardStats, usePatientsFlow, useProcedureDistribution, useRecentPatients } from "../../hooks/useDashboard";
 import StatCard from "../../components/dashboard/StatCard";
 import ChartCard from "../../components/dashboard/ChartCard";
@@ -50,16 +49,14 @@ const formatAFN = (val: number) =>
   }) + " AFN";
 
 const computeTrend = (
-  daily: number,
-  monthlyTotal: number | undefined,
-  dayOfMonth: number,
+  today: number,
+  yesterday: number,
 ): { value: string; positive: boolean } | undefined => {
-  if (!monthlyTotal || monthlyTotal <= 0 || dayOfMonth <= 0) return undefined;
-  const monthlyAvg = monthlyTotal / dayOfMonth;
-  if (monthlyAvg <= 0) return undefined;
-  const pct = ((daily - monthlyAvg) / monthlyAvg) * 100;
-  const sign = pct >= 0 ? "+" : "";
-  return { value: `${sign}${pct.toFixed(1)}% vs avg`, positive: pct >= 0 };
+  if (yesterday <= 0) return undefined;
+  const rawPct = ((today - yesterday) / yesterday) * 100;
+  const clamped = Math.max(-100, Math.min(100, rawPct));
+  const sign = clamped >= 0 ? "+" : "";
+  return { value: `${sign}${clamped.toFixed(1)}% vs yesterday`, positive: clamped >= 0 };
 };
 
 interface StatCardDef {
@@ -86,10 +83,7 @@ const Dashboard: React.FC = () => {
   const { data: procData } = useProcedureDistribution();
   const { data: recentPatients, refetch: refetchRecentPatients } =
     useRecentPatients(4);
-  const { data: reportSummary } = useReportSummary();
   const updateStatusMutation = useUpdateVisitStatus();
-
-  const dayOfMonth = new Date().getDate();
 
   const handleUpdateStatus = useCallback(
     async (visitId: string, newStatus: string) => {
@@ -139,12 +133,12 @@ const Dashboard: React.FC = () => {
             : <Badge variant="destructive" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.high", "High")}</Badge>;
 
     return [
-      { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month, dayOfMonth) },
-      { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" />, trend: computeTrend(stats.patients_today, reportSummary?.total_visits_this_month, dayOfMonth) },
+      { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, stats.yesterday_revenue) },
+      { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" />, trend: computeTrend(stats.patients_today, stats.yesterday_patients) },
       { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), secondary: t("dashboard.invoiceCount", { count: stats.outstanding_invoices_count }), icon: <ClockIcon size="lg" />, badge: outstandingBadge },
-      { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" />, trend: computeTrend(stats.procedures_performed, (reportSummary?.completed_visits_this_month ?? 0) + (reportSummary?.cancelled_visits_this_month ?? 0), dayOfMonth) },
+      { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" />, trend: computeTrend(stats.procedures_performed, stats.yesterday_procedures) },
     ];
-  }, [stats, statsLoading, statsError, reportSummary, t, dayOfMonth]);
+  }, [stats, statsLoading, statsError, t]);
 
 
 

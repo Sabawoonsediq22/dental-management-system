@@ -351,6 +351,9 @@ export interface DashboardStats {
   outstanding_balance: number;
   outstanding_invoices_count: number;
   procedures_performed: number;
+  yesterday_revenue: number;
+  yesterday_patients: number;
+  yesterday_procedures: number;
 }
 
 export interface PatientsFlowPoint {

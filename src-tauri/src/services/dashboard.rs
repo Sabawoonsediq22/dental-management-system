@@ -42,12 +42,38 @@ impl DashboardService {
         .fetch_one(pool)
         .await?;
 
+        let yesterday = (Utc::now() - Duration::days(1)).format("%Y-%m-%d").to_string();
+
+        let yesterday_revenue: Option<f64> = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(amount), 0.0) FROM payments WHERE date(received_at) = ?"
+        )
+        .bind(&yesterday)
+        .fetch_one(pool)
+        .await?;
+
+        let yesterday_patients: i64 = sqlx::query_scalar(
+            "SELECT COUNT(DISTINCT patient_id) FROM visits WHERE date(visit_date) = ?"
+        )
+        .bind(&yesterday)
+        .fetch_one(pool)
+        .await?;
+
+        let yesterday_procedures: i64 = sqlx::query_scalar(
+            "SELECT COALESCE(SUM(number_of_procedures), 0) FROM treatment_records WHERE date(performed_at) = ?"
+        )
+        .bind(&yesterday)
+        .fetch_one(pool)
+        .await?;
+
         Ok(DashboardStats {
             daily_revenue: daily_revenue.unwrap_or(0.0),
             patients_today,
             outstanding_balance: outstanding_balance.unwrap_or(0.0),
             outstanding_invoices_count,
             procedures_performed,
+            yesterday_revenue: yesterday_revenue.unwrap_or(0.0),
+            yesterday_patients,
+            yesterday_procedures,
         })
     }
 
