@@ -73,20 +73,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             onChange={(e) => setMethod(e.target.value as typeof method)}
             className="w-full px-3 py-2 border rounded-md text-sm"
           >
-            <option value="Cash">{t("billing.methods.cash")}</option>
-            <option value="Card">{t("billing.methods.card")}</option>
-            <option value="Mobile">{t("billing.methods.mobile")}</option>
-            <option value="Insurance">{t("billing.methods.insurance")}</option>
+            <option value="Cash">{t("billing.methods.cash", "Cash")}</option>
+            <option value="Card">{t("billing.methods.card", "Card")}</option>
+            <option value="Mobile">{t("billing.methods.mobile", "Mobile")}</option>
+            <option value="Insurance">{t("billing.methods.insurance", "Insurance")}</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">{t("billing.notes")} ({t("common.optional", "optional")})</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.notes", "Notes")} ({t("common.optional", "optional")})</label>
           <Input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder={t("billing.paymentNotesPlaceholder")}
+            placeholder={t("billing.paymentNotesPlaceholder", "Payment reference or notes")}
             className="w-full"
           />
         </div>
