@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/button";
@@ -10,7 +10,6 @@ import {
   ToothIcon,
   PlusIcon,
   ActivityIcon,
-  PieChartIcon,
 } from "../../shared/icons/icons";
 import { useUpdateVisitStatus } from "../../hooks/useVisits";
 import { useReportSummary } from "../../hooks/useReports";
@@ -19,15 +18,15 @@ import StatCard from "../../components/dashboard/StatCard";
 import ChartCard from "../../components/dashboard/ChartCard";
 import RecentPatientsTable from "../../components/dashboard/RecentPatientsTable";
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
 } from "recharts";
 import type { ProcedureDistribution } from "../../types/ApiTypes";
@@ -35,12 +34,11 @@ import { toast } from "../../lib/toast-utils";
 import { format } from "date-fns";
 
 const COLORS = [
-  "#006A71",
-  "#005E8A",
-  "#F2C12E",
-  "#9B5DE5",
-  "#00C49A",
-  "#FF6B6B",
+  "#006A71", "#005E8A", "#F2C12E", "#9B5DE5", "#00C49A",
+  "#FF6B6B", "#FF8C42", "#4ECDC4", "#6C5CE7", "#A8E6CF",
+  "#FFD93D", "#FF6B6B", "#95E1D3", "#F38181", "#AA96DA",
+  "#FCBAD3", "#A1C4FD", "#C2E9FB", "#D4A5A5", "#9ED2C6",
+  "#FFB7B2", "#B5EAD7",
 ];
 
 const AUTO_REFRESH_INTERVAL = 300000;
@@ -79,7 +77,6 @@ const FLOW_MODES = ["daily", "weekly"] as const;
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const gradientId = useId();
   const [flowMode, setFlowMode] = useState<"daily" | "weekly">("weekly");
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
@@ -131,9 +128,15 @@ const Dashboard: React.FC = () => {
       ];
     }
 
-    const outstandingBadge = stats.outstanding_balance > 0
-      ? <Badge variant="warning" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("common.high", "High")}</Badge>
-      : <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.clear", "Clear")}</Badge>;
+    const balance = stats.outstanding_balance;
+    const outstandingBadge =
+      balance === 0
+        ? <Badge variant="success" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.clear", "Clear")}</Badge>
+        : balance < 10000
+          ? <Badge variant="info" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.low", "Low")}</Badge>
+          : balance < 50000
+            ? <Badge variant="warning" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.medium", "Medium")}</Badge>
+            : <Badge variant="destructive" className="text-[10px] sm:text-xs font-bold px-2 py-0.5">{t("dashboard.high", "High")}</Badge>;
 
     return [
       { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month, dayOfMonth) },
@@ -143,8 +146,7 @@ const Dashboard: React.FC = () => {
     ];
   }, [stats, statsLoading, statsError, reportSummary, t, dayOfMonth]);
 
-  const checkInsGradientId = `${gradientId}-checkIns`;
-  const completedGradientId = `${gradientId}-completed`;
+
 
   return (
     <div className="space-y-4 sm:space-y-6 xl:space-y-8">
@@ -217,47 +219,26 @@ const Dashboard: React.FC = () => {
         >
           <div className="h-56 sm:h-64 lg:h-72 w-full -ml-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={flowData ?? []}>
-                <defs>
-                  <linearGradient
-                    id={checkInsGradientId}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#006A71" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#006A71" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id={completedGradientId}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#005E8A" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#005E8A" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={flowData ?? []} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#f0f0f0"
+                  stroke="#e5e7eb"
+                  vertical={false}
                   className="dark:stroke-gray-700"
                 />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: "#6b7280" }}
+                  tick={{ fontSize: 11, fill: "#9ca3af" }}
                   axisLine={false}
                   tickLine={false}
                   dy={8}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: "#6b7280" }}
+                  tick={{ fontSize: 11, fill: "#9ca3af" }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
-                  dx={-8}
+                  width={30}
                 />
                 <Tooltip
                   contentStyle={{
@@ -269,69 +250,60 @@ const Dashboard: React.FC = () => {
                   }}
                   labelStyle={{ fontWeight: 700, marginBottom: 4 }}
                 />
-                <Area
+                <Line
                   type="monotone"
                   dataKey="check_ins"
                   stroke="#006A71"
                   strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill={`url(#${checkInsGradientId})`}
+                  dot={false}
+                  activeDot={{ r: 5, fill: "#006A71", stroke: "#fff", strokeWidth: 2 }}
                   name={t("dashboard.checkIns", "Check-ins")}
-                  activeDot={{
-                    r: 6,
-                    fill: "#006A71",
-                    stroke: "white",
-                    strokeWidth: 2,
-                  }}
+                  animationDuration={600}
+                  animationEasing="ease-out"
                 />
-                <Area
+                <Line
                   type="monotone"
                   dataKey="completed"
                   stroke="#005E8A"
                   strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill={`url(#${completedGradientId})`}
-                  activeDot={{
-                    r: 6,
-                    fill: "#005E8A",
-                    stroke: "white",
-                    strokeWidth: 2,
-                  }}
+                  dot={false}
+                  activeDot={{ r: 5, fill: "#005E8A", stroke: "#fff", strokeWidth: 2 }}
+                  name={t("dashboard.completed", "Completed")}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
-              </AreaChart>
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </ChartCard>
 
         <ChartCard
           title={t("dashboard.procedureDistribution", "Procedure Distribution")}
-          icon={<PieChartIcon size="md" />}
+          icon={<ActivityIcon size="md" />}
           className="col-span-1 lg:col-span-5"
         >
           <div className="h-56 sm:h-64 lg:h-72 w-full">
             {procData && procData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={procData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                    dataKey="count"
-                    nameKey="name"
-                    stroke="none"
-                  >
-                    {procData.map(
-                      (_: ProcedureDistribution, index: number) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ),
-                    )}
-                  </Pie>
+                <BarChart data={procData} margin={{ top: 20, right: 8, left: -8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} className="dark:stroke-gray-700" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10, fill: "#6b7280" }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                    angle={-20}
+                    textAnchor="end"
+                    height={50}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#9ca3af" }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                    width={30}
+                  />
                   <Tooltip
                     contentStyle={{
                       borderRadius: 12,
@@ -342,11 +314,22 @@ const Dashboard: React.FC = () => {
                     }}
                     formatter={(value: unknown, name: unknown) => [value as number, name as string]}
                   />
-                </PieChart>
+                  <Bar
+                    dataKey="count"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={48}
+                    animationDuration={600}
+                    animationEasing="ease-out"
+                    label={{ position: "top", fontSize: 11, fontWeight: 600, fill: "#374151" }}
+                  >
+                    {procData.map((_: ProcedureDistribution, i: number) => (
+                      <Cell key={_.name} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 gap-2">
-                <PieChartIcon size="xl" />
                 <span className="text-xs font-medium">{t("dashboard.noDataAvailable", "No data available")}</span>
               </div>
             )}
