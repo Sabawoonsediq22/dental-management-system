@@ -46,10 +46,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const maxAmount = outstandingAmount;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t("billing.recordPayment")} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={t("billing.recordPayment", "Record Payment")} size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">{t("billing.paymentAmount")} (AFN)</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.paymentAmount", "Payment Amount")} (AFN)</label>
           <Input
             type="number"
             step="0.01"
@@ -57,17 +57,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             max={maxAmount}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder={t("billing.enterAmount")}
+            placeholder={t("billing.enterAmount", "Enter amount")}
             required
             className="w-full"
           />
           <p className="text-xs text-gray-500 mt-1">
-            {t("billing.outstandingAmount", { amount: maxAmount.toLocaleString() })}
+            {t("billing.outstandingAmount", "Outstanding: {{amount}} AFN", { amount: maxAmount.toLocaleString() })}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">{t("billing.paymentMethod")}</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.paymentMethod", "Payment Method")}</label>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value as typeof method)}

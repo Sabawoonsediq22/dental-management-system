@@ -22,7 +22,7 @@
     "noDataAvailable": "No data available",
     "statusUpdateError": "Cannot update status: missing visit ID",
     "statusUpdateFailed": "Failed to update status",
-    "clickToChangeStatus": "Click to change status",
+    "clickToChangeStatus": "Click to change status.",
     "stats": {
       "dailyRevenue": "Daily Revenue",
       "patientsToday": "Patients Today",
@@ -153,7 +153,7 @@
     "visitDetailsPlaceholder": "Details",
     "allergies": "Allergies",
     "chiefComplaint": "Chief Complaint",
-    "chiefComplaintPlaceholder": "What is the main reason today's visit?",
+    "chiefComplaintPlaceholder": "What is the main reason for today's visit?",
     "currentMedications": "Current Medications",
     "currentMedicationsPlaceholder": "List any medications currently being taken",
     "clinicalNotes": "Clinical Notes",
@@ -184,7 +184,7 @@
     "xray": "X-ray",
     "xRayPhotos": "X-Ray & Clinical Photos",
     "uploadXray": "Upload X-ray",
-    "dragAndDrop": "Click or drag and drop",
+    "dragAndDrop": "Click to browse or drag and drop files",
     "or": "or",
     "browseFiles": "Browse Files",
     "remove": "Remove",
@@ -221,7 +221,7 @@
     "date": "Visit Date",
     "visitDetails": "Visit Details",
     "chiefComplaint": "Chief Complaint",
-    "chiefComplaintPlaceholder": "Main reason today's visit",
+    "chiefComplaintPlaceholder": "Main reason for today's visit",
     "clinicalNotes": "Clinical Notes",
     "clinicalNotesPlaceholder": "Doctor's observations and plan",
     "treatmentRecording": "Treatment Recording",
@@ -234,7 +234,7 @@
     "selectedTeethLabel": "teeth selected",
     "xray": "X-ray / Clinical Photos",
     "uploadXray": "Upload X-ray",
-    "dragAndDrop": "Click or drag and drop",
+    "dragAndDrop": "Click to browse or drag and drop files",
     "or": "or",
     "remove": "Remove",
     "billing": "Billing",
@@ -261,7 +261,7 @@
       "partialSuccess": "Visit was saved, but some treatment details could not be saved."
     }
   },
-    "common": {
+  "common": {
     "cancel": "Cancel",
     "saving": "Saving...",
     "optional": "optional",
@@ -406,7 +406,7 @@
       "totalLabel": "Total:",
       "paidLabel": "Paid:",
       "dueLabel": "Due:",
-      "empty": "No invoices found matching your criteria."
+      "empty": "No invoices match your current search and filters."
     },
     "actions": {
       "recordPayment": "Record Payment",
@@ -436,7 +436,7 @@
       "intro": "Welcome to the Dental Clinic Management System. Follow these steps to begin:",
       "step1": "Add new patients through the Patients section",
       "step2": "Record visits and treatments for each patient",
-      "step3": "Generate invoices and track payments",
+      "step3": "Generate invoices and track payments for each visit.",
       "step4": "View reports and analytics in the Reports section"
     },
     "features": {
