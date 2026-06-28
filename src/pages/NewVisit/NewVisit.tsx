@@ -404,7 +404,7 @@ const NewVisit: React.FC = () => {
    if (patientQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading..." />
+        <LoadingSpinner size="lg" text={t("common.loading")} />
       </div>
     );
   }
@@ -487,9 +487,9 @@ const NewVisit: React.FC = () => {
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <LocationIcon className="w-4 h-4" />
-                  {patient.address ? patient.address : "Address not provided"} •
+                  {patient.address ? patient.address : t("patientProfile.addressNotProvided")} •
                 </span>
-                <span>Registered since {registeredDate}</span>
+                <span>{t("patientProfile.registeredSince", { date: registeredDate })}</span>
               </div>
             </div>
           </div>
@@ -500,7 +500,7 @@ const NewVisit: React.FC = () => {
               variant="outline"
               onClick={() => navigate(`/patients/${patientId}`)}
             >
-              View History
+              {t("newPatient.viewHistory")}
             </Button>
           </div>
         </div>

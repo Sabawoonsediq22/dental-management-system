@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { CloseIcon } from "../../shared/icons/icons";
 
@@ -27,6 +28,7 @@ const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   className,
 }) => {
+  const { t } = useTranslation();
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -88,7 +90,7 @@ const Modal: React.FC<ModalProps> = ({
                 <button
                   onClick={onClose}
                   className="rounded-md p-1 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-                  aria-label="Close modal"
+                  aria-label={t("common.closeModal")}
                 >
                   <CloseIcon className="h-4 w-4" />
                 </button>

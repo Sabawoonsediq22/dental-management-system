@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { PatientAvatar } from "../ui";
 
@@ -10,18 +11,9 @@ interface PatientAvatarWithStatusProps {
 }
 
 const statusConfig = {
-  online: {
-    bg: "bg-green-500",
-    label: "Online",
-  },
-  offline: {
-    bg: "bg-gray-400",
-    label: "Offline",
-  },
-  away: {
-    bg: "bg-yellow-500",
-    label: "Away",
-  },
+  online: { bg: "bg-green-500" },
+  offline: { bg: "bg-gray-400" },
+  away: { bg: "bg-yellow-500" },
 };
 
 const PatientAvatarWithStatus: React.FC<PatientAvatarWithStatusProps> = ({
@@ -30,6 +22,12 @@ const PatientAvatarWithStatus: React.FC<PatientAvatarWithStatusProps> = ({
   status = "online",
   className,
 }) => {
+  const { t } = useTranslation();
+  const statusLabels = {
+    online: t("patientProfile.online"),
+    offline: t("patientProfile.offline"),
+    away: t("patientProfile.away"),
+  };
   const statusClasses = {
     sm: "w-2.5 h-2.5",
     md: "w-3 h-3",
@@ -39,6 +37,7 @@ const PatientAvatarWithStatus: React.FC<PatientAvatarWithStatusProps> = ({
   };
 
   const statusStyle = statusConfig[status];
+  const label = statusLabels[status];
 
   return (
     <div className={cn("relative inline-block", className)}>
@@ -49,8 +48,8 @@ const PatientAvatarWithStatus: React.FC<PatientAvatarWithStatusProps> = ({
           statusClasses[size],
           statusStyle.bg,
         )}
-        title={statusStyle.label}
-        aria-label={statusStyle.label}
+        title={label}
+        aria-label={label}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Modal } from "../ui";
 import { api } from "../../lib/api";
@@ -28,6 +29,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
   className,
   mockData,
 }) => {
+  const { t } = useTranslation();
   const sourceKey = invoiceId || visitId || patientId || "mock";
   const query = useQuery({
     queryKey: ["receipt", sourceKey],
@@ -72,8 +74,8 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Print Receipt"
-      description="Preview the invoice receipt and print a clean desktop-ready copy."
+      title={t("receipt.printReceipt")}
+      description={t("receipt.previewDescription")}
       size="xl"
       className={cn("receipt-print-modal bg-white dark:bg-gray-900", className)}
       footerClassName="bg-white/95 dark:bg-gray-900/95"
@@ -89,7 +91,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             className="h-11 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
           >
             <PrinterIcon className="h-4 w-4" />
-            Print Receipt
+            {t("receipt.printReceipt")}
           </Button>
           <Button
             type="button"
@@ -98,7 +100,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             className="h-11 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
           >
             <CloseIcon className="h-4 w-4" />
-            Close
+            {t("common.closeModal", "Close")}
           </Button>
         </div>
       }
@@ -117,7 +119,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             className="cursor-pointer"
           >
             <PrinterIcon className="h-4 w-4" />
-            Export PDF
+            {t("receipt.exportPdf")}
           </Button>
           <Button
             type="button"
@@ -128,7 +130,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             className="cursor-pointer"
           >
             <DownloadIcon className="h-4 w-4" />
-            Download Receipt
+            {t("receipt.downloadReceipt")}
           </Button>
           <Button
             type="button"
@@ -138,7 +140,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             disabled={isLoading || Boolean(mockData) || !receipt}
             className="cursor-pointer"
           >
-            Regenerate
+            {t("receipt.regenerate")}
           </Button>
         </div>
 

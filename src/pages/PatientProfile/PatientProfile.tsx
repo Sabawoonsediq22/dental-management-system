@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Modal, LoadingSpinner } from "../../components/ui";
 import { usePatient, usePatientMedicalInfo, usePatientStatistics, useUpdatePatient, useDeletePatient, useUpdatePatientMedicalInfo } from "../../hooks/usePatients";
@@ -13,10 +14,11 @@ import PersonalDetailsCard from "../../components/patients/PersonalDetailsCard";
 import { PatientIcon, PhoneIcon, HomeIcon, PlusIcon, DeleteIcon, LocationIcon } from "../../shared/icons/icons";
 import { toast } from "sonner";
 import type { PatientVisitWithTreatments } from "../../types/ApiTypes";
+import i18n from "../../i18n";
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString(i18n.language === "ps" ? "en-US" : i18n.language, {
     month: "short",
     day: "2-digit",
     year: "numeric",
@@ -72,6 +74,7 @@ const toTreatmentEntries = (visits: PatientVisitWithTreatments[]): TreatmentEntr
 };
 
 const PatientProfile: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -165,7 +168,7 @@ const PatientProfile: React.FC = () => {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["patients"] });
           navigate("/patients");
-          toast.success("Patient deleted successfully");
+          toast.success(t("patientProfile.notifications.deleted", "Patient deleted successfully"));
         },
       });
     }
@@ -217,10 +220,10 @@ const PatientProfile: React.FC = () => {
           medications: formatCsv(medicationsArray),
         });
         setShowAllergiesModal(false);
-        toast.success("Medical information updated successfully");
+        toast.success(t("patientProfile.notifications.medicalUpdated", "Medical information updated successfully"));
       },
       onError: (error) => {
-        toast.error(`Failed to update medical information: ${String(error)}`);
+        toast.error(`${t("patientProfile.notifications.medicalUpdateError", "Failed to update medical information")}: ${String(error)}`);
       },
     });
   };
@@ -238,11 +241,11 @@ const PatientProfile: React.FC = () => {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: treatmentHistoryKey, refetchType: "all" });
         queryClient.invalidateQueries({ queryKey: ["patients", patient?.id, "statistics"], refetchType: "all" });
-        toast.success(`Treatment status updated to ${newStatus}`);
+        toast.success(t("patientProfile.notifications.statusUpdated", "Treatment status updated to {{status}}", { status: newStatus }));
       },
       onError: (error) => {
         queryClient.invalidateQueries({ queryKey: treatmentHistoryKey, refetchType: "all" });
-        toast.error(`Failed to update status: ${String(error)}`);
+        toast.error(`${t("patientProfile.notifications.statusUpdateError", "Failed to update status")}: ${String(error)}`);
       },
     });
   };
@@ -256,7 +259,7 @@ const PatientProfile: React.FC = () => {
   if (patientQuery.isLoading || medicalInfoQuery.isLoading || statisticsQuery.isLoading || treatmentHistoryQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading..." />
+        <LoadingSpinner size="lg" text={t("common.loading", "Loading...")} />
       </div>
     );
   }
@@ -267,28 +270,28 @@ const PatientProfile: React.FC = () => {
 
   if (treatmentHistoryQuery.error) {
     return (
-      toast.error(`Failed to load treatment history: ${String(treatmentHistoryQuery.error)}`)
+      toast.error(`${t("patientProfile.notifications.treatmentHistoryError", "Failed to load treatment history")}: ${String(treatmentHistoryQuery.error)}`)
     );
   }
 
   const personalDetails = [
     {
-      label: "Age / Gender",
-      value: `${patient.age} Years • ${patient.gender}`,
+      label: t("patientProfile.ageGender"),
+      value: `${patient.age} ${t("patientProfile.years")} • ${t(`patients.filters.${patient.gender.toLowerCase()}`)}`,
       icon: (
         <PatientIcon className="w-5 h-5" />
       ),
     },
     {
-      label: "Phone Number",
+      label: t("patientProfile.phoneNumber"),
       value: patient.phone,
       icon: (
         <PhoneIcon className="w-5 h-5" />
       ),
     },
     {
-      label: "Home Address",
-      value: patient.address || "Not provided",
+      label: t("patientProfile.homeAddress"),
+      value: patient.address || t("patientProfile.addressNotProvided"),
       icon: (
         <HomeIcon className="w-5 h-5" />
       ),
@@ -296,15 +299,15 @@ const PatientProfile: React.FC = () => {
   ];
 
   const allergiesAlerts: AllergyAlert[] = [
-    { label: "ALLERGIES", value: medicalInfo?.allergies?.join(", ") || "None recorded" },
-    { label: "MEDICAL CONDITIONS", value: medicalInfo?.medical_conditions?.join(", ") || "None recorded" },
-    { label: "CURRENT MEDICATIONS", value: medicalInfo?.medications?.join(", ") || "None recorded" },
+    { label: t("patientProfile.allergiesLabel"), value: medicalInfo?.allergies?.join(", ") || t("patientProfile.noneRecorded") },
+    { label: t("patientProfile.medicalConditionsLabel"), value: medicalInfo?.medical_conditions?.join(", ") || t("patientProfile.noneRecorded") },
+    { label: t("patientProfile.medicationsLabel"), value: medicalInfo?.medications?.join(", ") || t("patientProfile.noneRecorded") },
   ];
 
   const registeredDate = formatDate(patient.created_at);
-  const totalSpentStatus = statistics?.outstanding_balance === 0 ? "Fully Paid" : statistics?.outstanding_balance
-    ? `${statistics?.outstanding_balance.toLocaleString()} AFN outstanding`
-    : "No visits yet";
+  const totalSpentStatus = statistics?.outstanding_balance === 0 ? t("patientProfile.fullyPaid") : statistics?.outstanding_balance
+    ? t("patientProfile.amountOutstanding", { amount: statistics?.outstanding_balance.toLocaleString() })
+    : t("patientProfile.noVisits");
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
@@ -326,9 +329,9 @@ const PatientProfile: React.FC = () => {
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <LocationIcon className="h-3 w-3"/>
-                  {patient.address ? patient.address : "Address not provided"}   •
+                  {patient.address ? patient.address : t("patientProfile.addressNotProvided")}   •
                 </span>
-                <span>Registered since {registeredDate}</span>
+                <span>{t("patientProfile.registeredSince", { date: registeredDate })}</span>
               </div>
             </div>
           </div>
@@ -341,7 +344,7 @@ const PatientProfile: React.FC = () => {
               className="cursor-pointer"
             >
               <PlusIcon className="w-4 h-4" />
-              <span>New Visit</span>
+              <span>{t("patientProfile.newVisit")}</span>
             </Button>
             <Button
               variant="destructive"
@@ -349,7 +352,7 @@ const PatientProfile: React.FC = () => {
               className="cursor-pointer"
             >
               <DeleteIcon className="w-4 h-4" />
-              <span>Delete</span>
+              <span>{t("patientProfile.delete")}</span>
             </Button>
           </div>
         </div>
@@ -358,22 +361,22 @@ const PatientProfile: React.FC = () => {
       {/* Statistics Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatisticsCard
-          label="Total Spent"
-          value={`${(statistics?.total_spent || 0).toLocaleString()} AFN`}
+          label={t("patientProfile.totalSpentLabel")}
+          value={t("patientProfile.amountAfn", { amount: (statistics?.total_spent || 0).toLocaleString() })}
           subtitle={totalSpentStatus}
           variant="success"
           icon="check"
         />
         <StatisticsCard
-          label="Last Visit"
-          value={formatDate(statistics?.last_visit_date) || "No visits"}
+          label={t("patientProfile.lastVisitLabel")}
+          value={formatDate(statistics?.last_visit_date) || t("patientProfile.noVisits")}
           subtitle={lastVisitProcedure || "-"}
           variant="info"
           icon="clock"
         />
         <StatisticsCard
-          label="Outstanding Balance"
-          value={`${(statistics?.outstanding_balance || 0).toLocaleString()} AFN`}
+          label={t("patientProfile.outstandingBalanceLabel")}
+          value={t("patientProfile.amountAfn", { amount: (statistics?.outstanding_balance || 0).toLocaleString() })}
           variant={statistics?.outstanding_balance && statistics.outstanding_balance > 0 ? "warning" : "success"}
           icon="check"
         />
@@ -406,15 +409,15 @@ const PatientProfile: React.FC = () => {
       <Modal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete Patient"
-        description={`Are you sure you want to delete ${patient.full_name}? This action cannot be undone.`}
+        title={t("patientProfile.deleteTitle")}
+        description={`${t("patientProfile.deleteConfirm", { name: patient.full_name })} ${t("patientProfile.deleteUndo")}`}
       >
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button variant="destructive" onClick={handleConfirmDelete}>
-            Delete Patient
+            {t("patientProfile.deletePatient")}
           </Button>
         </div>
       </Modal>
@@ -423,12 +426,12 @@ const PatientProfile: React.FC = () => {
       <Modal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        title="Edit Personal Information"
+        title={t("patientProfile.editPersonalInfo")}
         size="lg"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.fullName")}</label>
             <input
               type="text"
               value={editFormData.full_name}
@@ -437,7 +440,7 @@ const PatientProfile: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.phoneNumber")}</label>
             <input
               type="tel"
               value={editFormData.phone}
@@ -447,7 +450,7 @@ const PatientProfile: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Age</label>
+              <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.age")}</label>
               <input
                 type="number"
                 value={editFormData.age}
@@ -456,20 +459,20 @@ const PatientProfile: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Gender</label>
+              <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.gender")}</label>
               <select
                 value={editFormData.gender}
                 onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value as "Male" | "Female" | "Other" })}
                 className="w-full px-3 py-2 border rounded-md"
               >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="Male">{t("patients.filters.male")}</option>
+                <option value="Female">{t("patients.filters.female")}</option>
+                <option value="Other">{t("patients.filters.other")}</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.address")}</label>
             <textarea
               value={editFormData.address}
               onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
@@ -480,10 +483,10 @@ const PatientProfile: React.FC = () => {
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="outline" onClick={() => setShowEditModal(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSavePersonalInfo}>
-            Save Changes
+            {t("patientProfile.saveChanges")}
           </Button>
         </div>
       </Modal>
@@ -492,47 +495,47 @@ const PatientProfile: React.FC = () => {
       <Modal
         isOpen={showAllergiesModal}
         onClose={() => setShowAllergiesModal(false)}
-        title="Allergies & Medical Alerts"
+        title={t("patientProfile.allergiesMedicalAlerts")}
         size="lg"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Allergies (comma separated)</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.allergies")}</label>
             <input
               type="text"
               value={allergiesFormData.allergies}
               onChange={(e) => setAllergiesFormData({ ...allergiesFormData, allergies: e.target.value })}
-              placeholder="e.g., Penicillin, Latex"
+              placeholder={t("patientProfile.formPlaceholders.allergiesExample")}
               className="w-full px-3 py-2 border rounded-md"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Medical Conditions (comma separated)</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.medicalConditions")}</label>
             <input
               type="text"
               value={allergiesFormData.medical_conditions}
               onChange={(e) => setAllergiesFormData({ ...allergiesFormData, medical_conditions: e.target.value })}
-              placeholder="e.g., Diabetes, Hypertension"
+              placeholder={t("patientProfile.formPlaceholders.conditionsExample")}
               className="w-full px-3 py-2 border rounded-md"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Current Medications (comma separated)</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.medications")}</label>
             <input
               type="text"
               value={allergiesFormData.medications}
               onChange={(e) => setAllergiesFormData({ ...allergiesFormData, medications: e.target.value })}
-              placeholder="e.g., Metformin, Lisinopril"
+              placeholder={t("patientProfile.formPlaceholders.medicationsExample")}
               className="w-full px-3 py-2 border rounded-md"
             />
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="outline" onClick={() => setShowAllergiesModal(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSaveAllergies}>
-            Save Changes
+            {t("patientProfile.saveChanges")}
           </Button>
         </div>
       </Modal>

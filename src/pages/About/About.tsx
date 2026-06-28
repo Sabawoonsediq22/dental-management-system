@@ -9,7 +9,7 @@ const About: React.FC = () => {
         {t("nav.about")}
       </h2>
       <p className="text-gray-600 dark:text-gray-400">
-        About Us.
+        {t("about.description")}
       </p>
     </div>
   );

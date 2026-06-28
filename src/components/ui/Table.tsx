@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 
 export interface TableColumn<T> {
@@ -21,10 +22,12 @@ const Table = <T extends Record<string, unknown>>({
   data,
   columns,
   isLoading,
-  emptyMessage = "No data available",
+  emptyMessage,
   className,
   onRowClick,
 }: TableProps<T>) => {
+  const { t } = useTranslation();
+  const displayEmptyMessage = emptyMessage || t("ui.noData", "No data available");
   if (isLoading) {
     return (
       <div className="w-full">
@@ -60,7 +63,7 @@ const Table = <T extends Record<string, unknown>>({
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center p-8 text-muted-foreground">
-        {emptyMessage}
+        {displayEmptyMessage}
       </div>
     );
   }

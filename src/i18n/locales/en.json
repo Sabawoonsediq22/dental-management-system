@@ -15,6 +15,14 @@
     "welcome": "Welcome Back",
     "clear": "Clear",
     "invoices": "invoice",
+    "lastUpdated": "Last updated",
+    "realTimeSync": "Real-time sync",
+    "liveDataFromDb": "Live data from database",
+    "autoRefresh": "Auto-refresh every 5 min",
+    "noDataAvailable": "No data available",
+    "statusUpdateError": "Cannot update status: missing visit ID",
+    "statusUpdateFailed": "Failed to update status",
+    "clickToChangeStatus": "Click to change status",
     "stats": {
       "dailyRevenue": "Daily Revenue",
       "patientsToday": "Patients Today",
@@ -27,9 +35,14 @@
     "procedureDistribution": "Procedure Distribution",
     "recentPatients": "Recent Patients",
     "viewAllPatients": "View All Patients",
+    "notifications": {
+      "statusUpdated": "Status updated to {{status}}"
+    },
+    "invoiceCount_one": "{{count}} invoice",
+    "invoiceCount_other": "{{count}} invoices",
     "table": {
       "fullName": "FULL NAME",
-      "phone": "PHONE",
+      "phone": "CONTACT",
       "ageGender": "AGE / GENDER",
       "address": "ADDRESS",
       "lastVisit": "LAST VISIT",
@@ -38,21 +51,26 @@
     "noRecentPatients": "No recent patients"
   },
   "settings": {
-    "language": "Language"
+    "language": "Language",
+    "description": "Configure application settings."
   },
   "patients": {
     "new": "New Patient",
     "title": "Patients",
     "description": "Manage your patient records, appointments, and clinical timelines from one central place.",
-    "searchPlaceholder": "Search by name, phone, or ID",
+    "searchPlaceholder": "Search by name, phone, or Patient ID",
     "TotalPatients": "Total Patients",
+    "loading": "Loading patients...",
+    "errorLoading": "Error loading patients",
     "actions": {
       "add": "Add patient",
       "view": "View",
       "edit": "Edit",
       "delete": "Delete",
       "newVisit": "New Visit",
-      "addNew": "Add New Patient"
+      "addNew": "Add New Patient",
+      "saveChanges": "Save Changes",
+      "deleting": "Deleting..."
     },
     "filters": {
       "all": "All patients",
@@ -89,6 +107,15 @@
       "columnStatus": "Status",
       "columnBalance": "Balance",
       "columnActions": "Actions",
+      "no": "NO.",
+      "fullName": "FULL NAME",
+      "phone": "PHONE",
+      "ageGender": "AGE / GENDER",
+      "address": "ADDRESS",
+      "lastVisit": "LAST VISIT",
+      "actions": "ACTIONS",
+      "yrs": "yrs",
+      "last": "Last:",
       "empty": "No patients match your current search and filter."
     },
     "form": {
@@ -117,6 +144,10 @@
     "phoneNumber": "Phone Number",
     "age": "Age",
     "address": "Address",
+    "fullNamePlaceholder": "e.g. Ahmad Shah",
+    "phonePlaceholder": "+93 7XX XXX XXX",
+    "agePlaceholder": "Years",
+    "addressPlaceholder": "District, City, Province",
     "medicalHistory": "Medical History",
     "visitDetails": "Visit Details",
     "visitDetailsPlaceholder": "Details",
@@ -128,12 +159,14 @@
     "clinicalNotes": "Clinical Notes",
     "clinicalNotesPlaceholder": "Doctor's initial observations...",
     "procedureAdditionalNotes": "Additional Notes",
+    "additionalNotesPlaceholder": "Add procedure notes",
     "medicalConditions": "Medical Conditions",
     "diabetes": "Diabetes",
     "hypertension": "Hypertension",
     "heartDisease": "Heart Disease",
     "asthma": "Asthma",
     "typeYours": "Type your own",
+    "medicalConditionPlaceholder": "e.g. Epilepsy, Thyroid Issues, etc.",
     "dentalChart": "Dental Chart",
     "fdiSystem": "FDI System",
     "procedure": "Procedure",
@@ -147,8 +180,6 @@
     "materialUsed": "Material Used",
     "technique": "Technique",
     "materialUsedPlaceholder": "e.g. Gutta-percha, MTA",
-    "medicalConditionPlaceholder": "e.g. Epilepsy, Thyroid Issues, etc.",
-    "treatmentRecording": "Treatment Recording",
     "techniquePlaceholder": "e.g. Lateral condensation",
     "xray": "X-ray",
     "xRayPhotos": "X-Ray & Clinical Photos",
@@ -158,10 +189,15 @@
     "browseFiles": "Browse Files",
     "remove": "Remove",
     "xRayDescription": "Upload X-ray images, intraoral photos, or other clinical documentation",
+    "allergiesPlaceholder": "e.g. Penicillin, Latex, Peanuts",
+    "notifications": {
+      "xrayError": "X-ray upload failed"
+    },
     "billing": "Billing",
     "billingSummary": "Billing Summary",
     "molar": "Molar",
     "numberOfProcedures": "Number of Procedures",
+    "totalNumberOfProcedures": "Total Number of Procedures",
     "subtotal": "Subtotal",
     "discount": "Discount",
     "discountPlaceholder": "Enter discount",
@@ -174,7 +210,8 @@
     "selectedTeethLabel": "teeth selected",
     "teeth": "teeth",
     "addProcedure": "Add Procedure",
-    "noProceduresAdded": "No procedures added yet. Select a procedure above to begin."
+    "noProceduresAdded": "No procedures added yet. Select a procedure above to begin.",
+    "viewHistory": "View History"
   },
   "newVisit": {
     "title": "New Visit",
@@ -224,10 +261,18 @@
       "partialSuccess": "Visit was saved, but some treatment details could not be saved."
     }
   },
-  "common": {
+    "common": {
     "cancel": "Cancel",
     "saving": "Saving...",
-    "high": "High"
+    "optional": "optional",
+    "high": "High",
+    "loading": "Loading...",
+    "search": "Search",
+    "status": "Status",
+    "closeDialog": "Close dialog",
+    "closeModal": "Close modal",
+    "confirm": "Confirm",
+    "deleting": "Deleting..."
   },
   "pagination": {
     "showing": "Showing {{start}} to {{end}} of {{total}}",
@@ -235,12 +280,17 @@
     "previous": "Previous page",
     "next": "Next page"
   },
-"search": {
+  "search": {
     "placeholder": "Search patients or records by id, name or phone...",
     "recentSearches": "Recent Searches",
     "clearAll": "Clear All",
     "noResults": "No results found",
     "trySearching": "Try searching by:",
+    "emptyTitle": "No results found",
+    "emptySubtitle": "Try searching by:",
+    "openGlobalSearch": "Open global search",
+    "ctrl": "Ctrl",
+    "k": "K",
     "hints": {
       "patientName": "Patient Name",
       "phone": "Phone Number",
@@ -248,8 +298,14 @@
       "invoiceNumber": "Invoice Number",
       "treatmentName": "Treatment Name"
     },
-    "emptyTitle": "No results found",
-    "emptySubtitle": "Try searching by:"
+    "category": {
+      "patients": "PATIENTS",
+      "invoices": "INVOICES",
+      "receipts": "RECEIPTS",
+      "visits": "VISITS",
+      "treatments": "TREATMENTS",
+      "payments": "PAYMENTS"
+    }
   },
   "reports": {
     "title": "Reports",
@@ -268,7 +324,8 @@
     "status": {
       "completed": "Completed",
       "cancelled": "Cancelled",
-      "active": "Active"
+      "active": "Active",
+      "inProgress": "In Progress"
     },
     "charts": {
       "revenueTrend": "Revenue Trend",
@@ -304,6 +361,8 @@
     "title": "Billing",
     "description": "Manage invoices, payments, and receipts for all patient visits.",
     "searchPlaceholder": "Search by invoice number, patient name or phone...",
+    "loadingInvoices": "Loading invoices...",
+    "errorLoading": "Error loading invoices",
     "totalInvoices": "Total Invoices",
     "outstandingBalance": "Outstanding",
     "outstanding": "Outstanding",
@@ -313,16 +372,25 @@
     "paymentAmount": "Payment Amount",
     "paymentMethod": "Payment Method",
     "notes": "Notes",
+    "paymentNotesPlaceholder": "Payment reference or notes",
+    "enterAmount": "Enter amount",
     "receipt": "Receipt",
     "date": "Date",
     "total": "Total",
     "paid": "Paid",
+    "outstandingAmount": "Outstanding: {{amount}} AFN",
     "filters": {
       "status": "Status",
       "all": "All",
       "unpaid": "Unpaid",
       "partial": "Partial",
       "paid": "Paid"
+    },
+    "methods": {
+      "cash": "Cash",
+      "card": "Card",
+      "mobile": "Mobile",
+      "insurance": "Insurance"
     },
     "table": {
       "number": "No.",
@@ -334,6 +402,10 @@
       "outstanding": "BALANCE",
       "status": "STATUS",
       "actions": "ACTIONS",
+      "dateLabel": "Date:",
+      "totalLabel": "Total:",
+      "paidLabel": "Paid:",
+      "dueLabel": "Due:",
       "empty": "No invoices found matching your criteria."
     },
     "actions": {
@@ -343,7 +415,12 @@
     "notifications": {
       "paymentAdded": "Payment recorded successfully",
       "paymentError": "Failed to record payment"
-    }
+    },
+    "currency": "AFN"
+  },
+  "about": {
+    "title": "Dental Clinic",
+    "description": "About Us."
   },
   "help": {
     "title": "Help",
@@ -386,5 +463,160 @@
       "q4": "Can I export patient data?",
       "a4": "Yes, visit the Reports page to export patient, financial, or treatment reports. Select the report type and download in your preferred format."
     }
+  },
+  "patientProfile": {
+    "personalDetails": "Personal Details",
+    "editPersonalDetailsAria": "Edit personal details",
+    "totalSpent": "Total Spent",
+    "lastVisit": "Last Visit",
+    "outstandingBalance": "Outstanding Balance",
+    "noVisits": "No visits",
+    "fullyPaid": "Fully Paid",
+    "ageGender": "Age / Gender",
+    "phoneNumber": "Phone Number",
+    "homeAddress": "Home Address",
+    "noneRecorded": "None recorded",
+    "deletePatient": "Delete Patient",
+    "deleteConfirm": "Are you sure you want to delete {{name}}?",
+    "deleteUndo": "This action cannot be undone.",
+    "saveChanges": "Save Changes",
+    "editPersonalInfo": "Edit Personal Information",
+    "allergiesMedicalAlerts": "Allergies & Medical Alerts",
+    "editAllergiesAria": "Edit allergies and alerts",
+    "allergiesComma": "Allergies (comma separated)",
+    "allergiesExample": "e.g., Penicillin, Latex",
+    "medicalConditionsComma": "Medical Conditions (comma separated)",
+    "medicalConditionsExample": "e.g., Diabetes, Hypertension",
+    "currentMedicationsComma": "Current Medications (comma separated)",
+    "currentMedicationsExample": "e.g., Metformin, Lisinopril",
+    "addressNotProvided": "Address not provided",
+    "registeredSince": "Registered since",
+    "avatarFor": "Avatar for {{name}}",
+    "newVisit": "New Visit",
+    "delete": "Delete",
+    "deleteTitle": "Delete Patient",
+    "allergiesLabel": "ALLERGIES",
+    "medicalConditionsLabel": "MEDICAL CONDITIONS",
+    "medicationsLabel": "CURRENT MEDICATIONS",
+    "totalSpentLabel": "Total Spent",
+    "lastVisitLabel": "Last Visit",
+    "outstandingBalanceLabel": "Outstanding Balance",
+    "amountOutstanding": "{{amount}} AFN outstanding",
+    "amountAfn": "{{amount}} AFN",
+    "years": "Years",
+    "formLabels": {
+      "fullName": "Full Name",
+      "phoneNumber": "Phone Number",
+      "age": "Age",
+      "gender": "Gender",
+      "address": "Address",
+      "allergies": "Allergies (comma separated)",
+      "medicalConditions": "Medical Conditions (comma separated)",
+      "medications": "Current Medications (comma separated)"
+    },
+    "formPlaceholders": {
+      "allergiesExample": "e.g., Penicillin, Latex",
+      "conditionsExample": "e.g., Diabetes, Hypertension",
+      "medicationsExample": "e.g., Metformin, Lisinopril"
+    },
+    "notifications": {
+      "deleted": "Patient deleted successfully",
+      "medicalUpdated": "Medical information updated successfully",
+      "medicalUpdateError": "Failed to update medical information",
+      "statusUpdated": "Treatment status updated to {{status}}",
+      "statusUpdateError": "Failed to update status",
+      "treatmentHistoryError": "Failed to load treatment history"
+    },
+    "online": "Online",
+    "offline": "Offline",
+    "away": "Away",
+    "treatmentHistory": "Treatment History",
+    "filterTreatments": "Filter Treatments",
+    "exportTreatments": "Export treatments",
+    "noTreatmentHistory": "No treatment history recorded yet.",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "clinicalNotes": "Clinical Notes",
+    "procedureNote": "Procedure Note",
+    "billingDetails": "Billing Details",
+    "quantity": "Quantity",
+    "unitPrice": "Unit Price",
+    "xrayImages": "Xray Images",
+    "treatmentImage": "Treatment image",
+    "notFound": "Not found",
+    "viewAllVisitRecords": "View All Visit Records",
+    "treatmentPreview": "Treatment preview",
+    "changeTreatmentStatus": "Change Treatment Status",
+    "selectNewStatus": "Select the new status for this treatment.",
+    "inProgress": "In Progress",
+    "search": "Search",
+    "searchByProcedure": "Search by procedure, notes...",
+    "selectAll": "Select All",
+    "reset": "Reset",
+    "applyFilter": "Apply Filter",
+    "exportTreatmentHistory": "Export Treatment History",
+    "exportTreatmentDesc": "Export treatment history for {{patientName}}. Choose format below.",
+    "csvFormat": "CSV Format",
+    "csvFormatDesc": "Spreadsheet-compatible format. Includes date, time, procedure, status, notes, and cost.",
+    "downloadCsv": "Download CSV",
+    "pdfFormat": "PDF Format",
+    "pdfFormatDesc": "Printable document with statistics, table, and professional formatting.",
+    "downloadPdf": "Download PDF",
+    "textSummary": "Text Summary",
+    "textSummaryDesc": "Plain text summary with statistics and procedure list.",
+    "downloadSummary": "Download Summary"
+  },
+  "receipt": {
+    "loading": "Loading receipt...",
+    "unableToLoad": "Unable to load receipt",
+    "noReceiptAvailable": "No receipt available",
+    "createBeforePrinting": "Create a procedure and invoice before printing a receipt.",
+    "printReceipt": "Print Receipt",
+    "previewDescription": "Preview the invoice receipt and print a clean desktop-ready copy.",
+    "exportPdf": "Export PDF",
+    "downloadReceipt": "Download Receipt",
+    "regenerate": "Regenerate",
+    "receiptNo": "Receipt No",
+    "patientName": "Patient Name",
+    "date": "Date",
+    "patientId": "Patient ID",
+    "procedure": "Procedure",
+    "price": "Price",
+    "noProcedureRecorded": "No procedure recorded for this invoice.",
+    "totalAmount": "Total Amount",
+    "paidAmountCash": "Paid Amount (Cash)",
+    "payments": "Payments",
+    "payment": "Payment",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "outstandingBalance": "Outstanding Balance",
+    "clinicLogo": "Clinic logo",
+    "thankYou": "Thank you for choosing Khwaja Dental!"
+  },
+  "datePicker": {
+    "selectDate": "Select a date",
+    "days": {
+      "su": "Su",
+      "mo": "Mo",
+      "tu": "Tu",
+      "we": "We",
+      "th": "Th",
+      "fr": "Fr",
+      "sa": "Sa"
+    }
+  },
+  "ui": {
+    "loading": "Loading",
+    "noData": "No data available",
+    "breadcrumb": "Breadcrumb"
+  },
+  "validation": {
+    "fullNameRequired": "Full name is required",
+    "fullNameMaxLength": "Name must be 100 characters or less",
+    "phoneRequired": "Phone number is required",
+    "phoneInvalid": "Invalid phone format",
+    "genderRequired": "Gender is required",
+    "ageRange": "Age must be between 1 and 120",
+    "addressMaxLength": "Address must be 200 characters or less"
   }
 }

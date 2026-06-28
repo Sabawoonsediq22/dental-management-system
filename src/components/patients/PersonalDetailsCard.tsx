@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { EditIcon } from "../../shared/icons/icons";
@@ -15,18 +16,19 @@ const PersonalDetailsCard: React.FC<PersonalDetailsCardProps> = ({
   onEdit,
   className,
 }) => {
+  const { t } = useTranslation();
   return (
     <Card className={cn("w-full bg-white dark:bg-gray-800", className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-            Personal Details
+            {t("patientProfile.personalDetails")}
           </CardTitle>
           {onEdit && (
             <button
               onClick={onEdit}
               className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-              aria-label="Edit personal details"
+              aria-label={t("patientProfile.editPersonalDetailsAria")}
             >
               <EditIcon size="md" />
             </button>

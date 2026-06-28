@@ -9,7 +9,7 @@ const Settings: React.FC = () => {
         {t("nav.settings")}
       </h2>
       <p className="text-gray-600 dark:text-gray-400">
-        Configure application settings.
+        {t("settings.description")}
       </p>
     </div>
   );

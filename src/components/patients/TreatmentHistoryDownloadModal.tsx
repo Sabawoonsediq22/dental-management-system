@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/button";
@@ -41,11 +42,13 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
   patientName,
   className,
 }) => {
+  const { t } = useTranslation();
+
   const handleDownloadCSV = () => {
     if (treatments.length === 0) return;
 
     const csvContent = [
-      ["Date", "Time", "Procedure", "Status", "Notes", "Cost (AFN)"],
+      ["Date", "Time", "Procedure", t("common.status", "Status"), "Notes", "Cost (AFN)"],
       ...treatments.map((t) => [
         formatDate(t.date),
         t.time,
@@ -107,26 +110,26 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
         </head>
         <body>
           <div class="header">
-            <h1>Treatment History Report</h1>
-            <p>Patient: ${patientName || "Unknown"} | Patient ID: ${patientId || "Unknown"}</p>
-            <p>Generated on: ${new Date().toLocaleDateString("en-US")}</p>
+            <h1>${t("key.not.found", "Treatment History Report")}</h1>
+            <p>${t("key.not.found", "Patient:")} ${patientName || "Unknown"} | ${t("key.not.found", "Patient ID:")} ${patientId || "Unknown"}</p>
+            <p>${t("key.not.found", "Generated on:")} ${new Date().toLocaleDateString("en-US")}</p>
           </div>
           
           <div class="stats">
             <div class="stat-box">
-              <h3>Total Treatments</h3>
+              <h3>${t("key.not.found", "Total Treatments")}</h3>
               <p>${treatments.length}</p>
             </div>
             <div class="stat-box">
-              <h3>Total Cost</h3>
+              <h3>${t("key.not.found", "Total Cost")}</h3>
               <p>${totalCost.toLocaleString()} AFN</p>
             </div>
             <div class="stat-box">
-              <h3>Completed</h3>
+              <h3>${t("key.not.found", "Completed")}</h3>
               <p>${statusCounts["Completed"] || 0}</p>
             </div>
             <div class="stat-box">
-              <h3>Open</h3>
+              <h3>${t("key.not.found", "Open")}</h3>
               <p>${statusCounts["Open"] || 0}</p>
             </div>
           </div>
@@ -134,12 +137,12 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Procedure</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th>Cost (AFN)</th>
+                <th>${t("key.not.found", "Date")}</th>
+                <th>${t("key.not.found", "Time")}</th>
+                <th>${t("key.not.found", "Procedure")}</th>
+                <th>${t("common.status", "Status")}</th>
+                <th>${t("key.not.found", "Notes")}</th>
+                <th>${t("key.not.found", "Cost (AFN)")}</th>
               </tr>
             </thead>
             <tbody>
@@ -157,7 +160,7 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
           </table>
 
           <div class="footer">
-            Dental Management System - Treatment History Report
+            ${t("key.not.found", "Dental Management System - Treatment History Report")}
           </div>
         </body>
       </html>
@@ -184,20 +187,20 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
     }, {} as Record<string, number>);
 
     const summary = [
-      `Treatment History Summary`,
-      `========================`,
-      ``,
-      `Patient: ${patientName || "Unknown"}`,
-      `Patient ID: ${patientId || "Unknown"}`,
-      `Total Treatments: ${treatments.length}`,
-      `Total Cost: ${totalCost.toLocaleString()} AFN`,
-      ``,
-      `Status Breakdown:`,
-      `  - Completed: ${statusCounts["Completed"] || 0}`,
-      `  - Open: ${statusCounts["Open"] || 0}`,
-      `  - Cancelled: ${statusCounts["Cancelled"] || 0}`,
-      ``,
-      `Treatments:`,
+      t("key.not.found", "Treatment History Summary"),
+      "==========================",
+      "",
+      `${t("key.not.found", "Patient:")} ${patientName || "Unknown"}`,
+      `${t("key.not.found", "Patient ID:")} ${patientId || "Unknown"}`,
+      `${t("key.not.found", "Total Treatments:")} ${treatments.length}`,
+      `${t("key.not.found", "Total Cost:")} ${totalCost.toLocaleString()} AFN`,
+      "",
+      t("key.not.found", "Status Breakdown:"),
+      `  - ${t("reports.status.completed", "Completed")}: ${statusCounts["Completed"] || 0}`,
+      `  - ${t("reports.status.active", "Active")}: ${statusCounts["Open"] || 0}`,
+      `  - ${t("reports.status.cancelled", "Cancelled")}: ${statusCounts["Cancelled"] || 0}`,
+      "",
+      t("key.not.found", "Treatments:"),
       ...treatments.map((t, i) => {
         const title = getTreatmentTitle(t);
         return `  ${i + 1}. ${formatDate(t.date)} - ${title} (${t.cost.toLocaleString()} AFN)`;
@@ -221,46 +224,46 @@ const TreatmentHistoryDownloadModal: React.FC<TreatmentHistoryDownloadModalProps
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Export Treatment History"
+      title={t("patientProfile.exportTreatmentHistory", "Export Treatment History")}
       size="md"
       className={cn("bg-white dark:bg-gray-800", className)}
     >
       <div className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Export treatment history for {patientName || "this patient"}. Choose format below.
+          {t("patientProfile.exportTreatmentDesc", "Export treatment history for {{patientName}}. Choose format below.", { patientName })}
         </p>
 
         <div className="space-y-3">
           <div className="p-4 border rounded-lg dark:border-gray-700">
-            <h4 className="font-medium mb-2">CSV Format</h4>
+            <h4 className="font-medium mb-2">{t("patientProfile.csvFormat", "CSV Format")}</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              Spreadsheet-compatible format. Includes date, time, procedure, status, notes, and cost.
+              {t("patientProfile.csvFormatDesc", "Spreadsheet-compatible format. Includes date, time, procedure, status, notes, and cost.")}
             </p>
             <Button onClick={handleDownloadCSV} className="w-full">
               <DownloadIcon className="w-4 h-4 mr-2" />
-              Download CSV
+              {t("patientProfile.downloadCsv", "Download CSV")}
             </Button>
           </div>
 
           <div className="p-4 border rounded-lg dark:border-gray-700">
-            <h4 className="font-medium mb-2">PDF Format</h4>
+            <h4 className="font-medium mb-2">{t("patientProfile.pdfFormat", "PDF Format")}</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              Printable document with statistics, table, and professional formatting.
+              {t("patientProfile.pdfFormatDesc", "Printable document with statistics, table, and professional formatting.")}
             </p>
             <Button onClick={handleDownloadPDF} variant="outline" className="w-full">
               <DownloadIcon className="w-4 h-4 mr-2" />
-              Download PDF
+              {t("patientProfile.downloadPdf", "Download PDF")}
             </Button>
           </div>
 
           <div className="p-4 border rounded-lg dark:border-gray-700">
-            <h4 className="font-medium mb-2">Text Summary</h4>
+            <h4 className="font-medium mb-2">{t("patientProfile.textSummary", "Text Summary")}</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              Plain text summary with statistics and procedure list.
+              {t("patientProfile.textSummaryDesc", "Plain text summary with statistics and procedure list.")}
             </p>
             <Button onClick={handleDownloadSummary} variant="outline" className="w-full">
               <DownloadIcon className="w-4 h-4 mr-2" />
-              Download Summary
+              {t("patientProfile.downloadSummary", "Download Summary")}
             </Button>
           </div>
         </div>

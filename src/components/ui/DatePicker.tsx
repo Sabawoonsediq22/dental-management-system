@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import {
   CalendarIcon,
@@ -32,12 +33,14 @@ export interface DatePickerProps {
 const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
-  placeholder = "Select a date",
+  placeholder,
   disabled,
   className,
   minDate,
   maxDate,
 }) => {
+  const { t } = useTranslation();
+  const displayPlaceholder = placeholder || t("datePicker.selectDate");
   const [isOpen, setIsOpen] = React.useState(false);
   const [currentMonth, setCurrentMonth] = React.useState(value || new Date());
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -115,7 +118,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           type="text"
           readOnly
           value={value ? format(value, "PPP") : ""}
-          placeholder={placeholder}
+          placeholder={displayPlaceholder}
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
@@ -149,14 +152,17 @@ const DatePicker: React.FC<DatePickerProps> = ({
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => {
+              const dayKey = `datePicker.days.${d.toLowerCase()}`;
+              return (
               <div
                 key={d}
                 className="h-9 w-9 text-xs font-medium text-center flex items-center justify-center"
               >
-                {d}
+                {t(dayKey, d)}
               </div>
-            ))}
+            );
+            })}
           </div>
           <div>{rows}</div>
         </div>

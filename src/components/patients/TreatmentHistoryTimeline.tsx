@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 import { Badge } from "../ui/Badge";
@@ -112,6 +113,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
     currentStatus: string;
   } | null>(null);
   const [filteredTreatments, setFilteredTreatments] = useState<TreatmentEntry[]>(initialTreatments);
+  const { t } = useTranslation();
 
   const toggleExpand = (key: string) => {
     setExpandedKey(expandedKey === key ? null : key);
@@ -148,20 +150,20 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              Treatment History
+              {t("patientProfile.treatmentHistory", "Treatment History")}
             </CardTitle>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilterModal(true)}
                 className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                aria-label="Filter treatments"
+                aria-label={t("patientProfile.filterTreatments", "Filter treatments")}
               >
                 <FilterIcon size="md" />
               </button>
               <button
                 onClick={() => setShowDownloadModal(true)}
                 className="p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                aria-label="Export treatments"
+                aria-label={t("patientProfile.exportTreatments", "Export treatments")}
               >
                 <DownloadIcon/>
               </button>
@@ -180,7 +182,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                   </svg>
                 </div>
                 <div className="ml-14 flex-1 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-sm text-gray-500 dark:text-gray-400">
-                  No treatment history recorded yet.
+                  {t("patientProfile.noTreatmentHistory", "No treatment history recorded yet.")}
                 </div>
               </div>
             ) : (
@@ -245,7 +247,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                 <button
                                   onClick={() => toggleExpand(entry.expandKey)}
                                   className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                                  aria-label={isExpanded ? t("patientProfile.collapse", "Collapse") : t("patientProfile.expand", "Expand")}
                                 >
                                   {isExpanded ? (
                                     <ChevronUpIcon size="md" />
@@ -261,7 +263,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                 {entry.notes && (
                                   <div className="pt-3">
                                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Clinical Notes
+                                      {t("patientProfile.clinicalNotes", "Clinical Notes")}
                                     </span>
                                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
                                       {entry.notes}
@@ -272,7 +274,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                 {entry.procedure.additionalNote && (
                                   <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-3">
                                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Procedure Note
+                                      {t("patientProfile.procedureNote", "Procedure Note")}
                                     </span>
                                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
                                       {entry.procedure.additionalNote}
@@ -282,27 +284,27 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
 
                                 <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-4 space-y-3">
                                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Billing Details
+                                    {t("patientProfile.billingDetails", "Billing Details")}
                                   </span>
                                   <div className="grid md:grid-cols-4 grid-cols-2 gap-y-2 gap-x-4 pt-2">
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">Quantity</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">{t("patientProfile.quantity", "Quantity")}</p>
                                       <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">{entry.procedure.quantity}</p>
                                     </div>
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">Unit Price</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">{t("patientProfile.unitPrice", "Unit Price")}</p>
                                       <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
                                         {entry.procedure.unitPrice.toLocaleString()} {getCurrencySymbol(entry.procedure.name)}
                                       </p>
                                     </div>
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">Subtotal</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">{t("newPatient.subtotal", "Subtotal")}</p>
                                       <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
                                         {(entry.procedure.unitPrice * entry.procedure.quantity).toLocaleString()} {getCurrencySymbol(entry.procedure.name)}
                                       </p>
                                     </div>
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">{t("newPatient.totalDue", "Total Due")}</p>
                                       <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-0.5">
                                         {entry.procedure.totalPrice.toLocaleString()} {" "}
                                         {getCurrencySymbol(entry.procedure.name)}
@@ -314,7 +316,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                 {entry.images && entry.images.length > 0 && (
                                   <div className="pt-2">
                                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Xray Images
+                                      {t("patientProfile.xrayImages", "Xray Images")}
                                     </span>
                                     <div className="flex gap-2 flex-wrap mt-2">
                                       {entry.images.map((img, imgIndex) => {
@@ -324,18 +326,18 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                                             key={imgIndex}
                                             onClick={() => setPreviewImage(img)}
                                             className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity bg-gray-100 dark:bg-gray-700"
-                                            title={`Treatment image ${imgIndex + 1}`}
+                                            title={t("patientProfile.treatmentImage", "Treatment image") + ` ${imgIndex + 1}`}
                                           >
                                             <img
                                               src={imgUrl}
-                                              alt={`Treatment image ${imgIndex + 1}`}
+                                              alt={t("patientProfile.treatmentImage", "Treatment image") + ` ${imgIndex + 1}`}
                                               className="w-full h-full object-cover"
                                               onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.style.display = "none";
                                                 const parent = target.parentElement;
                                                 if (parent) {
-                                                  parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Not found</div>`;
+                                                  parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">${t("patientProfile.notFound", "Not found")}</div>`;
                                                 }
                                               }}
                                             />
@@ -363,7 +365,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
                   onClick={onViewAll}
                   className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                 >
-                  View All Visit Records →
+                  {t("patientProfile.viewAllVisitRecords", "View All Visit Records")}
                 </Button>
               </div>
             )}
@@ -381,7 +383,7 @@ const TreatmentHistoryTimeline: React.FC<TreatmentHistoryTimelineProps> = ({
           <div className="flex items-center justify-center p-4">
             <img
               src={getImageUrl(previewImage)}
-              alt="Treatment preview"
+              alt={t("patientProfile.treatmentPreview", "Treatment preview")}
               className="max-w-full max-h-[70vh] object-contain rounded-lg"
             />
           </div>

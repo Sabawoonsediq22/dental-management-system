@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { LoadingSpinner } from "../ui";
 import { ReceiptData } from "./types";
@@ -24,10 +25,12 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   logoUrl,
   className,
 }) => {
+  const { t } = useTranslation();
+  
   if (isLoading) {
     return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-        <LoadingSpinner size="lg" text="Loading receipt..." />
+      <div className="flex min-h-90 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
+        <LoadingSpinner size="lg" text={t("receipt.loading")} />
       </div>
     );
   }
@@ -35,7 +38,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-        <p className="font-semibold">Unable to load receipt</p>
+        <p className="font-semibold">{t("receipt.unableToLoad")}</p>
         <p className="mt-1 text-sm opacity-80">{String(error)}</p>
       </div>
     );
@@ -44,9 +47,9 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   if (!receipt) {
     return (
       <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800/50">
-        <p className="font-semibold text-gray-900 dark:text-white">No receipt available</p>
+        <p className="font-semibold text-gray-900 dark:text-white">{t("receipt.noReceiptAvailable")}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create a procedure and invoice before printing a receipt.
+          {t("receipt.createBeforePrinting")}
         </p>
       </div>
     );
@@ -66,7 +69,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
           {logoUrl && (
             <img
               src={logoUrl}
-              alt="Clinic logo"
+              alt={t("receipt.clinicLogo")}
               className="mx-auto mb-3 h-14 w-14 rounded-full object-contain"
             />
           )}
@@ -83,12 +86,12 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 
         <section className="grid grid-cols-2 gap-4 text-sm">
           <div className="space-y-3">
-            <InfoRow label="Receipt No" value={`#${receipt.invoiceNumber}`} />
-            <InfoRow label="Patient Name" value={receipt.patientName} />
+            <InfoRow label={t("receipt.receiptNo")} value={`#${receipt.invoiceNumber}`} />
+            <InfoRow label={t("receipt.patientName")} value={receipt.patientName} />
           </div>
           <div className="space-y-3 text-right">
-            <InfoRow label="Date" value={formatReceiptDate(receipt.issueDate)} />
-            <InfoRow label="Patient ID" value={receipt.patientId} />
+            <InfoRow label={t("receipt.date")} value={formatReceiptDate(receipt.issueDate)} />
+            <InfoRow label={t("receipt.patientId")} value={receipt.patientId} />
           </div>
         </section>
 
@@ -96,8 +99,8 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">Procedure</th>
-                <th className="px-4 py-3 text-right font-semibold">Price</th>
+                <th className="px-4 py-3 text-left font-semibold">{t("receipt.procedure")}</th>
+                <th className="px-4 py-3 text-right font-semibold">{t("receipt.price")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
@@ -119,7 +122,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
               {receipt.procedures.length === 0 && (
                 <tr>
                   <td className="px-4 py-6 text-center text-muted-foreground" colSpan={2}>
-                    No procedure recorded for this invoice.
+                    {t("receipt.noProcedureRecorded")}
                   </td>
                 </tr>
               )}
@@ -129,28 +132,28 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 
         <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/70">
           <SummaryRow
-            label="Subtotal"
+            label={t("receipt.subtotal")}
             value={formatCurrency(totals.subtotal, receipt.currency)}
           />
           <SummaryRow
-            label="Discount"
+            label={t("receipt.discount")}
             value={formatCurrency(totals.discount, receipt.currency)}
             valueClassName="text-red-600 dark:text-red-400"
           />
           <SummaryRow
-            label="Total Amount"
+            label={t("receipt.totalAmount")}
             value={formatCurrency(totals.totalAmount, receipt.currency)}
             labelClassName="text-lg font-bold text-teal-700 dark:text-teal-300"
             valueClassName="text-lg font-black text-teal-700 dark:text-teal-300"
           />
           <SummaryRow
-            label="Paid Amount (Cash)"
+            label={t("receipt.paidAmountCash")}
             value={formatCurrency(totals.paidAmount, receipt.currency)}
             valueClassName="font-semibold text-teal-700 dark:text-teal-300"
           />
           <div className="my-3 border-t border-gray-200 dark:border-gray-700" />
           <SummaryRow
-            label="Outstanding Balance"
+            label={t("receipt.outstandingBalance")}
             value={formatCurrency(totals.outstandingAmount, receipt.currency)}
             labelClassName="text-lg font-bold text-red-600 dark:text-red-400"
             valueClassName="text-xl font-black text-red-600 dark:text-red-400"
@@ -161,13 +164,13 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         {receipt.payments.length > 1 && (
           <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Payments
+              {t("receipt.payments")}
             </h3>
             <div className="space-y-2 text-sm">
               {receipt.payments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between gap-4">
                   <span className="text-gray-600 dark:text-gray-300">
-                    {payment.method || "Payment"}
+                    {payment.method || t("receipt.payment")}
                     {payment.notes ? ` — ${payment.notes}` : ""}
                   </span>
                   <span className="font-semibold text-teal-700 dark:text-teal-300">
@@ -181,7 +184,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 
         <footer className="border-t border-gray-200 pt-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
           <p className="font-medium text-gray-700 dark:text-gray-300">
-            Thank you for choosing Khwaja Dental!
+            {t("receipt.thankYou")}
           </p>
         </footer>
       </div>

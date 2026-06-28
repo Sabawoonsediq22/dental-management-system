@@ -9,7 +9,7 @@ interface TopHeaderSearchProps {
 }
 
 const TopHeaderSearch: React.FC<TopHeaderSearchProps> = ({ onClick, className }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ps";
 
   return (
@@ -17,7 +17,7 @@ const TopHeaderSearch: React.FC<TopHeaderSearchProps> = ({ onClick, className })
       onClick={onClick}
       role="button"
       tabIndex={0}
-      aria-label="Open global search"
+      aria-label={t("search.openGlobalSearch")}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -35,9 +35,7 @@ const TopHeaderSearch: React.FC<TopHeaderSearchProps> = ({ onClick, className })
     >
       <SearchIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 shrink-0" />
       <span className="flex-1 text-sm text-gray-500 dark:text-gray-400 truncate">
-        {i18n.language === "ps"
-          ? "مريضان یا ریکاردونه په اساس ولوسئ..."
-          : "Search patients or records by id, name or phone..."}
+        {t("search.placeholder")}
       </span>
       <kbd
         className={cn(
@@ -46,9 +44,9 @@ const TopHeaderSearch: React.FC<TopHeaderSearchProps> = ({ onClick, className })
           "text-gray-500 dark:text-gray-400",
         )}
       >
-        <span>Ctrl</span>
+        <span>{t("search.ctrl")}</span>
         <span>+</span>
-        <span>K</span>
+        <span>{t("search.k")}</span>
       </kbd>
     </div>
   );

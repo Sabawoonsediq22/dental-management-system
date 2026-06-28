@@ -390,7 +390,7 @@ const NewPatient: React.FC = () => {
   const handlePatient = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validatePatientForm(patient, setErrors)) return;
+    if (!validatePatientForm(patient, setErrors, t)) return;
 
     setIsSubmitting(true);
     try {
@@ -450,13 +450,13 @@ const NewPatient: React.FC = () => {
         } catch (xrayError) {
           console.error("X-ray upload failed:", xrayError);
           toast.error({
-            title: "X-ray upload failed",
+            title: t("newPatient.notifications.xrayError", "X-ray upload failed"),
             description: String(xrayError),
           });
         }
       }
 
-      toast.success({ title: "Patient added successfully" });
+      toast.success({ title: t("patients.notifications.addSuccess") });
       queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
       queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       queryClient.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
@@ -464,7 +464,7 @@ const NewPatient: React.FC = () => {
       setCreatedPatientId(created.id);
       setReceiptInvoiceId(created.invoice_id);
     } catch (error) {
-      toast.error({ title: "Failed to add patient" });
+      toast.error({ title: t("patients.notifications.addError") });
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -546,7 +546,7 @@ const NewPatient: React.FC = () => {
                 error={errors.phoneNumber}
               >
                 <FormInput
-                  placeholder="+93 7XX XXX XXX"
+                  placeholder={t("newPatient.phonePlaceholder")}
                   onChange={(e) =>
                     handlePatientChange("phoneNumber", e.target.value)
                   }

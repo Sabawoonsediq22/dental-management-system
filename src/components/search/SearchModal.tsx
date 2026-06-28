@@ -18,15 +18,6 @@ const categoryIcons: Record<string, React.ReactNode> = {
   payment: <span className="text-lg">💰</span>,
 };
 
-const categoryLabels: Record<string, string> = {
-  patient: "PATIENTS",
-  invoice: "INVOICES",
-  receipt: "RECEIPTS",
-  visit: "VISITS",
-  treatment: "TREATMENTS",
-  payment: "PAYMENTS",
-};
-
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -45,6 +36,15 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const { getSearches, addSearch, removeSearch } = useRecentSearches();
   const recentSearches = getSearches();
   const isRTL = i18n.language === "ps";
+
+  const categoryLabels: Record<string, string> = {
+    patient: t("search.category.patients", "PATIENTS"),
+    invoice: t("search.category.invoices", "INVOICES"),
+    receipt: t("search.category.receipts", "RECEIPTS"),
+    visit: t("search.category.visits", "VISITS"),
+    treatment: t("search.category.treatments", "TREATMENTS"),
+    payment: t("search.category.payments", "PAYMENTS"),
+  };
 
   const showRecent = debouncedQuery.length === 0;
   const flatResults = React.useMemo(() => results, [results]);

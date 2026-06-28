@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface PatientAvatarProps {
   name: string;
@@ -42,6 +43,7 @@ const PatientAvatar: React.FC<PatientAvatarProps> = ({
   size = "md",
   className = "",
 }) => {
+  const { t } = useTranslation();
   // Get initials from name
   const getInitials = (fullName: string): string => {
     const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -68,7 +70,7 @@ const PatientAvatar: React.FC<PatientAvatarProps> = ({
       `}
       title={name}
       role="img"
-      aria-label={`Avatar for ${name}`}
+      aria-label={t("patientProfile.avatarFor", { name })}
     >
       {initials}
     </div>

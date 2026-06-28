@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Button, Input } from "../ui";
 import type { AddPaymentInput } from "../../types/ApiTypes";
 
@@ -17,6 +18,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   outstandingAmount,
   onSave,
 }) => {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [method, setMethod] = useState<"Cash" | "Card" | "Mobile" | "Insurance">("Cash");
@@ -44,10 +46,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const maxAmount = outstandingAmount;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Record Payment" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={t("billing.recordPayment")} size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Amount (AFN)</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.paymentAmount")} (AFN)</label>
           <Input
             type="number"
             step="0.01"
@@ -55,46 +57,46 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             max={maxAmount}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount"
+            placeholder={t("billing.enterAmount")}
             required
             className="w-full"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Outstanding: {maxAmount.toLocaleString()} AFN
+            {t("billing.outstandingAmount", { amount: maxAmount.toLocaleString() })}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Payment Method</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.paymentMethod")}</label>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value as typeof method)}
             className="w-full px-3 py-2 border rounded-md text-sm"
           >
-            <option value="Cash">Cash</option>
-            <option value="Card">Card</option>
-            <option value="Mobile">Mobile</option>
-            <option value="Insurance">Insurance</option>
+            <option value="Cash">{t("billing.methods.cash")}</option>
+            <option value="Card">{t("billing.methods.card")}</option>
+            <option value="Mobile">{t("billing.methods.mobile")}</option>
+            <option value="Insurance">{t("billing.methods.insurance")}</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Notes (optional)</label>
+          <label className="block text-sm font-medium mb-1">{t("billing.notes")} ({t("common.optional", "optional")})</label>
           <Input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Payment reference or notes"
+            placeholder={t("billing.paymentNotesPlaceholder")}
             className="w-full"
           />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" className="cursor-pointer">
-            Record Payment
+            {t("billing.recordPayment")}
           </Button>
         </div>
       </form>

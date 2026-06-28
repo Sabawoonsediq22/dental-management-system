@@ -73,7 +73,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
-          toast.success({ title: "Patient updated successfully" });
+          toast.success({ title: t("patients.notifications.addSuccess") });
         },
       },
     );
@@ -92,7 +92,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
     deletePatientMutation.mutate(activePatient.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
-        toast.success({ title: "Patient deleted successfully" });
+        toast.success({ title: t("patientProfile.notifications.deleted") });
       },
     });
     setShowDeleteConfirm(false);
@@ -121,29 +121,29 @@ const PatientTable: React.FC<PatientTableProps> = ({
     <div className="bg-white dark:bg-gray-800">
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-sm text-left">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
-                NO.
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
+                {t("patients.table.no")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
-                FULL NAME
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
+                {t("patients.table.fullName")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
-                PHONE
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
+                {t("patients.table.phone")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
-                AGE / GENDER
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400">
+                {t("patients.table.ageGender")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 hidden xl:table-cell">
-                ADDRESS
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 hidden xl:table-cell">
+                {t("patients.table.address")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
-                LAST VISIT
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 whitespace-nowrap">
+                {t("patients.table.lastVisit")}
               </th>
-              <th className="text-left py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 w-16">
-                ACTIONS
+              <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-400 w-16">
+                {t("patients.table.actions")}
               </th>
             </tr>
           </thead>
@@ -256,7 +256,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               <span>
                 {patient.age} yrs / {getGenderLabel(patient.gender)}
               </span>
-              <span>Last: {formatDate(patient.last_visit)}</span>
+              <span>{t("patients.table.last")} {formatDate(patient.last_visit)}</span>
             </div>
           </div>
         ))}
@@ -266,12 +266,12 @@ const PatientTable: React.FC<PatientTableProps> = ({
       <Modal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        title="Edit Personal Information"
+        title={t("patientProfile.editPersonalInfo")}
         size="lg"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.fullName")}</label>
             <input
               type="text"
               value={editFormData.full_name}
@@ -282,7 +282,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.phoneNumber")}</label>
             <input
               type="tel"
               value={editFormData.phone}
@@ -294,7 +294,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Age</label>
+              <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.age")}</label>
               <input
                 type="number"
                 value={editFormData.age}
@@ -308,7 +308,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Gender</label>
+              <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.gender")}</label>
               <select
                 value={editFormData.gender}
                 onChange={(e) =>
@@ -319,14 +319,14 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 }
                 className="w-full px-3 py-2 border rounded-md"
               >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="Male">{t("patients.filters.male")}</option>
+                <option value="Female">{t("patients.filters.female")}</option>
+                <option value="Other">{t("patients.filters.other")}</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
+            <label className="block text-sm font-medium mb-1">{t("patientProfile.formLabels.address")}</label>
             <textarea
               value={editFormData.address}
               onChange={(e) =>
@@ -339,7 +339,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="outline" onClick={() => setShowEditModal(false)}>
-            {t("common.cancel", "Cancel")}
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleSavePersonalInfo}
@@ -347,7 +347,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
           >
             {updatePatientMutation.isPending
               ? t("common.saving", "Saving...")
-              : "Save Changes"}
+              : t("patientProfile.saveChanges")}
           </Button>
         </div>
       </Modal>
@@ -356,10 +356,10 @@ const PatientTable: React.FC<PatientTableProps> = ({
       <Modal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete Patient"
+        title={t("patientProfile.deleteTitle")}
         description={
           activePatient
-            ? `Are you sure you want to delete ${activePatient.full_name}? This action cannot be undone.`
+            ? `${t("patientProfile.deleteConfirm", { name: activePatient.full_name })} ${t("patientProfile.deleteUndo")}`
             : ""
         }
       >
@@ -373,8 +373,8 @@ const PatientTable: React.FC<PatientTableProps> = ({
             disabled={deletePatientMutation.isPending}
           >
             {deletePatientMutation.isPending
-              ? t("common.saving", "Deleting...")
-              : "Delete Patient"}
+              ? t("common.deleting", "Deleting...")
+              : t("patientProfile.deletePatient")}
           </Button>
         </div>
       </Modal>

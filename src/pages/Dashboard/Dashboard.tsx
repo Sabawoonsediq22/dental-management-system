@@ -100,7 +100,7 @@ const Dashboard: React.FC = () => {
         id: visitId,
         status: newStatus as "Open" | "Completed" | "Cancelled",
       });
-      toast.success({ title: `Status updated to ${newStatus}` });
+      toast.success({ title: t("dashboard.notifications.statusUpdated", "Status updated to {{status}}", { status: newStatus }) });
     },
     [updateStatusMutation],
   );
@@ -126,7 +126,7 @@ const Dashboard: React.FC = () => {
       return [
         { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: "0", icon: <CurrencyIcon size="lg" /> },
         { title: t("dashboard.stats.patientsToday", "Patients Today"), value: "0", icon: <PatientIcon size="lg" /> },
-        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: "0 AFN", secondary: "0 invoices", icon: <ClockIcon size="lg" /> },
+        { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: `0 ${t("billing.currency", "AFN")}`, secondary: `0 ${t("dashboard.invoices", "invoices")}`, icon: <ClockIcon size="lg" /> },
         { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: "00", icon: <ToothIcon size="lg" /> },
       ];
     }
@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
     return [
       { title: t("dashboard.stats.dailyRevenue", "Daily Revenue"), value: formatAFN(stats.daily_revenue), icon: <CurrencyIcon size="lg" />, trend: computeTrend(stats.daily_revenue, reportSummary?.revenue_this_month, dayOfMonth) },
       { title: t("dashboard.stats.patientsToday", "Patients Today"), value: String(stats.patients_today), icon: <PatientIcon size="lg" />, trend: computeTrend(stats.patients_today, reportSummary?.total_visits_this_month, dayOfMonth) },
-      { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), secondary: `${stats.outstanding_invoices_count} ${t("dashboard.invoices", "invoice")}${stats.outstanding_invoices_count !== 1 ? "s" : ""}`, icon: <ClockIcon size="lg" />, badge: outstandingBadge },
+      { title: t("dashboard.stats.outstandingBalance", "Outstanding Balance"), value: formatAFN(stats.outstanding_balance), secondary: t("dashboard.invoiceCount", { count: stats.outstanding_invoices_count }), icon: <ClockIcon size="lg" />, badge: outstandingBadge },
       { title: t("dashboard.stats.proceduresPerformed", "Procedures Performed"), value: String(stats.procedures_performed).padStart(2, "0"), icon: <ToothIcon size="lg" />, trend: computeTrend(stats.procedures_performed, (reportSummary?.completed_visits_this_month ?? 0) + (reportSummary?.cancelled_visits_this_month ?? 0), dayOfMonth) },
     ];
   }, [stats, statsLoading, statsError, reportSummary, t, dayOfMonth]);
@@ -276,7 +276,7 @@ const Dashboard: React.FC = () => {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill={`url(#${checkInsGradientId})`}
-                  name="Check-ins"
+                  name={t("dashboard.checkIns", "Check-ins")}
                   activeDot={{
                     r: 6,
                     fill: "#006A71",

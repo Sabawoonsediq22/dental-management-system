@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import {
@@ -22,6 +23,7 @@ export interface BreadcrumbsProps {
 
 const Breadcrumbs = React.forwardRef<HTMLElement, BreadcrumbsProps>(
   ({ items, className, separatorClassName, isRTL = false }, ref) => {
+    const { t } = useTranslation();
     if (!items || items.length === 0) return null;
 
     const handleClick = (item: BreadcrumbItem, e: React.MouseEvent) => {
@@ -37,7 +39,7 @@ const Breadcrumbs = React.forwardRef<HTMLElement, BreadcrumbsProps>(
     return (
       <nav
         ref={ref}
-        aria-label="Breadcrumb"
+        aria-label={t("ui.breadcrumb", "Breadcrumb")}
         className={cn("flex items-center flex-wrap gap-1 text-sm", className)}
       >
         <ol className="flex items-center flex-wrap gap-1">

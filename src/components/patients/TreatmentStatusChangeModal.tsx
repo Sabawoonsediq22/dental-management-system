@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/button";
@@ -47,6 +48,14 @@ const TreatmentStatusChangeModal: React.FC<TreatmentStatusChangeModalProps> = ({
   className,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<TreatmentStatus>(currentStatus as TreatmentStatus);
+  const { t } = useTranslation();
+
+  const statusLabels: Record<string, string> = {
+    Completed: t("reports.status.completed", "Completed"),
+    Open: t("reports.status.active", "Active"),
+    "In Progress": t("reports.status.inProgress", "In Progress"),
+    Cancelled: t("reports.status.cancelled", "Cancelled"),
+  };
 
   React.useEffect(() => {
     if (isOpen) {
@@ -63,13 +72,13 @@ const TreatmentStatusChangeModal: React.FC<TreatmentStatusChangeModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Change Treatment Status"
+      title={t("patientProfile.changeTreatmentStatus", "Change Treatment Status")}
       size="sm"
       className={cn("bg-white dark:bg-gray-800", className)}
     >
       <div className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Select the new status for this treatment.
+          {t("patientProfile.selectNewStatus", "Select the new status for this treatment.")}
         </p>
         <div className="space-y-3">
           {STATUS_OPTIONS.map((status) => {
@@ -90,7 +99,7 @@ const TreatmentStatusChangeModal: React.FC<TreatmentStatusChangeModalProps> = ({
                     config.text,
                   )}
                 >
-                  {status}
+                  {statusLabels[status]}
                 </span>
               </label>
             );
@@ -99,10 +108,10 @@ const TreatmentStatusChangeModal: React.FC<TreatmentStatusChangeModalProps> = ({
       </div>
       <div className="flex justify-end gap-3 mt-6">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          {t("common.cancel", "Cancel")}
         </Button>
         <Button onClick={handleSave}>
-          Save Changes
+          {t("patients.actions.saveChanges", "Save Changes")}
         </Button>
       </div>
     </Modal>

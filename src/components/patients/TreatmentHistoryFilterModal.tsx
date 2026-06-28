@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/button";
@@ -24,6 +25,7 @@ const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = 
   onApplyFilter,
   className,
 }) => {
+  const { t } = useTranslation();
   const [selectedStatuses, setSelectedStatuses] = useState<TreatmentStatusFilter[]>(["Open", "Completed"]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -67,37 +69,37 @@ const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Filter Treatments"
+      title={t("patientProfile.filterTreatments", "Filter Treatments")}
       size="lg"
       className={cn("bg-white dark:bg-gray-800", className)}
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Search</label>
+          <label className="block text-sm font-medium mb-2">{t("patientProfile.search", "Search")}</label>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by procedure, notes..."
+            placeholder={t("patientProfile.searchByProcedure", "Search by procedure, notes...")}
             className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
           />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium">Status</label>
+            <label className="text-sm font-medium">{t("common.status", "Status")}</label>
             <div className="flex gap-2">
               <button
                 onClick={handleSelectAll}
                 className="text-xs text-blue-600 hover:underline"
               >
-                Select All
+                {t("patientProfile.selectAll", "Select All")}
               </button>
               <button
                 onClick={handleClearAll}
                 className="text-xs text-gray-500 hover:underline"
               >
-                Clear All
+                {t("search.clearAll", "Clear All")}
               </button>
             </div>
           </div>
@@ -120,10 +122,10 @@ const TreatmentHistoryFilterModal: React.FC<TreatmentHistoryFilterModalProps> = 
 
       <div className="flex justify-end gap-3 mt-6">
         <Button variant="outline" onClick={handleReset}>
-          Reset
+          {t("patientProfile.reset", "Reset")}
         </Button>
         <Button onClick={handleApplyFilter}>
-          Apply Filter
+          {t("patientProfile.applyFilter", "Apply Filter")}
         </Button>
       </div>
     </Modal>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, Pagination } from "../../components/ui";
 import PatientsHeader from "../../components/patients/PatientsHeader";
@@ -7,6 +8,7 @@ import { usePatients } from "../../hooks/usePatients";
 import type { Patient } from "../../types/ApiTypes";
 
 const Patients: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGender, setSelectedGender] = useState<"All" | "Male" | "Female" | "Other">("All");
@@ -75,11 +77,11 @@ const Patients: React.FC = () => {
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <LoadingSpinner className="mr-4" />
-              <div className="text-lg">Loading patients...</div>
+              <div className="text-lg">{t("patients.loading")}</div>
             </div>
           ) : error ? (
             <div className="flex h-full items-center justify-center">
-              <div className="text-lg text-red-500">Error loading patients: {String(error)}</div>
+              <div className="text-lg text-red-500">{t("patients.errorLoading")}: {String(error)}</div>
             </div>
           ) : (
             <PatientTable

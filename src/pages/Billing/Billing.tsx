@@ -114,12 +114,12 @@ const Billing: React.FC = () => {
       <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 mb-3">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <LoadingSpinner size="lg" text="Loading invoices..." />
+            <LoadingSpinner size="lg" text={t("billing.loadingInvoices", "Loading invoices...")} />
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-lg text-red-500">
-              Error loading invoices: {String(error)}
+              {t("billing.errorLoading", "Error loading invoices")}: {String(error)}
             </div>
           </div>
         ) : (

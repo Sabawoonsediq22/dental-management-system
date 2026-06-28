@@ -179,10 +179,10 @@ const BillingTable: React.FC<BillingTableProps> = ({
               </Badge>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-              <span>Date: {formatDate(invoice.issued_at)}</span>
-              <span>Total: {formatCurrency(invoice.total_amount)} AFN</span>
-              <span>Paid: {formatCurrency(invoice.paid_amount)} AFN</span>
-              <span>Due: {formatCurrency(invoice.outstanding_amount)} AFN</span>
+              <span>{t("billing.table.dateLabel", "Date:")} {formatDate(invoice.issued_at)}</span>
+              <span>{t("billing.table.totalLabel", "Total:")} {formatCurrency(invoice.total_amount)} {t("billing.currency", "AFN")}</span>
+              <span>{t("billing.table.paidLabel", "Paid:")} {formatCurrency(invoice.paid_amount)} {t("billing.currency", "AFN")}</span>
+              <span>{t("billing.table.dueLabel", "Due:")} {formatCurrency(invoice.outstanding_amount)} {t("billing.currency", "AFN")}</span>
             </div>
             {/* Mobile Popover */}
               <Popover

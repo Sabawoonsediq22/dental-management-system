@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { CloseIcon } from "../../shared/icons/icons";
 
@@ -25,6 +26,7 @@ const Dialog: React.FC<DialogProps> = ({
   showCloseButton = true,
   className,
 }) => {
+  const { t } = useTranslation();
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -86,7 +88,7 @@ const Dialog: React.FC<DialogProps> = ({
                 <button
                   onClick={onClose}
                   className="rounded-md p-1 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-                  aria-label="Close dialog"
+                  aria-label={t("common.closeDialog")}
                 >
                   <CloseIcon className="w-5 h-5" />
                 </button>
@@ -113,13 +115,16 @@ export interface ConfirmDialogProps extends Omit<
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   onConfirm,
   confirmVariant = "default",
   isLoading,
   ...props
 }) => {
+  const { t } = useTranslation();
+  const displayConfirm = confirmText || t("common.confirm", "Confirm");
+  const displayCancel = cancelText || t("common.cancel");
   return (
     <Dialog
       showCloseButton={false}
@@ -130,7 +135,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             disabled={isLoading}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
           >
-            {cancelText}
+            {displayCancel}
           </button>
           <button
             onClick={onConfirm}
@@ -143,7 +148,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               "disabled:opacity-50",
             )}
           >
-            {confirmText}
+            {displayConfirm}
           </button>
         </div>
       }
