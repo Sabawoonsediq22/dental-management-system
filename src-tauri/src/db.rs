@@ -52,11 +52,11 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     files.sort_by(|a, b| a.0.cmp(&b.0));
 
-    for (version, file) in files {
+    for (version, file) in &files {
         let exists: bool = sqlx::query_scalar(
             "SELECT EXISTS(SELECT 1 FROM _sqlx_migrations WHERE version = ?)"
         )
-        .bind(&version)
+        .bind(version)
         .fetch_one(pool)
         .await?;
 
@@ -64,19 +64,23 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             continue;
         }
 
-        let sql = std::fs::read_to_string(&file)?;
+        let sql = std::fs::read_to_string(file)?;
+
+        let mut tx = pool.begin().await?;
 
         for stmt in sql.split(';') {
             let stmt = stmt.trim();
-            if !stmt.is_empty() && !stmt.starts_with("--") {
-                sqlx::query(stmt).execute(pool).await.unwrap_or_default();
+            if !stmt.is_empty() {
+                sqlx::query(stmt).execute(&mut *tx).await?;
             }
         }
 
         sqlx::query("INSERT INTO _sqlx_migrations (version) VALUES (?)")
-            .bind(&version)
-            .execute(pool)
+            .bind(version)
+            .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
     }
     Ok(())
 }

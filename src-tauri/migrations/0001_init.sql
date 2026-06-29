@@ -1,5 +1,4 @@
--- Initial schema for dental clinic management system
-CREATE TABLE IF NOT EXISTS patients (
+CREATE TABLE patients (
     id TEXT PRIMARY KEY UNIQUE,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
@@ -10,21 +9,21 @@ CREATE TABLE IF NOT EXISTS patients (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS patient_allergies (
+CREATE TABLE patient_allergies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     allergy_name TEXT NOT NULL,
     UNIQUE(patient_id, allergy_name)
 );
 
-CREATE TABLE IF NOT EXISTS patient_medications (
+CREATE TABLE patient_medications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     medication_name TEXT NOT NULL,
     UNIQUE(patient_id, medication_name)
 );
 
-CREATE TABLE IF NOT EXISTS medical_conditions (
+CREATE TABLE  medical_conditions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     condition_name TEXT NOT NULL,
@@ -32,7 +31,7 @@ CREATE TABLE IF NOT EXISTS medical_conditions (
     UNIQUE(patient_id, condition_name)
 );
 
-CREATE TABLE IF NOT EXISTS visits (
+CREATE TABLE visits (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     visit_date TEXT NOT NULL DEFAULT (datetime('now')),
@@ -43,7 +42,7 @@ CREATE TABLE IF NOT EXISTS visits (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS procedures (
+CREATE TABLE procedures (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -53,7 +52,7 @@ CREATE TABLE IF NOT EXISTS procedures (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS treatment_records (
+CREATE TABLE treatment_records (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     procedure_id TEXT NOT NULL REFERENCES procedures(id),
@@ -61,14 +60,14 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     performed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS treatment_tooth (
+CREATE TABLE treatment_tooth (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     treatment_record_id TEXT REFERENCES treatment_records(id) ON DELETE CASCADE,
     tooth_number INTEGER NOT NULL,
     tooth_quadrant TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS invoices (
+CREATE TABLE invoices (
     id TEXT PRIMARY KEY,
     visit_id TEXT NOT NULL UNIQUE REFERENCES visits(id) ON DELETE CASCADE,
     invoice_number TEXT NOT NULL UNIQUE,
@@ -81,7 +80,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     issued_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS payments (
+CREATE TABLE payments (
     id TEXT PRIMARY KEY,
     invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     amount REAL NOT NULL CHECK(amount > 0),
@@ -89,7 +88,7 @@ CREATE TABLE IF NOT EXISTS payments (
     received_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS xrays (
+CREATE TABLE xrays (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     treatment_record_id TEXT REFERENCES treatment_records(id) ON DELETE CASCADE,
@@ -98,7 +97,7 @@ CREATE TABLE IF NOT EXISTS xrays (
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS invoice_items (
+CREATE TABLE invoice_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     treatment_record_id TEXT REFERENCES treatment_records(id),
@@ -108,7 +107,7 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     total_price REAL NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS app_settings (
+CREATE TABLE app_settings (
     id INTEGER PRIMARY KEY CHECK(id = 1),
     clinic_name TEXT,
     clinic_phone TEXT,
@@ -119,13 +118,14 @@ CREATE TABLE IF NOT EXISTS app_settings (
     auto_backup_target TEXT NOT NULL DEFAULT 'local',
     last_backup_at TEXT,
     gdrive_client_id TEXT,
-    gdrive_connected BOOLEAN NOT NULL DEFAULT ,
+    language TEXT DEFAULT 'en',
+    gdrive_connected BOOLEAN NOT NULL DEFAULT 0,
     gdrive_folder_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS backups (
+CREATE TABLE backups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     backup_type TEXT NOT NULL CHECK (backup_type IN ('daily', 'weekly', 'monthly', 'manual')),
     backup_path TEXT NOT NULL,
@@ -144,7 +144,7 @@ CREATE INDEX idx_visits_date ON visits(visit_date);
 CREATE INDEX idx_backups_status ON backups(status);
 CREATE INDEX idx_backups_created_at ON backups(created_at);
 CREATE INDEX idx_backups_type_status ON backups(backup_type, status);
-CREATE INDEX IF NOT EXISTS idx_treatment_tooth_record ON treatment_tooth(treatment_record_id);
-CREATE INDEX IF NOT EXISTS idx_treatment_records_visit ON treatment_records(visit_id);
-CREATE INDEX IF NOT EXISTS idx_xrays_treatment_record ON xrays(treatment_record_id);
+CREATE INDEX  idx_treatment_tooth_record ON treatment_tooth(treatment_record_id);
+CREATE INDEX  idx_treatment_records_visit ON treatment_records(visit_id);
+CREATE INDEX  idx_xrays_treatment_record ON xrays(treatment_record_id);
 
