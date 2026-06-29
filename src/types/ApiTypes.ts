@@ -379,3 +379,40 @@ export interface RecentPatient {
   status: string;
   visit_id: string;
 }
+
+export interface BackupRecord {
+  id: number;
+  backup_type: string;
+  backup_path: string;
+  cloud_provider: string;
+  status: string;
+  file_size: number;
+  error_message: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface BackupSettings {
+  auto_backup_enabled: boolean;
+  auto_backup_frequency: string;
+  auto_backup_target: string;
+  last_backup_at: string | null;
+  gdrive_client_id: string | null;
+  gdrive_connected: boolean;
+  gdrive_folder_id: string | null;
+}
+
+export interface UpdateBackupSettingsInput {
+  auto_backup_enabled?: boolean;
+  auto_backup_frequency?: string;
+  auto_backup_target?: string;
+  gdrive_client_id?: string | null;
+}
+
+export interface StartAuthResult {
+  auth_url: string;
+}
+
+export interface GDriveStatus {
+  connected: boolean;
+}

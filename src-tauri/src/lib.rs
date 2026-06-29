@@ -1,4 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod db;
 mod models;
 mod services;
@@ -371,6 +370,355 @@ async fn update_settings(
         .map_err(|e| e.to_string())
 }
 
+// Backup commands
+#[tauri::command]
+async fn list_backups(state: State<'_, AppState>) -> Result<Vec<BackupRecord>, String> {
+    BackupService::list_backups(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn backup_now(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    target: String,
+) -> Result<Vec<BackupRecord>, String> {
+    let app_data = app.path().app_data_dir().unwrap();
+    let backup_dir = app_data.join("backups");
+    let mut results = Vec::new();
+
+    let do_local = target == "local" || target == "both";
+    let do_gdrive = target == "google_drive" || target == "both";
+
+    let local_file_path = if do_local || (do_gdrive && target == "both") {
+        let record = BackupService::create_local_backup(&state.db, &backup_dir, "manual").await
+            .map_err(|e| e.to_string())?;
+        let path = record.backup_path.clone();
+        results.push(record);
+        Some(path)
+    } else if do_gdrive {
+        let now = chrono::Utc::now();
+        let temp_filename = format!("dental_clinic_tmp_{}.db", now.format("%Y%m%d_%H%M%S"));
+        let temp_path = std::env::temp_dir().join(&temp_filename);
+        let temp_dir_parent = temp_path.parent().unwrap().to_path_buf();
+        std::fs::create_dir_all(&temp_dir_parent).map_err(|e| e.to_string())?;
+        let dest_str = temp_path.to_string_lossy().replace('\\', "/");
+        let escaped = dest_str.replace('\'', "''");
+        let sql = format!("VACUUM INTO '{}'", escaped);
+        sqlx::query(&sql).execute(&state.db).await
+            .map_err(|e| format!("VACUUM INTO failed: {}", e))?;
+        Some(temp_path.to_string_lossy().to_string())
+    } else {
+        None
+    };
+
+    if do_gdrive {
+        let settings = BackupService::get_backup_settings(&state.db).await
+            .map_err(|e| e.to_string())?;
+        let client_id = settings.gdrive_client_id.as_deref()
+            .ok_or_else(|| "Google Drive not configured. Add a Client ID in Settings.".to_string())?;
+        let app_data_path = app_data.clone();
+
+        match GDriveClient::ensure_valid_token(client_id, &app_data_path).await {
+            Ok(access_token) => {
+                let folder_id = match &settings.gdrive_folder_id {
+                    Some(id) if !id.is_empty() => id.clone(),
+                    _ => {
+                        match GDriveClient::ensure_folder(&access_token, "Dental Clinic Backups").await {
+                            Ok(id) => {
+                                sqlx::query("UPDATE app_settings SET gdrive_folder_id = ? WHERE id = 1")
+                                    .bind(&id)
+                                    .execute(&state.db).await.ok();
+                                id
+                            }
+                            Err(e) => {
+                                results.push(BackupService::record_failed_backup(
+                                    &state.db, "manual", "google_drive", &e.to_string()
+                                ).await.map_err(|e| e.to_string())?);
+                                BackupService::set_last_backup_now(&state.db).await.ok();
+                                return Ok(results);
+                            }
+                        }
+                    }
+                };
+
+                let file_path = local_file_path.as_ref().ok_or_else(|| "missing backup file".to_string())?;
+                let now_str = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+                let drive_filename = format!("dental_clinic_{}.db", now_str);
+
+                let bytes = std::fs::read(file_path)
+                    .map_err(|e| format!("read backup file: {}", e))?;
+
+                match GDriveClient::upload_file(&access_token, &folder_id, &drive_filename, &bytes).await {
+                    Ok(file_id) => {
+                        let finished = chrono::Utc::now().to_rfc3339();
+                        let record = sqlx::query_as::<_, BackupRecord>(
+                            "INSERT INTO backups (backup_type, backup_path, cloud_provider, status, file_size, created_at, completed_at)
+                             VALUES (?, ?, 'google_drive', 'success', ?, datetime('now'), ?)
+                             RETURNING id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at"
+                        )
+                        .bind("manual")
+                        .bind(format!("gdrive:{}", file_id))
+                        .bind(bytes.len() as i64)
+                        .bind(&finished)
+                        .fetch_one(&state.db)
+                        .await
+                        .map_err(|e| e.to_string())?;
+                        results.push(record);
+                    }
+                    Err(e) => {
+                        results.push(BackupService::record_failed_backup(
+                            &state.db, "manual", "google_drive", &e.to_string()
+                        ).await.map_err(|e| e.to_string())?);
+                    }
+                }
+
+                if target == "google_drive" {
+                    if let Some(path) = &local_file_path {
+                        std::fs::remove_file(path).ok();
+                    }
+                }
+            }
+            Err(e) => {
+                results.push(BackupService::record_failed_backup(
+                    &state.db, "manual", "google_drive", &e.to_string()
+                ).await.map_err(|e| e.to_string())?);
+            }
+        }
+    }
+
+    BackupService::set_last_backup_now(&state.db).await.ok();
+    Ok(results)
+}
+
+#[tauri::command]
+async fn delete_backup(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    id: i64,
+) -> Result<(), String> {
+    let app_data = app.path().app_data_dir().unwrap();
+
+    let record = sqlx::query_as::<_, BackupRecord>(
+        "SELECT id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at
+         FROM backups WHERE id = ?"
+    )
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    if let Some(r) = record {
+        if r.cloud_provider == "local" {
+            let path = std::path::Path::new(&r.backup_path);
+            if path.exists() {
+                std::fs::remove_file(path).ok();
+            }
+        } else if r.cloud_provider == "google_drive" {
+            if let Some(file_id) = r.backup_path.strip_prefix("gdrive:") {
+                let settings = BackupService::get_backup_settings(&state.db).await.ok();
+                let cid = settings.and_then(|s| s.gdrive_client_id);
+                if let Some(ref client_id) = cid {
+                    if !client_id.is_empty() {
+                        if let Ok(token) = GDriveClient::ensure_valid_token(client_id, &app_data).await {
+                            GDriveClient::delete_file(&token, file_id).await.ok();
+                        }
+                    }
+                }
+            }
+        }
+
+        sqlx::query("DELETE FROM backups WHERE id = ?")
+            .bind(id)
+            .execute(&state.db)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_backup_settings(state: State<'_, AppState>) -> Result<BackupSettings, String> {
+    BackupService::get_backup_settings(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn update_backup_settings(
+    state: State<'_, AppState>,
+    input: UpdateBackupSettingsInput,
+) -> Result<BackupSettings, String> {
+    BackupService::update_backup_settings(&state.db, &input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn start_gdrive_auth(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<StartAuthResult, String> {
+    let settings = BackupService::get_backup_settings(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+    let client_id = settings.gdrive_client_id
+        .ok_or_else(|| "Google Drive Client ID not configured. Set it in Settings first.".to_string())?;
+    let app_data = app.path().app_data_dir().unwrap();
+
+    let auth_url = GDriveClient::start_auth_flow(&client_id, app_data, app)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(StartAuthResult { auth_url })
+}
+
+#[tauri::command]
+async fn get_gdrive_status(
+    app: tauri::AppHandle,
+) -> Result<GDriveStatus, String> {
+    let app_data = app.path().app_data_dir().unwrap();
+    let connected = GDriveClient::load_token(&app_data).is_some();
+    Ok(GDriveStatus { connected })
+}
+
+#[tauri::command]
+async fn disconnect_gdrive(
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    let app_data = app.path().app_data_dir().unwrap();
+    GDriveClient::delete_token(&app_data);
+    Ok(())
+}
+
+async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool) {
+    let settings = match BackupService::get_backup_settings(pool).await {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("Auto-backup: failed to get settings: {}", e);
+            return;
+        }
+    };
+
+    if !settings.auto_backup_enabled {
+        return;
+    }
+
+    if !BackupService::is_backup_due(&settings.last_backup_at, &settings.auto_backup_frequency) {
+        return;
+    }
+
+    let backup_type = &settings.auto_backup_frequency;
+    let target = &settings.auto_backup_target;
+    let app_data = match app.path().app_data_dir() {
+        Ok(d) => d,
+        Err(_) => return,
+    };
+    let backup_dir = app_data.join("backups");
+
+    let do_local = target == "local" || target == "both";
+    let do_gdrive = target == "google_drive" || target == "both";
+
+        let mut success = false;
+
+    if do_local {
+        match BackupService::create_local_backup(pool, &backup_dir, backup_type).await {
+            Ok(r) => {
+                println!("Auto-backup (local): {}", r.backup_path);
+                success = true;
+            }
+            Err(e) => {
+                eprintln!("Auto-backup (local) failed: {}", e);
+            }
+        }
+    }
+
+    if do_gdrive {
+        let client_id = match &settings.gdrive_client_id {
+            Some(c) => c.clone(),
+            None => {
+                eprintln!("Auto-backup (gdrive): no client_id configured");
+                return;
+            }
+        };
+
+        let app_data_path = app_data.clone();
+        match GDriveClient::ensure_valid_token(&client_id, &app_data_path).await {
+            Ok(access_token) => {
+                let folder_id = match &settings.gdrive_folder_id {
+                    Some(id) if !id.is_empty() => id.clone(),
+                    _ => {
+                        match GDriveClient::ensure_folder(&access_token, "Dental Clinic Backups").await {
+                            Ok(id) => {
+                                sqlx::query("UPDATE app_settings SET gdrive_folder_id = ? WHERE id = 1")
+                                    .bind(&id).execute(pool).await.ok();
+                                id
+                            }
+                            Err(e) => {
+                                eprintln!("Auto-backup (gdrive): folder: {}", e);
+                                BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                                return;
+                            }
+                        }
+                    }
+                };
+
+                let now_str = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+                let drive_filename = format!("dental_clinic_{}.db", now_str);
+                let temp_path = std::env::temp_dir().join(&drive_filename);
+                let dest_str = temp_path.to_string_lossy().replace('\\', "/");
+                let escaped = dest_str.replace('\'', "''");
+
+                if let Err(e) = sqlx::query(&format!("VACUUM INTO '{}'", escaped)).execute(pool).await {
+                    eprintln!("Auto-backup (gdrive): VACUUM INTO: {}", e);
+                    BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                    return;
+                }
+
+                let bytes = match std::fs::read(&temp_path) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        eprintln!("Auto-backup (gdrive): read temp file: {}", e);
+                        return;
+                    }
+                };
+
+                match GDriveClient::upload_file(&access_token, &folder_id, &drive_filename, &bytes).await {
+                    Ok(file_id) => {
+                        let finished = chrono::Utc::now().to_rfc3339();
+                        sqlx::query(
+                            "INSERT INTO backups (backup_type, backup_path, cloud_provider, status, file_size, created_at, completed_at)
+                             VALUES (?, ?, 'google_drive', 'success', ?, datetime('now'), ?)"
+                        )
+                        .bind(backup_type)
+                        .bind(format!("gdrive:{}", file_id))
+                        .bind(bytes.len() as i64)
+                        .bind(&finished)
+                        .execute(pool).await.ok();
+                        success = true;
+                    }
+                    Err(e) => {
+                        eprintln!("Auto-backup (gdrive) upload: {}", e);
+                        BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                    }
+                }
+
+                std::fs::remove_file(&temp_path).ok();
+            }
+            Err(e) => {
+                eprintln!("Auto-backup (gdrive): token: {}", e);
+                BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+            }
+        }
+    }
+
+    if success {
+        BackupService::set_last_backup_now(pool).await.ok();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -392,7 +740,13 @@ pub fn run() {
                     if let Err(e) = tauri::async_runtime::block_on(db::run_migrations(&pool)) {
                         eprintln!("Failed to run migrations: {}", e);
                     }
-                    app.manage(AppState { db: pool });
+                    app.manage(AppState { db: pool.clone() });
+
+                    let app_handle = app.handle().clone();
+                    tauri::async_runtime::spawn(async move {
+                        let state = app_handle.state::<AppState>();
+                        run_auto_backup(&app_handle, &state.db).await;
+                    });
                 }
                 Err(e) => {
                     eprintln!("Failed to init DB: {}", e);
@@ -440,6 +794,14 @@ pub fn run() {
             get_patients_flow,
             get_procedure_distribution,
             get_recent_patients,
+            list_backups,
+            backup_now,
+            delete_backup,
+            get_backup_settings,
+            update_backup_settings,
+            start_gdrive_auth,
+            get_gdrive_status,
+            disconnect_gdrive,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

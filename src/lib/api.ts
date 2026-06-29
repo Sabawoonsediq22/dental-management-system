@@ -35,6 +35,11 @@ import type {
   PatientsFlowPoint,
   ProcedureDistribution,
   RecentPatient,
+  BackupRecord,
+  BackupSettings,
+  UpdateBackupSettingsInput,
+  StartAuthResult,
+  GDriveStatus,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -98,5 +103,15 @@ export const api = {
     patientsFlow: (mode: string) => invoke<PatientsFlowPoint[]>("get_patients_flow", { mode }),
     procedureDistribution: () => invoke<ProcedureDistribution[]>("get_procedure_distribution"),
     recentPatients: () => invoke<RecentPatient[]>("get_recent_patients"),
+  },
+  backups: {
+    list: () => invoke<BackupRecord[]>("list_backups"),
+    backupNow: (target: string) => invoke<BackupRecord[]>("backup_now", { target }),
+    delete: (id: number) => invoke<void>("delete_backup", { id }),
+    getSettings: () => invoke<BackupSettings>("get_backup_settings"),
+    updateSettings: (input: UpdateBackupSettingsInput) => invoke<BackupSettings>("update_backup_settings", { input }),
+    startGdriveAuth: () => invoke<StartAuthResult>("start_gdrive_auth"),
+    getGdriveStatus: () => invoke<GDriveStatus>("get_gdrive_status"),
+    disconnectGdrive: () => invoke<void>("disconnect_gdrive"),
   },
 };

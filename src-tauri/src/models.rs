@@ -283,6 +283,13 @@ pub struct AppSettings {
     pub clinic_phone: Option<String>,
     pub clinic_address: Option<String>,
     pub language: Option<String>,
+    pub auto_backup_enabled: bool,
+    pub auto_backup_frequency: String,
+    pub auto_backup_target: String,
+    pub last_backup_at: Option<String>,
+    pub gdrive_client_id: Option<String>,
+    pub gdrive_connected: bool,
+    pub gdrive_folder_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -559,4 +566,47 @@ pub struct SearchResult {
 #[derive(Clone)]
 pub struct AppState {
     pub db: sqlx::SqlitePool,
+}
+
+// Backup / Restore
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct BackupRecord {
+    pub id: i64,
+    pub backup_type: String,
+    pub backup_path: String,
+    pub cloud_provider: String,
+    pub status: String,
+    pub file_size: i64,
+    pub error_message: Option<String>,
+    pub created_at: String,
+    pub completed_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupSettings {
+    pub auto_backup_enabled: bool,
+    pub auto_backup_frequency: String,
+    pub auto_backup_target: String,
+    pub last_backup_at: Option<String>,
+    pub gdrive_client_id: Option<String>,
+    pub gdrive_connected: bool,
+    pub gdrive_folder_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateBackupSettingsInput {
+    pub auto_backup_enabled: Option<bool>,
+    pub auto_backup_frequency: Option<String>,
+    pub auto_backup_target: Option<String>,
+    pub gdrive_client_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StartAuthResult {
+    pub auth_url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GDriveStatus {
+    pub connected: bool,
 }

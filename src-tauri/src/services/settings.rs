@@ -9,7 +9,7 @@ pub struct SettingsService;
 impl SettingsService {
     pub async fn get(pool: &SqlitePool) -> AppResult<AppSettings> {
         let settings = sqlx::query_as(
-            "SELECT id, clinic_name, clinic_phone, clinic_address, language, created_at, updated_at FROM app_settings LIMIT 1"
+            "SELECT id, clinic_name, clinic_phone, clinic_address, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id, created_at, updated_at FROM app_settings LIMIT 1"
         )
         .fetch_optional(pool)
         .await?;
@@ -24,18 +24,30 @@ impl SettingsService {
                     clinic_phone: None,
                     clinic_address: None,
                     language: Some("en".to_string()),
+                    auto_backup_enabled: false,
+                    auto_backup_frequency: "daily".to_string(),
+                    auto_backup_target: "local".to_string(),
+                    last_backup_at: None,
+                    gdrive_client_id: None,
+                    gdrive_connected: false,
+                    gdrive_folder_id: None,
                     created_at: now.clone(),
                     updated_at: now.clone(),
                 };
                 sqlx::query(
-                    "INSERT INTO app_settings (id, clinic_name, clinic_phone, clinic_address, language, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO app_settings (id, clinic_name, clinic_phone, clinic_address, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, gdrive_connected, gdrive_folder_id, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 )
                 .bind(1)
                 .bind::<Option<String>>(None)
                 .bind::<Option<String>>(None)
                 .bind::<Option<String>>(None)
                 .bind("en")
+                .bind(false)
+                .bind("daily")
+                .bind("local")
+                .bind(false)
+                .bind::<Option<String>>(None)
                 .bind(&now)
                 .bind(&now)
                 .execute(pool)
@@ -47,7 +59,7 @@ impl SettingsService {
 
     pub async fn update(pool: &SqlitePool, input: UpdateSettingsInput) -> AppResult<AppSettings> {
         let now = Utc::now().to_rfc3339();
-        
+
         sqlx::query(
             "UPDATE app_settings SET clinic_name=?, clinic_phone=?, clinic_address=?, language=?, updated_at=? WHERE id=1"
         )

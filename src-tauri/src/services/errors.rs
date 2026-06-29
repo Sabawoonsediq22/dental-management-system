@@ -19,6 +19,18 @@ pub enum AppError {
     #[error("conflict: {0}")]
     #[allow(dead_code)]
     Conflict(String),
+
+    #[error("http error: {0}")]
+    Http(String),
+
+    #[error("backup error: {0}")]
+    Backup(String),
+
+    #[error("serde error: {0}")]
+    Serde(#[from] serde_json::Error),
+
+    #[error("oauth error: {0}")]
+    OAuth(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
