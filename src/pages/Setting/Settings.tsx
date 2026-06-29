@@ -19,7 +19,6 @@ import {
   useBackupSettings,
   useDeleteBackup,
 } from "../../hooks/useBackup";
-import { SettingsIcon } from "../../shared/icons/icons";
 import ClinicForm from "../../components/settings/ClinicForm";
 
 const Settings: React.FC = () => {
@@ -131,16 +130,9 @@ const Settings: React.FC = () => {
             {t("settings.subtitle")}
           </p>
         </div>
-        <Button
-          onClick={() => clinicFormRef.current?.save()}
-          className="shrink-0"
-        >
-          <SettingsIcon className="mr-1.5" />
-          {t("settings.saveChanges")}
-        </Button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <ClinicForm ref={clinicFormRef} settings={settings} />
         </div>

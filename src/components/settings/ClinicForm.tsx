@@ -41,7 +41,6 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
     const [address, setAddress] = useState(settings?.clinic_address || "");
     const [email, setEmail] = useState("");
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
-    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
@@ -81,15 +80,6 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
       if (file) {
         const reader = new FileReader();
         reader.onloadend = () => setLogoPreview(reader.result as string);
-        reader.readAsDataURL(file);
-      }
-    };
-
-    const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => setBannerPreview(reader.result as string);
         reader.readAsDataURL(file);
       }
     };
@@ -168,7 +158,7 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
                 {t("settings.clinicLogo")}
@@ -196,37 +186,6 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
                   accept="image/png,image/jpeg,image/svg+xml"
                   className="hidden"
                   onChange={handleLogoChange}
-                />
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                {t("settings.clinicBanner")}
-              </label>
-              <label className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer flex flex-col items-center gap-2 bg-muted/30">
-                {bannerPreview ? (
-                  <img
-                    src={bannerPreview}
-                    alt="Banner preview"
-                    className="max-h-20 mx-auto object-contain"
-                  />
-                ) : (
-                  <>
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {t("settings.bannerDrag")}
-                    </p>
-                    <p className="text-xs text-muted-foreground/70">
-                      {t("settings.clinicLogoFormats")}
-                    </p>
-                  </>
-                )}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/svg+xml"
-                  className="hidden"
-                  onChange={handleBannerChange}
                 />
               </label>
             </div>
