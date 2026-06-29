@@ -10,9 +10,10 @@ use uuid::Uuid;
 use std::path::PathBuf;
 use crate::services::errors::{AppError, AppResult};
 
-const DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
 const AUTH_ENDPOINT: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
+const USERINFO_ENDPOINT: &str = "https://www.googleapis.com/oauth2/v2/userinfo";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GDriveToken {
@@ -77,9 +78,53 @@ impl GDriveClient {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GDriveUserInfo {
+    pub email: String,
+    pub name: Option<String>,
+    pub picture: Option<String>,
+}
+
 use chrono::Utc;
 
 impl GDriveClient {
+    /// Developer-owned Google OAuth client ID.
+    /// Replace with your actual Google OAuth client ID for desktop applications.
+    /// Create one at https://console.cloud.google.com/apis/credentials
+    pub const GOOGLE_OAUTH_CLIENT_ID: &'static str = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+
+    pub async fn get_user_info(access_token: &str) -> AppResult<GDriveUserInfo> {
+        let client = reqwest::Client::builder()
+            .build()
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        let resp = client.get(USERINFO_ENDPOINT)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        let status = resp.status();
+        let text = resp.text().await
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        if !status.is_success() {
+            return Err(AppError::OAuth(format!("userinfo failed ({}): {}", status, text)));
+        }
+
+        let v: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| AppError::Serde(e))?;
+
+        let email = v["email"].as_str()
+            .ok_or_else(|| AppError::OAuth("missing email in userinfo".into()))?
+            .to_string();
+
+        let name = v["name"].as_str().map(|s| s.to_string());
+        let picture = v["picture"].as_str().map(|s| s.to_string());
+
+        Ok(GDriveUserInfo { email, name, picture })
+    }
+
     pub async fn start_auth_flow(
         client_id: &str,
         app_data: PathBuf,
@@ -105,6 +150,7 @@ impl GDriveClient {
         );
 
         let client_id_owned = client_id.to_owned();
+        let app_data_clone = app_data.clone();
         let redirect_uri_clone = redirect_uri.clone();
         let app_handle_clone = app_handle.clone();
 
@@ -114,12 +160,26 @@ impl GDriveClient {
                 &client_id_owned,
                 &redirect_uri_clone,
                 &verifier,
-                &app_data,
+                &app_data_clone,
             ).await;
 
             match result {
                 Ok(()) => {
-                    app_handle_clone.emit("gdrive-auth-success", ()).ok();
+                    // Fetch user email after successful auth
+                    if let Some(token) = Self::load_token(&app_data_clone) {
+                        if let Ok(info) = Self::get_user_info(&token.access_token).await {
+                            let info_json = serde_json::json!({
+                                "email": info.email,
+                                "name": info.name,
+                                "picture": info.picture,
+                            });
+                            app_handle_clone.emit("gdrive-auth-success", info_json).ok();
+                        } else {
+                            app_handle_clone.emit("gdrive-auth-success", ()).ok();
+                        }
+                    } else {
+                        app_handle_clone.emit("gdrive-auth-success", ()).ok();
+                    }
                 }
                 Err(e) => {
                     eprintln!("GDrive auth error: {}", e);

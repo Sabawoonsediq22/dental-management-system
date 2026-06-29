@@ -1,0 +1,10 @@
+ALTER TABLE app_settings ADD COLUMN local_backup_enabled INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE app_settings ADD COLUMN local_backup_frequency TEXT NOT NULL DEFAULT 'daily';
+ALTER TABLE app_settings ADD COLUMN local_last_backup_at TEXT;
+ALTER TABLE app_settings ADD COLUMN local_next_scheduled_backup TEXT;
+ALTER TABLE app_settings ADD COLUMN gdrive_backup_enabled INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE app_settings ADD COLUMN gdrive_backup_frequency TEXT NOT NULL DEFAULT 'daily';
+ALTER TABLE app_settings ADD COLUMN gdrive_connected_email TEXT;
+ALTER TABLE app_settings ADD COLUMN gdrive_last_backup_at TEXT;
+ALTER TABLE app_settings ADD COLUMN gdrive_next_scheduled_backup TEXT;
+ALTER TABLE app_settings ADD COLUMN gdrive_last_sync_at TEXT;

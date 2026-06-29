@@ -8,8 +8,8 @@ pub struct SettingsService;
 
 impl SettingsService {
     pub async fn get(pool: &SqlitePool) -> AppResult<AppSettings> {
-        let settings = sqlx::query_as(
-            "SELECT id, clinic_name, clinic_phone, clinic_address, support_email, clinic_logo, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id, created_at, updated_at FROM app_settings LIMIT 1"
+        let settings = sqlx::query_as::<_, AppSettings>(
+            "SELECT id, clinic_name, clinic_phone, clinic_address, support_email, clinic_logo, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id, local_backup_enabled, local_backup_frequency, local_last_backup_at, local_next_scheduled_backup, gdrive_backup_enabled, gdrive_backup_frequency, gdrive_connected_email, gdrive_last_backup_at, gdrive_next_scheduled_backup, gdrive_last_sync_at, created_at, updated_at FROM app_settings LIMIT 1"
         )
         .fetch_optional(pool)
         .await?;
@@ -33,6 +33,16 @@ impl SettingsService {
                     gdrive_client_id: None,
                     gdrive_connected: false,
                     gdrive_folder_id: None,
+                    local_backup_enabled: false,
+                    local_backup_frequency: "daily".to_string(),
+                    local_last_backup_at: None,
+                    local_next_scheduled_backup: None,
+                    gdrive_backup_enabled: false,
+                    gdrive_backup_frequency: "daily".to_string(),
+                    gdrive_connected_email: None,
+                    gdrive_last_backup_at: None,
+                    gdrive_next_scheduled_backup: None,
+                    gdrive_last_sync_at: None,
                     created_at: now.clone(),
                     updated_at: now.clone(),
                 };

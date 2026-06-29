@@ -113,5 +113,6 @@ export const api = {
     startGdriveAuth: () => invoke<StartAuthResult>("start_gdrive_auth"),
     getGdriveStatus: () => invoke<GDriveStatus>("get_gdrive_status"),
     disconnectGdrive: () => invoke<void>("disconnect_gdrive"),
+    updateGdriveConnection: (email: string) => invoke<void>("update_gdrive_connection", { email }),
   },
 };

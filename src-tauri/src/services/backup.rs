@@ -123,23 +123,41 @@ impl BackupService {
     }
 
     pub async fn get_backup_settings(pool: &SqlitePool) -> AppResult<BackupSettings> {
-        let row = sqlx::query_as::<_, (bool, String, String, Option<String>, Option<String>, bool, Option<String>)>(
-            "SELECT auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id
+        let row = sqlx::query(
+            "SELECT auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at,
+                    gdrive_client_id, gdrive_connected, gdrive_folder_id,
+                    local_backup_enabled, local_backup_frequency, local_last_backup_at, local_next_scheduled_backup,
+                    gdrive_backup_enabled, gdrive_backup_frequency, gdrive_connected_email,
+                    gdrive_last_backup_at, gdrive_next_scheduled_backup, gdrive_last_sync_at
              FROM app_settings WHERE id = 1"
         )
         .fetch_optional(pool)
-        .await?;
+        .await
+        .map_err(AppError::Database)?;
 
         match row {
-            Some(r) => Ok(BackupSettings {
-                auto_backup_enabled: r.0,
-                auto_backup_frequency: r.1,
-                auto_backup_target: r.2,
-                last_backup_at: r.3,
-                gdrive_client_id: r.4,
-                gdrive_connected: r.5,
-                gdrive_folder_id: r.6,
-            }),
+            Some(r) => {
+                use sqlx::Row;
+                Ok(BackupSettings {
+                    auto_backup_enabled: r.try_get(0).unwrap_or(false),
+                    auto_backup_frequency: r.try_get(1).unwrap_or_else(|_| "daily".into()),
+                    auto_backup_target: r.try_get(2).unwrap_or_else(|_| "local".into()),
+                    last_backup_at: r.try_get(3).ok(),
+                    gdrive_client_id: r.try_get(4).ok(),
+                    gdrive_connected: r.try_get(5).unwrap_or(false),
+                    gdrive_folder_id: r.try_get(6).ok(),
+                    local_backup_enabled: r.try_get(7).unwrap_or(false),
+                    local_backup_frequency: r.try_get(8).unwrap_or_else(|_| "daily".into()),
+                    local_last_backup_at: r.try_get(9).ok(),
+                    local_next_scheduled_backup: r.try_get(10).ok(),
+                    gdrive_backup_enabled: r.try_get(11).unwrap_or(false),
+                    gdrive_backup_frequency: r.try_get(12).unwrap_or_else(|_| "daily".into()),
+                    gdrive_connected_email: r.try_get(13).ok(),
+                    gdrive_last_backup_at: r.try_get(14).ok(),
+                    gdrive_next_scheduled_backup: r.try_get(15).ok(),
+                    gdrive_last_sync_at: r.try_get(16).ok(),
+                })
+            }
             None => Ok(BackupSettings {
                 auto_backup_enabled: false,
                 auto_backup_frequency: "daily".into(),
@@ -148,8 +166,37 @@ impl BackupService {
                 gdrive_client_id: None,
                 gdrive_connected: false,
                 gdrive_folder_id: None,
+                local_backup_enabled: false,
+                local_backup_frequency: "daily".into(),
+                local_last_backup_at: None,
+                local_next_scheduled_backup: None,
+                gdrive_backup_enabled: false,
+                gdrive_backup_frequency: "daily".into(),
+                gdrive_connected_email: None,
+                gdrive_last_backup_at: None,
+                gdrive_next_scheduled_backup: None,
+                gdrive_last_sync_at: None,
             }),
         }
+    }
+
+    pub async fn set_local_backup_now(pool: &SqlitePool) -> AppResult<()> {
+        let now = Utc::now().to_rfc3339();
+        sqlx::query("UPDATE app_settings SET local_last_backup_at = ? WHERE id = 1")
+            .bind(&now)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_gdrive_backup_now(pool: &SqlitePool) -> AppResult<()> {
+        let now = Utc::now().to_rfc3339();
+        sqlx::query("UPDATE app_settings SET gdrive_last_backup_at = ?, gdrive_last_sync_at = ? WHERE id = 1")
+            .bind(&now)
+            .bind(&now)
+            .execute(pool)
+            .await?;
+        Ok(())
     }
 
     pub async fn update_backup_settings(
@@ -180,7 +227,50 @@ impl BackupService {
                 .execute(pool)
                 .await?;
         }
+        if let Some(v) = &input.local_backup_enabled {
+            sqlx::query("UPDATE app_settings SET local_backup_enabled = ? WHERE id = 1")
+                .bind(v)
+                .execute(pool)
+                .await?;
+        }
+        if let Some(v) = &input.local_backup_frequency {
+            sqlx::query("UPDATE app_settings SET local_backup_frequency = ? WHERE id = 1")
+                .bind(v)
+                .execute(pool)
+                .await?;
+        }
+        if let Some(v) = &input.gdrive_backup_enabled {
+            sqlx::query("UPDATE app_settings SET gdrive_backup_enabled = ? WHERE id = 1")
+                .bind(v)
+                .execute(pool)
+                .await?;
+        }
+        if let Some(v) = &input.gdrive_backup_frequency {
+            sqlx::query("UPDATE app_settings SET gdrive_backup_frequency = ? WHERE id = 1")
+                .bind(v)
+                .execute(pool)
+                .await?;
+        }
         Self::get_backup_settings(pool).await
+    }
+
+    pub fn is_backup_due_for(last_backup_at: &Option<String>, frequency: &str) -> bool {
+        let last = match last_backup_at {
+            Some(s) => chrono::DateTime::parse_from_rfc3339(s),
+            None => return true,
+        };
+        let last = match last {
+            Ok(dt) => dt.with_timezone(&Utc),
+            Err(_) => return true,
+        };
+        let now = Utc::now();
+        let dur = now - last;
+        match frequency {
+            "daily" => dur.num_hours() >= 24,
+            "weekly" => dur.num_days() >= 7,
+            "monthly" => dur.num_days() >= 30,
+            _ => true,
+        }
     }
 
     pub async fn set_last_backup_now(pool: &SqlitePool) -> AppResult<()> {

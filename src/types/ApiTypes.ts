@@ -404,6 +404,16 @@ export interface BackupSettings {
   gdrive_client_id: string | null;
   gdrive_connected: boolean;
   gdrive_folder_id: string | null;
+  local_backup_enabled: boolean;
+  local_backup_frequency: string;
+  local_last_backup_at: string | null;
+  local_next_scheduled_backup: string | null;
+  gdrive_backup_enabled: boolean;
+  gdrive_backup_frequency: string;
+  gdrive_connected_email: string | null;
+  gdrive_last_backup_at: string | null;
+  gdrive_next_scheduled_backup: string | null;
+  gdrive_last_sync_at: string | null;
 }
 
 export interface UpdateBackupSettingsInput {
@@ -411,6 +421,10 @@ export interface UpdateBackupSettingsInput {
   auto_backup_frequency?: string;
   auto_backup_target?: string;
   gdrive_client_id?: string | null;
+  local_backup_enabled?: boolean;
+  local_backup_frequency?: string;
+  gdrive_backup_enabled?: boolean;
+  gdrive_backup_frequency?: string;
 }
 
 export interface StartAuthResult {
@@ -419,4 +433,6 @@ export interface StartAuthResult {
 
 export interface GDriveStatus {
   connected: boolean;
+  email: string | null;
+  last_sync_at: string | null;
 }

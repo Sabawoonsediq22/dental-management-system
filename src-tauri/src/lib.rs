@@ -488,6 +488,12 @@ async fn backup_now(
         }
     }
 
+    if do_local {
+        BackupService::set_local_backup_now(&state.db).await.ok();
+    }
+    if do_gdrive {
+        BackupService::set_gdrive_backup_now(&state.db).await.ok();
+    }
     BackupService::set_last_backup_now(&state.db).await.ok();
     Ok(results)
 }
@@ -565,7 +571,8 @@ async fn start_gdrive_auth(
         .await
         .map_err(|e| e.to_string())?;
     let client_id = settings.gdrive_client_id
-        .ok_or_else(|| "Google Drive Client ID not configured. Set it in Settings first.".to_string())?;
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| GDriveClient::GOOGLE_OAUTH_CLIENT_ID.to_string());
     let app_data = app.path().app_data_dir().unwrap();
 
     let auth_url = GDriveClient::start_auth_flow(&client_id, app_data, app)
@@ -576,12 +583,35 @@ async fn start_gdrive_auth(
 }
 
 #[tauri::command]
+async fn update_gdrive_connection(
+    state: State<'_, AppState>,
+    email: String,
+) -> Result<(), String> {
+    sqlx::query(
+        "UPDATE app_settings SET gdrive_connected = 1, gdrive_connected_email = ?, gdrive_last_sync_at = datetime('now') WHERE id = 1"
+    )
+    .bind(&email)
+    .execute(&state.db)
+    .await
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn get_gdrive_status(
     app: tauri::AppHandle,
+    state: State<'_, AppState>,
 ) -> Result<GDriveStatus, String> {
     let app_data = app.path().app_data_dir().unwrap();
     let connected = GDriveClient::load_token(&app_data).is_some();
-    Ok(GDriveStatus { connected })
+    let settings = BackupService::get_backup_settings(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(GDriveStatus {
+        connected,
+        email: settings.gdrive_connected_email,
+        last_sync_at: settings.gdrive_last_sync_at,
+    })
 }
 
 #[tauri::command]
@@ -602,120 +632,104 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool) {
         }
     };
 
-    if !settings.auto_backup_enabled {
-        return;
-    }
-
-    if !BackupService::is_backup_due(&settings.last_backup_at, &settings.auto_backup_frequency) {
-        return;
-    }
-
-    let backup_type = &settings.auto_backup_frequency;
-    let target = &settings.auto_backup_target;
     let app_data = match app.path().app_data_dir() {
         Ok(d) => d,
         Err(_) => return,
     };
     let backup_dir = app_data.join("backups");
 
-    let do_local = target == "local" || target == "both";
-    let do_gdrive = target == "google_drive" || target == "both";
-
-        let mut success = false;
-
-    if do_local {
-        match BackupService::create_local_backup(pool, &backup_dir, backup_type).await {
-            Ok(r) => {
-                println!("Auto-backup (local): {}", r.backup_path);
-                success = true;
-            }
-            Err(e) => {
-                eprintln!("Auto-backup (local) failed: {}", e);
+    // Local auto backup
+    if settings.local_backup_enabled {
+        if BackupService::is_backup_due_for(&settings.local_last_backup_at, &settings.local_backup_frequency) {
+            let backup_type = &settings.local_backup_frequency;
+            match BackupService::create_local_backup(pool, &backup_dir, backup_type).await {
+                Ok(r) => {
+                    println!("Auto-backup (local): {}", r.backup_path);
+                    BackupService::set_local_backup_now(pool).await.ok();
+                }
+                Err(e) => {
+                    eprintln!("Auto-backup (local) failed: {}", e);
+                }
             }
         }
     }
 
-    if do_gdrive {
-        let client_id = match &settings.gdrive_client_id {
-            Some(c) => c.clone(),
-            None => {
-                eprintln!("Auto-backup (gdrive): no client_id configured");
-                return;
-            }
-        };
+    // Google Drive auto backup
+    if settings.gdrive_backup_enabled {
+        if BackupService::is_backup_due_for(&settings.gdrive_last_backup_at, &settings.gdrive_backup_frequency) {
+            let backup_type = &settings.gdrive_backup_frequency;
+            let client_id = settings.gdrive_client_id
+                .filter(|s| !s.is_empty())
+                .unwrap_or_else(|| GDriveClient::GOOGLE_OAUTH_CLIENT_ID.to_string());
 
-        let app_data_path = app_data.clone();
-        match GDriveClient::ensure_valid_token(&client_id, &app_data_path).await {
-            Ok(access_token) => {
-                let folder_id = match &settings.gdrive_folder_id {
-                    Some(id) if !id.is_empty() => id.clone(),
-                    _ => {
-                        match GDriveClient::ensure_folder(&access_token, "Dental Clinic Backups").await {
-                            Ok(id) => {
-                                sqlx::query("UPDATE app_settings SET gdrive_folder_id = ? WHERE id = 1")
-                                    .bind(&id).execute(pool).await.ok();
-                                id
-                            }
-                            Err(e) => {
-                                eprintln!("Auto-backup (gdrive): folder: {}", e);
-                                BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
-                                return;
+            match GDriveClient::ensure_valid_token(&client_id, &app_data).await {
+                Ok(access_token) => {
+                    let folder_id = match &settings.gdrive_folder_id {
+                        Some(id) if !id.is_empty() => id.clone(),
+                        _ => {
+                            match GDriveClient::ensure_folder(&access_token, "Dental Clinic Backups").await {
+                                Ok(id) => {
+                                    sqlx::query("UPDATE app_settings SET gdrive_folder_id = ? WHERE id = 1")
+                                        .bind(&id).execute(pool).await.ok();
+                                    id
+                                }
+                                Err(e) => {
+                                    eprintln!("Auto-backup (gdrive): folder: {}", e);
+                                    BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                                    return;
+                                }
                             }
                         }
-                    }
-                };
+                    };
 
-                let now_str = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-                let drive_filename = format!("dental_clinic_{}.db", now_str);
-                let temp_path = std::env::temp_dir().join(&drive_filename);
-                let dest_str = temp_path.to_string_lossy().replace('\\', "/");
-                let escaped = dest_str.replace('\'', "''");
+                    let now_str = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+                    let drive_filename = format!("dental_clinic_{}.db", now_str);
+                    let temp_path = std::env::temp_dir().join(&drive_filename);
+                    let dest_str = temp_path.to_string_lossy().replace('\\', "/");
+                    let escaped = dest_str.replace('\'', "''");
 
-                if let Err(e) = sqlx::query(&format!("VACUUM INTO '{}'", escaped)).execute(pool).await {
-                    eprintln!("Auto-backup (gdrive): VACUUM INTO: {}", e);
-                    BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
-                    return;
-                }
-
-                let bytes = match std::fs::read(&temp_path) {
-                    Ok(b) => b,
-                    Err(e) => {
-                        eprintln!("Auto-backup (gdrive): read temp file: {}", e);
+                    if let Err(e) = sqlx::query(&format!("VACUUM INTO '{}'", escaped)).execute(pool).await {
+                        eprintln!("Auto-backup (gdrive): VACUUM INTO: {}", e);
+                        BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
                         return;
                     }
-                };
 
-                match GDriveClient::upload_file(&access_token, &folder_id, &drive_filename, &bytes).await {
-                    Ok(file_id) => {
-                        let finished = chrono::Utc::now().to_rfc3339();
-                        sqlx::query(
-                            "INSERT INTO backups (backup_type, backup_path, cloud_provider, status, file_size, created_at, completed_at)
-                             VALUES (?, ?, 'google_drive', 'success', ?, datetime('now'), ?)"
-                        )
-                        .bind(backup_type)
-                        .bind(format!("gdrive:{}", file_id))
-                        .bind(bytes.len() as i64)
-                        .bind(&finished)
-                        .execute(pool).await.ok();
-                        success = true;
+                    let bytes = match std::fs::read(&temp_path) {
+                        Ok(b) => b,
+                        Err(e) => {
+                            eprintln!("Auto-backup (gdrive): read temp file: {}", e);
+                            return;
+                        }
+                    };
+
+                    match GDriveClient::upload_file(&access_token, &folder_id, &drive_filename, &bytes).await {
+                        Ok(file_id) => {
+                            let finished = chrono::Utc::now().to_rfc3339();
+                            sqlx::query(
+                                "INSERT INTO backups (backup_type, backup_path, cloud_provider, status, file_size, created_at, completed_at)
+                                 VALUES (?, ?, 'google_drive', 'success', ?, datetime('now'), ?)"
+                            )
+                            .bind(backup_type)
+                            .bind(format!("gdrive:{}", file_id))
+                            .bind(bytes.len() as i64)
+                            .bind(&finished)
+                            .execute(pool).await.ok();
+                            BackupService::set_gdrive_backup_now(pool).await.ok();
+                        }
+                        Err(e) => {
+                            eprintln!("Auto-backup (gdrive) upload: {}", e);
+                            BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                        }
                     }
-                    Err(e) => {
-                        eprintln!("Auto-backup (gdrive) upload: {}", e);
-                        BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
-                    }
+
+                    std::fs::remove_file(&temp_path).ok();
                 }
-
-                std::fs::remove_file(&temp_path).ok();
-            }
-            Err(e) => {
-                eprintln!("Auto-backup (gdrive): token: {}", e);
-                BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                Err(e) => {
+                    eprintln!("Auto-backup (gdrive): token: {}", e);
+                    BackupService::record_failed_backup(pool, backup_type, "google_drive", &e.to_string()).await.ok();
+                }
             }
         }
-    }
-
-    if success {
-        BackupService::set_last_backup_now(pool).await.ok();
     }
 }
 
@@ -802,6 +816,7 @@ pub fn run() {
             start_gdrive_auth,
             get_gdrive_status,
             disconnect_gdrive,
+            update_gdrive_connection,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

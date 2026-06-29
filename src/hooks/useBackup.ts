@@ -75,3 +75,14 @@ export function useDisconnectGdrive() {
     },
   });
 }
+
+export function useUpdateGdriveConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (email: string) => api.backups.updateGdriveConnection(email),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gdriveStatus"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+    },
+  });
+}

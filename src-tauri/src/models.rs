@@ -293,6 +293,16 @@ pub struct AppSettings {
     pub gdrive_client_id: Option<String>,
     pub gdrive_connected: bool,
     pub gdrive_folder_id: Option<String>,
+    pub local_backup_enabled: bool,
+    pub local_backup_frequency: String,
+    pub local_last_backup_at: Option<String>,
+    pub local_next_scheduled_backup: Option<String>,
+    pub gdrive_backup_enabled: bool,
+    pub gdrive_backup_frequency: String,
+    pub gdrive_connected_email: Option<String>,
+    pub gdrive_last_backup_at: Option<String>,
+    pub gdrive_next_scheduled_backup: Option<String>,
+    pub gdrive_last_sync_at: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -594,6 +604,16 @@ pub struct BackupSettings {
     pub gdrive_client_id: Option<String>,
     pub gdrive_connected: bool,
     pub gdrive_folder_id: Option<String>,
+    pub local_backup_enabled: bool,
+    pub local_backup_frequency: String,
+    pub local_last_backup_at: Option<String>,
+    pub local_next_scheduled_backup: Option<String>,
+    pub gdrive_backup_enabled: bool,
+    pub gdrive_backup_frequency: String,
+    pub gdrive_connected_email: Option<String>,
+    pub gdrive_last_backup_at: Option<String>,
+    pub gdrive_next_scheduled_backup: Option<String>,
+    pub gdrive_last_sync_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -602,6 +622,10 @@ pub struct UpdateBackupSettingsInput {
     pub auto_backup_frequency: Option<String>,
     pub auto_backup_target: Option<String>,
     pub gdrive_client_id: Option<String>,
+    pub local_backup_enabled: Option<bool>,
+    pub local_backup_frequency: Option<String>,
+    pub gdrive_backup_enabled: Option<bool>,
+    pub gdrive_backup_frequency: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -612,4 +636,6 @@ pub struct StartAuthResult {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GDriveStatus {
     pub connected: bool,
+    pub email: Option<String>,
+    pub last_sync_at: Option<String>,
 }
