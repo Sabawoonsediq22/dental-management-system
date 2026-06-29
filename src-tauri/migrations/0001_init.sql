@@ -113,7 +113,14 @@ CREATE TABLE IF NOT EXISTS app_settings (
     clinic_name TEXT,
     clinic_phone TEXT,
     clinic_address TEXT,
-    language TEXT DEFAULT 'en',
+    support_email TEXT,
+    auto_backup_enabled BOOLEAN NOT NULL DEFAULT 0,
+    auto_backup_frequency TEXT NOT NULL DEFAULT 'daily',
+    auto_backup_target TEXT NOT NULL DEFAULT 'local',
+    last_backup_at TEXT,
+    gdrive_client_id TEXT,
+    gdrive_connected BOOLEAN NOT NULL DEFAULT ,
+    gdrive_folder_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -128,16 +135,6 @@ CREATE TABLE IF NOT EXISTS backups (
     error_message TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS audit_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    entity TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    action TEXT NOT NULL,
-    changed_by TEXT DEFAULT 'system',
-    changed_at TEXT NOT NULL DEFAULT (datetime('now')),
-    changes TEXT
 );
 
 CREATE INDEX idx_patients_phone ON patients(phone);
