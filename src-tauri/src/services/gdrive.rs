@@ -88,11 +88,6 @@ pub struct GDriveUserInfo {
 use chrono::Utc;
 
 impl GDriveClient {
-    /// Developer-owned Google OAuth client ID.
-    /// Replace with your actual Google OAuth client ID for desktop applications.
-    /// Create one at https://console.cloud.google.com/apis/credentials
-    pub const GOOGLE_OAUTH_CLIENT_ID: &'static str = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
-
     pub async fn get_user_info(access_token: &str) -> AppResult<GDriveUserInfo> {
         let client = reqwest::Client::builder()
             .build()

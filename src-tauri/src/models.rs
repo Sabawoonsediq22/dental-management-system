@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use crate::config::AppConfig;
 
 // Patient
 #[derive(Debug, Serialize, Deserialize, FromRow)]
@@ -579,6 +580,7 @@ pub struct SearchResult {
 #[derive(Clone)]
 pub struct AppState {
     pub db: sqlx::SqlitePool,
+    pub config: AppConfig,
 }
 
 // Backup / Restore

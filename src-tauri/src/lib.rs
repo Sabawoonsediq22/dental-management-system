@@ -1,8 +1,10 @@
+mod config;
 mod db;
 mod models;
 mod services;
 mod utils;
 
+use crate::config::AppConfig;
 use crate::models::*;
 use crate::services::*;
 use tauri::Manager;
@@ -572,7 +574,7 @@ async fn start_gdrive_auth(
         .map_err(|e| e.to_string())?;
     let client_id = settings.gdrive_client_id
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| GDriveClient::GOOGLE_OAUTH_CLIENT_ID.to_string());
+        .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
     let app_data = app.path().app_data_dir().unwrap();
 
     let auth_url = GDriveClient::start_auth_flow(&client_id, app_data, app)
@@ -623,7 +625,7 @@ async fn disconnect_gdrive(
     Ok(())
 }
 
-async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool) {
+async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
         Ok(s) => s,
         Err(e) => {
@@ -660,7 +662,7 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool) {
             let backup_type = &settings.gdrive_backup_frequency;
             let client_id = settings.gdrive_client_id
                 .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| GDriveClient::GOOGLE_OAUTH_CLIENT_ID.to_string());
+                .unwrap_or_else(|| config.google_oauth_client_id.clone());
 
             match GDriveClient::ensure_valid_token(&client_id, &app_data).await {
                 Ok(access_token) => {
@@ -738,6 +740,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            let config = tauri::async_runtime::block_on(async {
+                AppConfig::load().map_err(|e| {
+                    eprintln!("{}", e);
+                    e
+                })
+            })?;
+
             let db_path = app
                 .path()
                 .app_data_dir()
@@ -754,12 +763,12 @@ pub fn run() {
                     if let Err(e) = tauri::async_runtime::block_on(db::run_migrations(&pool)) {
                         eprintln!("Failed to run migrations: {}", e);
                     }
-                    app.manage(AppState { db: pool.clone() });
+                    app.manage(AppState { db: pool.clone(), config: config.clone() });
 
                     let app_handle = app.handle().clone();
                     tauri::async_runtime::spawn(async move {
                         let state = app_handle.state::<AppState>();
-                        run_auto_backup(&app_handle, &state.db).await;
+                        run_auto_backup(&app_handle, &state.db, &state.config).await;
                     });
                 }
                 Err(e) => {
