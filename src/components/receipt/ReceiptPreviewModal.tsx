@@ -44,6 +44,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
   const receipt = mockData || query.data || null;
   const isLoading = !mockData && query.isLoading;
   const error = !mockData ? query.error : null;
+  const effectiveLogoUrl = logoUrl || receipt?.clinic?.logoUrl || null;
 
   const receiptPrintRef = React.useRef<HTMLDivElement>(null);
 
@@ -149,7 +150,7 @@ const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
             receipt={receipt}
             error={error}
             isLoading={isLoading}
-            logoUrl={logoUrl}
+            logoUrl={effectiveLogoUrl}
           />
         </div>
       </div>

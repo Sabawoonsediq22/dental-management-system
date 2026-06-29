@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   AboutIcon,
   BillingIcon,
@@ -20,6 +21,7 @@ import { useKeyboardShortcut } from "../../hooks/useKeyboardShortcut";
 import SearchModal from "../search/SearchModal";
 import TopHeaderSearch from "../search/SearchHeader";
 import Logo from "../../assets/favicon.svg";
+import { api } from "../../lib/api";
 import { useBreadcrumbs } from "../../hooks/useBreadcrumbs";
 
 interface MainLayoutProps {
@@ -76,6 +78,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useKeyboardShortcut(",", () => goTo("/settings"), "ctrl");
   useKeyboardShortcut("?", () => goTo("/help"));
 
+  const { data: clinicSettings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: api.settings.get,
+    refetchInterval: false,
+    staleTime: 30000,
+  });
+
+  const clinicName = clinicSettings?.clinic_name || t("dashboard.logo");
+  const clinicLogo = clinicSettings?.clinic_logo || Logo;
+
   // Initialize isDark from localStorage or OS on mount
   useEffect(() => {
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
@@ -108,10 +120,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700">
           {sidebarOpen && (
             <div className="flex items-center space-x-2">
-              <img src={Logo} alt="Dental Clinic Logo" className="h-8 w-8" />
+              <img src={clinicLogo} alt="Clinic Logo" className="h-8 w-8 object-contain rounded" />
               <div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  {t("dashboard.logo")}
+                <span className="text-xl font-bold text-gray-900 dark:text-white truncate max-w-35 block">
+                  {clinicName}
                 </span>
               </div>
             </div>

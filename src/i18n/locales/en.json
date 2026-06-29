@@ -296,6 +296,7 @@
   "common": {
     "cancel": "Cancel",
     "saving": "Saving...",
+    "backingUp": "Backing up...",
     "optional": "optional",
     "high": "High",
     "loading": "Loading...",
@@ -304,7 +305,9 @@
     "closeDialog": "Close dialog",
     "closeModal": "Close modal",
     "confirm": "Confirm",
-    "deleting": "Deleting..."
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "edit": "Edit"
   },
   "pagination": {
     "showing": "Showing {{start}} to {{end}} of {{total}}",
@@ -771,6 +774,7 @@
     "freqDaily": "Daily",
     "freqWeekly": "Weekly",
     "freqMonthly": "Monthly",
+    "configuredSummary": "Backing up {{frequency}} to {{target}}",
     "target": "Target",
     "targetLocal": "Local only",
     "targetGdrive": "Google Drive only",
@@ -782,8 +786,20 @@
     "lastBackup": "Last backup",
     "noLastBackup": "No backups yet",
     "googleDrive": "Google Drive",
-    "gdriveClientIdPlaceholder": "Enter Google OAuth Client ID",
     "save": "Save",
+    "settingsSaved": "Auto backup settings saved",
+    "saveError": "Failed to save backup settings",
+    "autoBackupConfig": "Configure Auto Backup",
+    "autoBackupConfigDesc": "Set the frequency and target for automatic backups.",
+    "connectGdrive": "Connect Google Drive",
+    "connectGdriveDesc": "Authenticate with Google Drive to enable cloud backups.",
+    "gdriveClientIdRequired": "Google Client ID is required to connect",
+    "clientIdSaved": "Google Client ID saved",
+    "gdriveDisconnected": "Google Drive disconnected",
+    "connectAndBackup": "Connect & Backup Now",
+    "gdriveClientId": "Google Client ID",
+    "gdriveClientIdPlaceholder": "Enter Google OAuth Client ID",
+    "gdriveAuthInstructions": "Enter your Google OAuth Client ID and click Connect & Backup Now. A browser window will open for authentication.",
     "gdriveConnected": "Connected",
     "gdriveNotConnected": "Not connected",
     "gdriveConnect": "Connect Google Drive",
@@ -804,9 +820,12 @@
       "type": "Type",
       "target": "Target",
       "size": "Size",
+      "location": "Location",
+      "error": "Error",
       "status": "Status",
       "actions": "Actions"
-    }
+    },
+    "cloudStorage": "Cloud Storage"
   },
   "validation": {
     "fullNameRequired": "Full name is required",

@@ -37,7 +37,7 @@ const Table = <T extends Record<string, unknown>>({
               {columns.map((_col, i) => (
                 <th
                   key={i}
-                  className="h-12 px-4 text-left align-middle font-medium"
+                  className="h-12 px-4 align-middle font-medium"
                 >
                   <div className="h-4 w-24 bg-muted animate-pulse rounded" />
                 </th>

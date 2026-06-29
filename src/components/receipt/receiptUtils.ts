@@ -4,6 +4,7 @@ export const DEFAULT_CLINIC = {
   name: "KHWAJA DENTAL & IMPLANT SERVICE",
   address: "House 42, Road 7, Sector 3, Uttara, Dhaka",
   phone: "Phone: +880 1711-223344",
+  logoUrl: null,
 };
 
 export const DOLLAR_PROCEDURES = [
@@ -163,12 +164,14 @@ export const buildReceiptDownloadHtml = (receipt: ReceiptData) => `<!doctype htm
     td { padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
     .money { text-align: right; }
     .total { color: #0f766e; font-size: 14px; font-weight: 800; }
+    .logo img { max-height: 40px; margin-left: auto; display: block; margin-bottom: 8px; }
     .outstanding { color: #dc2626; font-size: 14px; font-weight: 800; }
     .footer { text-align: center; color: #6b7280; font-size: 10px; margin-top: 14px; }
   </style>
 </head>
 <body>
   <div class="receipt">
+    ${receipt.clinic.logoUrl ? `<div class="logo"><img src="${receipt.clinic.logoUrl}" alt="Logo" /></div>` : ""}
     <div class="brand">${receipt.clinic.name}</div>
     <div class="address">${receipt.clinic.address}<br />${receipt.clinic.phone}</div>
     <div class="divider"></div>
@@ -190,7 +193,7 @@ export const buildReceiptDownloadHtml = (receipt: ReceiptData) => `<!doctype htm
       <div>Outstanding Balance</div>
       <div class="right outstanding">${formatCurrency(receipt.outstandingAmount, receipt.currency)}</div>
     </div>
-    <div class="footer">Thank you for choosing Khwaja Dental!</div>
+    <div class="footer">${receipt.clinic.name ? `Thank you for choosing ${receipt.clinic.name}!` : "Thank you for your visit!"}</div>
   </div>
 </body>
 </html>`;

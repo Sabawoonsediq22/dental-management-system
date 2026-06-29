@@ -231,6 +231,7 @@ pub struct ReceiptClinic {
     pub name: String,
     pub address: String,
     pub phone: String,
+    pub logo_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -282,6 +283,8 @@ pub struct AppSettings {
     pub clinic_name: Option<String>,
     pub clinic_phone: Option<String>,
     pub clinic_address: Option<String>,
+    pub support_email: Option<String>,
+    pub clinic_logo: Option<String>,
     pub language: Option<String>,
     pub auto_backup_enabled: bool,
     pub auto_backup_frequency: String,

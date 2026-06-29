@@ -325,6 +325,8 @@ export interface AppSettings {
   clinic_name?: string | null;
   clinic_phone?: string | null;
   clinic_address?: string | null;
+  support_email?: string | null;
+  clinic_logo?: string | null;
   language?: string | null;
   created_at: string;
   updated_at: string;
@@ -334,6 +336,8 @@ export interface UpdateSettingsInput {
   clinic_name?: string | null;
   clinic_phone?: string | null;
   clinic_address?: string | null;
+  support_email?: string | null;
+  clinic_logo?: string | null;
   language?: string | null;
 }
 

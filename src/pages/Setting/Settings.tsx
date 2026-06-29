@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../lib/api";
@@ -24,6 +24,7 @@ import ClinicForm from "../../components/settings/ClinicForm";
 const Settings: React.FC = () => {
   const { t } = useTranslation();
   const clinicFormRef = useRef<{ save: () => void }>(null);
+  const [brandingKey, setBrandingKey] = useState(0);
 
   const { data: settings } = useQuery({
     queryKey: ["settings"],
@@ -32,6 +33,10 @@ const Settings: React.FC = () => {
   const { data: backups, isLoading: backupsLoading } = useBackups();
   const { data: backupSettings } = useBackupSettings();
   const deleteBackup = useDeleteBackup();
+
+  const handleClinicSaved = () => {
+    setBrandingKey((k) => k + 1);
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -99,6 +104,17 @@ const Settings: React.FC = () => {
         formatFileSize(row.file_size as number),
     },
     {
+      key: "backup_path",
+      header: t("backup.table.location"),
+      render: (_: unknown, row: Record<string, unknown>) => {
+        const path = row.backup_path as string;
+        if (path.startsWith("gdrive:")) {
+          return t("backup.cloudStorage");
+        }
+        return path || "-";
+      },
+    },
+    {
       key: "status",
       header: t("backup.table.status"),
       render: (_: unknown, row: Record<string, unknown>) =>
@@ -134,7 +150,7 @@ const Settings: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <ClinicForm ref={clinicFormRef} settings={settings} />
+          <ClinicForm key={brandingKey} ref={clinicFormRef} settings={settings} onSaved={handleClinicSaved} />
         </div>
 
         <div className="space-y-6">

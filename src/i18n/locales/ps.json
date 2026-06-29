@@ -296,6 +296,7 @@
   "common": {
     "cancel": "لغوه کول",
     "saving": "خوندي کېږي...",
+    "backingUp": "بیک اپ اخیستل کېږي...",
     "optional": "اختیاري",
     "high": "لوړ",
     "loading": "بارېږي...",
@@ -304,7 +305,9 @@
     "closeDialog": "ډیالوګ وتړئ",
     "closeModal": "موډال وتړئ",
     "confirm": "تایید",
-    "deleting": "ړنګېږي..."
+    "delete":"ړنګول",
+    "deleting": "ړنګېږي...",
+    "edit": "تغیرول"
   },
   "pagination": {
     "showing": "له {{start}} څخه تر {{end}} پورې له {{total}} څخه",
@@ -771,6 +774,7 @@
     "freqDaily": "ورځنی",
     "freqWeekly": "اونیز",
     "freqMonthly": "میاشتنی",
+    "configuredSummary": "بیک اپ {{frequency}} ته {{target}}",
     "target": "هدف",
     "targetLocal": "یوازې محلي",
     "targetGdrive": "یوازې ګوګل ډرایو",
@@ -782,8 +786,20 @@
     "lastBackup": "وروستی بیک اپ",
     "noLastBackup": "تر اوسه بیک اپ نشته",
     "googleDrive": "ګوګل ډرایو",
-    "gdriveClientIdPlaceholder": "د ګوګل OAuth Client ID دننه کړئ",
     "save": "خوندي کړئ",
+    "settingsSaved": "د اتومات بیک اپ ترتیبات خوندي شول",
+    "saveError": "د بیک اپ ترتیباتو خوندي کول ناکام شول",
+    "autoBackupConfig": "اتومات بیک اپ تنظیم کړئ",
+    "autoBackupConfigDesc": "د اتومات بیک اپ لپاره تکرار او هدف وټاکئ.",
+    "connectGdrive": "ګوګل ډرایو سره وصل شئ",
+    "connectGdriveDesc": "د کلاوډ بیک اپ فعالولو لپاره د ګوګل ډرایو سره تصدیق وکړئ.",
+    "gdriveClientIdRequired": "د نښلولو لپاره د ګوګل Client ID اړین دی",
+    "clientIdSaved": "د ګوګل Client ID خوندي شو",
+    "gdriveDisconnected": "ګوګل ډرایو جلا شو",
+    "connectAndBackup": "وصل شئ او اوس بیک اپ واخلئ",
+    "gdriveClientId": "د ګوګل Client ID",
+    "gdriveClientIdPlaceholder": "د ګوګل OAuth Client ID دننه کړئ",
+    "gdriveAuthInstructions": "خپل د ګوګل OAuth Client ID دننه کړئ او د Connect & Backup Now کلیک وکړئ. د تصدیق لپاره د براوزر کړکۍ به پرانیزي.",
     "gdriveConnected": "وصل شوی",
     "gdriveNotConnected": "نه دی وصل شوی",
     "gdriveConnect": "ګوګل ډرایو سره وصل شئ",
@@ -804,9 +820,12 @@
       "type": "ډول",
       "target": "هدف",
       "size": "کچه",
+      "location": "موقیعت",
+      "error": "تېروتنه",
       "status": "حالت",
       "actions": "کړنې"
-    }
+    },
+    "cloudStorage": "کلاوډ ذخیره"
   },
   "validation": {
     "fullNameRequired": "بشپړ نوم اړین دی",

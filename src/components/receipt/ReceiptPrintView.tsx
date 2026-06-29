@@ -65,21 +65,23 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
       )}
     >
       <div className="receipt-print-content space-y-5">
-        <header className="border-b border-gray-200 pb-5 text-center dark:border-gray-700">
+        <header className="border-b border-gray-200 pb-5 dark:border-gray-700">
           {logoUrl && (
             <img
               src={logoUrl}
               alt={t("receipt.clinicLogo")}
-              className="mx-auto mb-3 h-14 w-14 rounded-full object-contain"
+              className={`mb-3 h-14 w-14 rounded-full object-contain ${
+                document.dir === "rtl" ? "mr-auto" : "ml-auto"
+              }`}
             />
           )}
-          <h1 className="text-2xl font-black uppercase tracking-tight text-teal-700 dark:text-teal-300 sm:text-3xl">
+          <h1 className="text-2xl font-black uppercase tracking-tight text-teal-700 dark:text-teal-300 sm:text-3xl text-center">
             {receipt.clinic.name}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 text-center">
             {receipt.clinic.address}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
             {receipt.clinic.phone}
           </p>
         </header>

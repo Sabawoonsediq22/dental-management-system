@@ -9,7 +9,7 @@ pub struct SettingsService;
 impl SettingsService {
     pub async fn get(pool: &SqlitePool) -> AppResult<AppSettings> {
         let settings = sqlx::query_as(
-            "SELECT id, clinic_name, clinic_phone, clinic_address, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id, created_at, updated_at FROM app_settings LIMIT 1"
+            "SELECT id, clinic_name, clinic_phone, clinic_address, support_email, clinic_logo, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, last_backup_at, gdrive_client_id, gdrive_connected, gdrive_folder_id, created_at, updated_at FROM app_settings LIMIT 1"
         )
         .fetch_optional(pool)
         .await?;
@@ -23,6 +23,8 @@ impl SettingsService {
                     clinic_name: None,
                     clinic_phone: None,
                     clinic_address: None,
+                    support_email: None,
+                    clinic_logo: None,
                     language: Some("en".to_string()),
                     auto_backup_enabled: false,
                     auto_backup_frequency: "daily".to_string(),
@@ -35,10 +37,12 @@ impl SettingsService {
                     updated_at: now.clone(),
                 };
                 sqlx::query(
-                    "INSERT INTO app_settings (id, clinic_name, clinic_phone, clinic_address, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, gdrive_connected, gdrive_folder_id, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO app_settings (id, clinic_name, clinic_phone, clinic_address, support_email, clinic_logo, language, auto_backup_enabled, auto_backup_frequency, auto_backup_target, gdrive_connected, gdrive_folder_id, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 )
                 .bind(1)
+                .bind::<Option<String>>(None)
+                .bind::<Option<String>>(None)
                 .bind::<Option<String>>(None)
                 .bind::<Option<String>>(None)
                 .bind::<Option<String>>(None)
@@ -61,11 +65,13 @@ impl SettingsService {
         let now = Utc::now().to_rfc3339();
 
         sqlx::query(
-            "UPDATE app_settings SET clinic_name=?, clinic_phone=?, clinic_address=?, language=?, updated_at=? WHERE id=1"
+            "UPDATE app_settings SET clinic_name=?, clinic_phone=?, clinic_address=?, support_email=?, clinic_logo=?, language=?, updated_at=? WHERE id=1"
         )
         .bind(&input.clinic_name)
         .bind(&input.clinic_phone)
         .bind(&input.clinic_address)
+        .bind(&input.support_email)
+        .bind(&input.clinic_logo)
         .bind(&input.language)
         .bind(&now)
         .execute(pool)
@@ -80,5 +86,7 @@ pub struct UpdateSettingsInput {
     pub clinic_name: Option<String>,
     pub clinic_phone: Option<String>,
     pub clinic_address: Option<String>,
+    pub support_email: Option<String>,
+    pub clinic_logo: Option<String>,
     pub language: Option<String>,
 }

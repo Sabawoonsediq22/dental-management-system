@@ -298,6 +298,14 @@ impl InvoiceService {
         .fetch_all(pool)
         .await?;
 
+        let clinic_settings = sqlx::query_as::<_, (Option<String>, Option<String>, Option<String>, Option<String>)>(
+            "SELECT clinic_name, clinic_address, clinic_phone, clinic_logo FROM app_settings WHERE id = 1"
+        )
+        .fetch_optional(pool)
+        .await?;
+
+        let (clinic_name, clinic_address, clinic_phone, clinic_logo) = clinic_settings.unwrap_or_default();
+
         Ok(ReceiptData {
             id: invoice.id,
             invoice_number: invoice.invoice_number,
@@ -316,9 +324,10 @@ impl InvoiceService {
             procedures: procedure_rows,
             payments,
             clinic: ReceiptClinic {
-                name: "KHWAJA DENTAL & IMPLANT SERVICE".to_string(),
-                address: "House 42, Road 7, Sector 3, Uttara, Dhaka".to_string(),
-                phone: "Phone: +880 1711-223344".to_string(),
+                name: clinic_name.unwrap_or_else(|| "Dental Clinic".to_string()),
+                address: clinic_address.unwrap_or_default(),
+                phone: clinic_phone.unwrap_or_default(),
+                logo_url: clinic_logo,
             },
         })
     }

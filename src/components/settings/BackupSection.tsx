@@ -1,5 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { listen } from "@tauri-apps/api/event";
 import {
   Card,
   CardHeader,
@@ -10,10 +12,9 @@ import {
   Switch,
   Select,
   Input,
+  Modal,
   toast,
 } from "../ui";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { listen } from "@tauri-apps/api/event";
 import {
   useBackupSettings,
   useUpdateBackupSettings,
@@ -22,7 +23,11 @@ import {
   useGdriveStatus,
   useDisconnectGdrive,
 } from "../../hooks/useBackup";
-import { RefreshCwIcon } from "../../shared/icons/icons";
+import {
+  RefreshCwIcon,
+  LoadingIcon,
+  CheckCircleIcon,
+} from "../../shared/icons/icons";
 
 const BackupSection: React.FC = () => {
   const { t } = useTranslation();
@@ -34,10 +39,16 @@ const BackupSection: React.FC = () => {
   const gdriveAuth = useGdriveAuth();
   const disconnectGdrive = useDisconnectGdrive();
 
-  const [autoEnabled, setAutoEnabled] = React.useState(false);
-  const [frequency, setFrequency] = React.useState("daily");
-  const [target, setTarget] = React.useState("local");
-  const [clientId, setClientId] = React.useState("");
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [frequency, setFrequency] = useState("daily");
+  const [target, setTarget] = useState("local");
+  const [clientId, setClientId] = useState("");
+
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [pendingBackupAfterAuth, setPendingBackupAfterAuth] = useState(false);
+  const [backupInProgress, setBackupInProgress] = useState(false);
+  const [showGdriveModal, setShowGdriveModal] = useState(false);
+  const backupInProgressRef = useRef(false);
 
   useEffect(() => {
     if (settings) {
@@ -52,55 +63,118 @@ const BackupSection: React.FC = () => {
     const unlisten = Promise.all([
       listen("gdrive-auth-success", () => {
         toast.success({ title: t("backup.gdriveConnected") });
+        setShowGdriveModal(false);
+        if (pendingBackupAfterAuth) {
+          setPendingBackupAfterAuth(false);
+          executeBackup("google_drive");
+        }
       }),
-      listen("gdrive-auth-error", () => {
-        toast.error({ title: t("backup.gdriveAuthError") });
+      listen("gdrive-auth-error", (event) => {
+        toast.error({
+          title: t("backup.gdriveAuthError"),
+          description: String(event.payload),
+        });
+        setPendingBackupAfterAuth(false);
+        setShowGdriveModal(false);
       }),
     ]);
     return () => {
       unlisten.then((fns) => fns.forEach((fn) => fn()));
     };
-  }, [t]);
+  }, [t, pendingBackupAfterAuth]);
 
-  const handleSaveSettings = () => {
-    updateSettings.mutate({
-      auto_backup_enabled: autoEnabled,
-      auto_backup_frequency: frequency,
-      auto_backup_target: target,
-      gdrive_client_id: clientId || null,
-    });
+  const handleAutoToggle = (enabled: boolean) => {
+    setAutoEnabled(enabled);
+    if (enabled) {
+      setShowConfigModal(true);
+    } else {
+      updateSettings.mutate({ auto_backup_enabled: false });
+    }
   };
 
-  const handleBackupNow = (backupTarget: string) => {
-    backupNow.mutate(backupTarget, {
-      onSuccess: (records) => {
-        const successCount = records.filter(
-          (r) => r.status === "success",
-        ).length;
-        const failCount = records.filter((r) => r.status === "failed").length;
-        if (successCount > 0) {
-          toast.success({
-            title: t("backup.success"),
-            description: t("backup.successDesc", { count: successCount }),
+  const handleSaveAutoConfig = () => {
+    updateSettings.mutate(
+      {
+        auto_backup_enabled: true,
+        auto_backup_frequency: frequency,
+        auto_backup_target: target,
+      },
+      {
+        onSuccess: () => {
+          toast.success({ title: t("backup.settingsSaved") });
+          setShowConfigModal(false);
+        },
+        onError: (err) => {
+          toast.error({
+            title: t("backup.saveError"),
+            description: String(err),
           });
-        }
-        if (failCount > 0) {
+        },
+      },
+    );
+  };
+
+  const executeBackup = useCallback(
+    (backupTarget: string) => {
+      if (backupInProgressRef.current) return;
+      backupInProgressRef.current = true;
+      setBackupInProgress(true);
+
+      backupNow.mutate(backupTarget, {
+        onSuccess: (records) => {
+          const successCount = records.filter(
+            (r) => r.status === "success",
+          ).length;
+          const failCount = records.filter((r) => r.status === "failed").length;
+          if (successCount > 0) {
+            toast.success({
+              title: t("backup.success"),
+              description: t("backup.successDesc", { count: successCount }),
+            });
+          }
+          if (failCount > 0) {
+            toast.error({
+              title: t("backup.failed"),
+              description: t("backup.failedDesc", { count: failCount }),
+            });
+          }
+        },
+        onError: (err) => {
           toast.error({
             title: t("backup.failed"),
-            description: t("backup.failedDesc", { count: failCount }),
+            description: String(err),
           });
-        }
-      },
-      onError: (err) => {
-        toast.error({
-          title: t("backup.failed"),
-          description: err?.toString(),
-        });
-      },
-    });
+        },
+        onSettled: () => {
+          backupInProgressRef.current = false;
+          setBackupInProgress(false);
+        },
+      });
+    },
+    [backupNow, t],
+  );
+
+  const handleBackupNow = (backupTarget: string) => {
+    if (backupInProgressRef.current) return;
+
+    if (backupTarget === "google_drive") {
+      if (gdriveStatus?.connected) {
+        executeBackup("google_drive");
+      } else {
+        setPendingBackupAfterAuth(true);
+        setShowGdriveModal(true);
+        handleConnectGdrive();
+      }
+    } else {
+      executeBackup(backupTarget);
+    }
   };
 
   const handleConnectGdrive = () => {
+    if (!clientId) {
+      toast.error({ title: t("backup.gdriveClientIdRequired") });
+      return;
+    }
     gdriveAuth.mutate(undefined, {
       onSuccess: (result) => {
         openUrl(result.auth_url);
@@ -108,8 +182,18 @@ const BackupSection: React.FC = () => {
       onError: (err) => {
         toast.error({
           title: t("backup.gdriveAuthError"),
-          description: err?.toString(),
+          description: String(err),
         });
+        setPendingBackupAfterAuth(false);
+        setShowGdriveModal(false);
+      },
+    });
+  };
+
+  const handleDisconnectGdrive = () => {
+    disconnectGdrive.mutate(undefined, {
+      onSuccess: () => {
+        toast.success({ title: t("backup.gdriveDisconnected") });
       },
     });
   };
@@ -124,7 +208,6 @@ const BackupSection: React.FC = () => {
     }
   };
 
-  const nowSaving = backupNow.isPending;
   const settingsSaving = updateSettings.isPending;
 
   return (
@@ -133,7 +216,7 @@ const BackupSection: React.FC = () => {
         <CardTitle>{t("backup.title")}</CardTitle>
         <CardDescription>{t("backup.description")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 pb-14">
         {/* Auto Backup */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -145,47 +228,22 @@ const BackupSection: React.FC = () => {
                 {t("backup.enableAuto")}
               </p>
             </div>
-            <Switch checked={autoEnabled} onCheckedChange={setAutoEnabled} />
+            <Switch checked={autoEnabled} onCheckedChange={handleAutoToggle} />
           </div>
 
           {autoEnabled && (
-            <div className="space-y-3 pl-0 border-l-2 border-primary/20">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {t("backup.frequency")}
-                </label>
-                <Select
-                  value={frequency}
-                  onChange={(e) => setFrequency(e.target.value)}
-                >
-                  <option value="daily">{t("backup.freqDaily")}</option>
-                  <option value="weekly">{t("backup.freqWeekly")}</option>
-                  <option value="monthly">{t("backup.freqMonthly")}</option>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {t("backup.target")}
-                </label>
-                <Select
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                >
-                  <option value="local">{t("backup.targetLocal")}</option>
-                  <option value="google_drive">
-                    {t("backup.targetGdrive")}
-                  </option>
-                  <option value="both">{t("backup.targetBoth")}</option>
-                </Select>
-              </div>
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={handleSaveSettings}
-                disabled={settingsSaving}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
+              {t("backup.configuredSummary", {
+                frequency: t(`backup.freq${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`),
+                target: target,
+              })}
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="text-primary hover:underline ml-1 cursor-pointer"
               >
-                {settingsSaving ? t("common.saving") : t("backup.saveSettings")}
-              </Button>
+                {t("common.edit")}
+              </button>
             </div>
           )}
         </div>
@@ -208,10 +266,13 @@ const BackupSection: React.FC = () => {
               size="sm"
               className="flex-1"
               onClick={() => handleBackupNow("local")}
-              disabled={nowSaving}
+              disabled={backupInProgress}
             >
-              {nowSaving ? (
-                t("common.saving")
+              {backupInProgress ? (
+                <>
+                  <LoadingIcon size="sm" className="mr-1" />
+                  {t("common.backingUp")}
+                </>
               ) : (
                 <>
                   <RefreshCwIcon className="h-3.5 w-3.5" />
@@ -224,10 +285,19 @@ const BackupSection: React.FC = () => {
               variant="secondary"
               className="flex-1"
               onClick={() => handleBackupNow("google_drive")}
-              disabled={nowSaving}
+              disabled={backupInProgress}
             >
-              <RefreshCwIcon className="h-3.5 w-3.5" />
-              {t("backup.backupNowGdrive")}
+              {backupInProgress ? (
+                <>
+                  <LoadingIcon size="sm" className="mr-1" />
+                  {t("common.backingUp")}
+                </>
+              ) : (
+                <>
+                  <RefreshCwIcon className="h-3.5 w-3.5" />
+                  {t("backup.backupNowGdrive")}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -242,8 +312,8 @@ const BackupSection: React.FC = () => {
           </h3>
 
           {/* Google Drive */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-3 py-6 rounded-lg border border-border bg-muted/30">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-[#34A853] flex items-center justify-center text-white text-xs font-bold shrink-0">
                   G
@@ -263,7 +333,7 @@ const BackupSection: React.FC = () => {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => disconnectGdrive.mutate()}
+                  onClick={handleDisconnectGdrive}
                   className="shrink-0"
                 >
                   {t("settings.disconnectProvider")}
@@ -271,7 +341,9 @@ const BackupSection: React.FC = () => {
               ) : (
                 <Button
                   size="sm"
-                  onClick={handleConnectGdrive}
+                  onClick={() => {
+                    setShowGdriveModal(true);
+                  }}
                   disabled={!clientId}
                   className="shrink-0"
                 >
@@ -279,28 +351,121 @@ const BackupSection: React.FC = () => {
                 </Button>
               )}
             </div>
-
-            {!gdriveStatus?.connected && (
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t("backup.gdriveClientIdPlaceholder")}
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  className="text-xs h-8 flex-1"
-                />
-                <Button
-                  size="sm"
-                  onClick={handleSaveSettings}
-                  disabled={settingsSaving}
-                  className="shrink-0"
-                >
-                  {t("backup.save")}
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </CardContent>
+
+      {/* Auto Backup Configuration Modal */}
+      <Modal
+        isOpen={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
+        title={t("backup.autoBackupConfig")}
+        description={t("backup.autoBackupConfigDesc")}
+        size="md"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfigModal(false);
+                if (!autoEnabled) {
+                  setAutoEnabled(true);
+                }
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={handleSaveAutoConfig}
+              disabled={settingsSaving}
+            >
+              {settingsSaving ? (
+                <>
+                  <LoadingIcon size="sm" className="mr-1" />
+                  {t("common.saving")}
+                </>
+              ) : (
+                t("backup.saveSettings")
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">
+              {t("backup.frequency")}
+            </label>
+            <Select
+              value={frequency}
+              onChange={(e) => setFrequency(e.target.value)}
+            >
+              <option value="daily">{t("backup.freqDaily")}</option>
+              <option value="weekly">{t("backup.freqWeekly")}</option>
+              <option value="monthly">{t("backup.freqMonthly")}</option>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">
+              {t("backup.target")}
+            </label>
+            <Select
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+            >
+              <option value="local">{t("backup.targetLocal")}</option>
+              <option value="google_drive">{t("backup.targetGdrive")}</option>
+              <option value="both">{t("backup.targetBoth")}</option>
+            </Select>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Google Drive Connection Modal */}
+      <Modal
+        isOpen={showGdriveModal && !gdriveStatus?.connected}
+        onClose={() => {
+          setShowGdriveModal(false);
+          setPendingBackupAfterAuth(false);
+        }}
+        title={t("backup.connectGdrive")}
+        description={t("backup.connectGdriveDesc")}
+        size="sm"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowGdriveModal(false);
+                setPendingBackupAfterAuth(false);
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleConnectGdrive} disabled={!clientId}>
+              {t("backup.connectAndBackup")}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-3">
+          {!clientId && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">
+                {t("backup.gdriveClientId")}
+              </label>
+              <Input
+                placeholder={t("backup.gdriveClientIdPlaceholder")}
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+              />
+            </div>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {t("backup.gdriveAuthInstructions")}
+          </p>
+        </div>
+      </Modal>
     </Card>
   );
 };
