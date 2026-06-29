@@ -128,12 +128,10 @@ impl GDriveClient {
         let verifier = Self::random_verifier();
         let challenge = Self::code_challenge(&verifier);
 
-        let listener = TcpListener::bind("127.0.0.1:0").await
+        let redirect_port = 43210u16;
+        let listener = TcpListener::bind(format!("127.0.0.1:{}", redirect_port)).await
             .map_err(|e| AppError::OAuth(format!("bind error: {}", e)))?;
-        let port = listener.local_addr()
-            .map_err(|e| AppError::OAuth(format!("addr error: {}", e)))?
-            .port();
-        let redirect_uri = format!("http://127.0.0.1:{}", port);
+        let redirect_uri = format!("http://127.0.0.1:{}", redirect_port);
 
         let auth_url = format!(
             "{}?client_id={}&redirect_uri={}&response_type=code&scope={}&access_type=offline&prompt=consent&code_challenge_method=S256&code_challenge={}",

@@ -28,11 +28,6 @@ interface GuideEntry {
   links?: { label: string; href: string }[];
 }
 
-interface FaqEntry {
-  q: string;
-  a: string;
-}
-
 const sectionConfig = [
   { id: "dashboard", icon: DashboardIcon },
   { id: "patients", icon: PatientIcon },

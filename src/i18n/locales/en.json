@@ -746,7 +746,7 @@
     "discount": "Discount",
     "outstandingBalance": "Outstanding Balance",
     "clinicLogo": "Clinic logo",
-    "thankYou": "Thank you for choosing Khwaja Dental!"
+    "thankYou": "Thank you for choosing {{clinicName}}!"
   },
   "datePicker": {
     "selectDate": "Select a date",

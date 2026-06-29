@@ -14,7 +14,7 @@ import {
   Bar,
   Cell,
 } from "recharts";
-import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon, DownloadIcon } from "../../shared/icons/icons";
+import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon, DownloadIcon, FileIcon } from "../../shared/icons/icons";
 import type { MonthlyRevenuePoint } from "../../types/ApiTypes";
 import { exportPatientsReport, exportFinancialReport, exportTreatmentReport } from "../../lib/export";
 import type { ReportFormat } from "../../lib/export";
@@ -198,7 +198,7 @@ const Reports: React.FC = () => {
               {t("reports.charts.revenueTrend", "Revenue Trend")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="bg-white dark:bg-gray-800">
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
@@ -260,7 +260,7 @@ const Reports: React.FC = () => {
               {t("reports.charts.visitDistribution", "Visit Distribution")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="bg-white dark:bg-gray-800">
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={visitStatusData}>
@@ -318,13 +318,7 @@ const Reports: React.FC = () => {
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                  </svg>
+                  <FileIcon size="sm" />
                   PDF
                 </button>
                 <button
@@ -335,22 +329,17 @@ const Reports: React.FC = () => {
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
+                  <FileIcon size="sm" />
                   CSV
                 </button>
               </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-white dark:bg-gray-800">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
-              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed "
               onClick={() => handleExport("patients", exportPatientsReport)}
               disabled={exporting !== null}
             >

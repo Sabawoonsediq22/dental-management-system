@@ -66,24 +66,28 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
     >
       <div className="receipt-print-content space-y-5">
         <header className="border-b border-gray-200 pb-5 dark:border-gray-700">
-          {logoUrl && (
-            <img
-              src={logoUrl}
-              alt={t("receipt.clinicLogo")}
-              className={`mb-3 h-14 w-14 rounded-full object-contain ${
-                document.dir === "rtl" ? "mr-auto" : "ml-auto"
-              }`}
-            />
-          )}
-          <h1 className="text-2xl font-black uppercase tracking-tight text-teal-700 dark:text-teal-300 sm:text-3xl text-center">
-            {receipt.clinic.name}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 text-center">
-            {receipt.clinic.address}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-            {receipt.clinic.phone}
-          </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={t("receipt.clinicLogo")}
+                className="h-16 w-16 shrink-0 rounded-full object-contain"
+              />
+            )}
+            </div>
+            <div className="min-w-0 text-center flex-5">
+              <h1 className="text-2xl font-black uppercase tracking-tight text-teal-700 dark:text-teal-300 sm:text-3xl">
+                {receipt.clinic.name}
+              </h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {receipt.clinic.address}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {receipt.clinic.phone}
+              </p>
+            </div>
+          </div>
         </header>
 
         <section className="grid grid-cols-2 gap-4 text-sm">
@@ -101,8 +105,8 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">{t("receipt.procedure")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("receipt.price")}</th>
+                <th className="px-4 py-3 font-semibold">{t("receipt.procedure")}</th>
+                <th className="px-4 py-3 font-semibold">{t("receipt.price")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
@@ -186,7 +190,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 
         <footer className="border-t border-gray-200 pt-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
           <p className="font-medium text-gray-700 dark:text-gray-300">
-            {t("receipt.thankYou")}
+            {t("receipt.thankYou", { clinicName: receipt.clinic.name })}
           </p>
         </footer>
       </div>
