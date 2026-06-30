@@ -12,8 +12,8 @@
   "app": {
     "windows": [
       {
-        "title": "Khwaja Dental & IMplants Clinic",
-        "width": 800,
+        "title": "Khwaja Dental & Implants Clinic",
+        "width": 1000,
         "height": 600
       }
     ],

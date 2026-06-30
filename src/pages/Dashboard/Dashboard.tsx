@@ -144,7 +144,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 xl:space-y-8">
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
         <div className="space-y-0.5">
           <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-teal-600 dark:text-teal-400">
             {t("dashboard.welcome", "WELCOME BACK")}
@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 w-full xl:w-auto">
+        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
           <Button
             onClick={() => navigate("/patients/new")}
             className="gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] w-full xl:w-auto"
@@ -173,7 +173,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {statCards.map((stat) => (
           <StatCard
             key={stat.title}

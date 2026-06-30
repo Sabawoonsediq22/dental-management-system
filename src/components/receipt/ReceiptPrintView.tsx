@@ -9,6 +9,7 @@ import {
   getProcedureLabel,
   getReceiptTotals,
 } from "./receiptUtils";
+import defaultLogo from "../../assets/favicon.svg";
 
 interface ReceiptPrintViewProps {
   receipt?: ReceiptData | null;
@@ -68,23 +69,21 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         <header className="border-b border-gray-200 pb-5 dark:border-gray-700">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              {logoUrl && (
               <img
-                src={logoUrl}
+                src={logoUrl || defaultLogo}
                 alt={t("receipt.clinicLogo")}
                 className="h-16 w-16 shrink-0 rounded-full object-contain"
               />
-            )}
             </div>
             <div className="min-w-0 text-center flex-5">
               <h1 className="text-2xl font-black uppercase tracking-tight text-teal-700 dark:text-teal-300 sm:text-3xl">
-                {receipt.clinic.name}
+                {receipt.clinic.name || "Dental Clinic"}
               </h1>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {receipt.clinic.address}
+                {receipt.clinic.address || "Jalalabad,Nangarhar"}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {receipt.clinic.phone}
+                {receipt.clinic.phone || "+93787844487"}
               </p>
             </div>
           </div>
@@ -190,7 +189,7 @@ const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 
         <footer className="border-t border-gray-200 pt-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
           <p className="font-medium text-gray-700 dark:text-gray-300">
-            {t("receipt.thankYou", { clinicName: receipt.clinic.name })}
+            {t("receipt.thankYou", { clinicName: receipt.clinic.name || "Dental Clinic" })}
           </p>
         </footer>
       </div>
