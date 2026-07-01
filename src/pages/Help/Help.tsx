@@ -281,7 +281,7 @@ const Help: React.FC = () => {
                   {t("help.gettingStarted.welcomeTitle")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+              <CardContent className="rounded-b-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                   {t("help.gettingStarted.welcomeDesc")}
                 </p>
@@ -295,7 +295,7 @@ const Help: React.FC = () => {
                   {t("help.gettingStarted.quickStartTitle")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+              <CardContent className="rounded-b-lg">
                 <ol className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                   {(t("help.gettingStarted.quickStartSteps", { returnObjects: true }) as unknown as string[]).map((step, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -315,7 +315,7 @@ const Help: React.FC = () => {
               <CardTitle className="text-base sm:text-lg font-semibold">{t("help.gettingStarted.navGuideTitle")}</CardTitle>
               <CardDescription>{t("help.gettingStarted.navGuideDesc")}</CardDescription>
             </CardHeader>
-            <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+            <CardContent className="rounded-b-lg">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 {sections.map((s) => (
                   <button
@@ -359,7 +359,7 @@ const Help: React.FC = () => {
                       {t("help.section.stepByStep")}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+                  <CardContent className="rounded-b-lg">
                     <ol className="space-y-3">
                       {section.steps.map((step, i) => (
                         <li key={i} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
@@ -383,7 +383,7 @@ const Help: React.FC = () => {
                         {t("help.section.proTips")}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+                    <CardContent className="rounded-b-lg">
                       <ul className="space-y-2">
                         {section.tips.map((tip, i) => (
                           <li key={i} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -449,7 +449,7 @@ const Help: React.FC = () => {
                 {t("help.faq.description", { count: faqs.length })}
               </CardDescription>
             </CardHeader>
-            <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg space-y-2">
+            <CardContent className="rounded-b-lg space-y-2">
               <div className="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700">
                 {faqs.map((faq, i) => (
                   <div key={i} className="last:border-0">
@@ -488,7 +488,7 @@ const Help: React.FC = () => {
                 {t("help.shortcuts.description")}
               </CardDescription>
             </CardHeader>
-            <CardContent className="bg-white dark:bg-gray-800 rounded-b-lg">
+            <CardContent className="rounded-b-lg">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {shortcuts.map((shortcut, i) => (
                   <div

@@ -15,7 +15,7 @@ const sizeClasses = {
 };
 
 export const DeleteIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -36,7 +36,7 @@ export const DeleteIcon: React.FC<IconProps> = ({
 
 // Navigation icons
 export const DashboardIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -55,7 +55,7 @@ export const DashboardIcon: React.FC<IconProps> = ({
 );
 
 export const CustomersIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -74,7 +74,7 @@ export const CustomersIcon: React.FC<IconProps> = ({
 );
 
 export const OrdersIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -93,7 +93,7 @@ export const OrdersIcon: React.FC<IconProps> = ({
 );
 
 export const InventoryIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -112,7 +112,7 @@ export const InventoryIcon: React.FC<IconProps> = ({
 );
 
 export const ReportsIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -131,7 +131,7 @@ export const ReportsIcon: React.FC<IconProps> = ({
 );
 
 export const SettingsIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -156,7 +156,7 @@ export const SettingsIcon: React.FC<IconProps> = ({
 );
 
 export const CollapseIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -175,7 +175,7 @@ export const CollapseIcon: React.FC<IconProps> = ({
 );
 
 export const ExpandIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -197,7 +197,7 @@ export const ExpandIcon: React.FC<IconProps> = ({
 
 /** Layout / dashboard home page */
 export const LayoutIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -217,7 +217,7 @@ export const LayoutIcon: React.FC<IconProps> = ({
 
 /** Add a new patient, appointment, treatment, etc. */
 export const AddIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -237,7 +237,7 @@ export const AddIcon: React.FC<IconProps> = ({
 
 /** Close / dismiss a view */
 export const CloseIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -257,7 +257,7 @@ export const CloseIcon: React.FC<IconProps> = ({
 
 /** Calendar or appointment scheduling */
 export const CalendarIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -273,7 +273,7 @@ export const CalendarIcon: React.FC<IconProps> = ({
 
 /** Clock / arrival / treatment time */
 export const ClockIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -294,7 +294,7 @@ export const ClockIcon: React.FC<IconProps> = ({
 
 /** Patient / contact person */
 export const PatientIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -314,7 +314,7 @@ export const PatientIcon: React.FC<IconProps> = ({
 
 /** Dentist / doctor / provider */
 export const DoctorIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -334,7 +334,7 @@ export const DoctorIcon: React.FC<IconProps> = ({
 
 /** Single healthy tooth */
 export const ToothIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -354,7 +354,7 @@ export const ToothIcon: React.FC<IconProps> = ({
 
 /** Tooth with a warning / problem */
 export const ToothWarningIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -380,7 +380,7 @@ export const ToothWarningIcon: React.FC<IconProps> = ({
 
 /** Dental implant */
 export const ImplantIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -412,7 +412,7 @@ export const ImplantIcon: React.FC<IconProps> = ({
 
 /** Prescription / treatment plan */
 export const PrescriptionIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -432,7 +432,7 @@ export const PrescriptionIcon: React.FC<IconProps> = ({
 
 /** X-ray / radiograph */
 export const XRayIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -453,7 +453,7 @@ export const XRayIcon: React.FC<IconProps> = ({
 
 /** Billing / payment */
 export const BillingIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -469,7 +469,7 @@ export const BillingIcon: React.FC<IconProps> = ({
 
 /** Edit / modify a record */
 export const EditIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -489,7 +489,7 @@ export const EditIcon: React.FC<IconProps> = ({
 
 /** Filter results */
 export const FilterIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -509,7 +509,7 @@ export const FilterIcon: React.FC<IconProps> = ({
 
 /** Chevron down — expandable panels / selects */
 export const ChevronDownIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -529,7 +529,7 @@ export const ChevronDownIcon: React.FC<IconProps> = ({
 
 /** Chevron up — collapse */
 export const ChevronUpIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -549,7 +549,7 @@ export const ChevronUpIcon: React.FC<IconProps> = ({
 
 /** Sort / reorder */
 export const SortIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -569,7 +569,7 @@ export const SortIcon: React.FC<IconProps> = ({
 
 /** Confirm / action complete */
 export const CheckCircleIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -589,7 +589,7 @@ export const CheckCircleIcon: React.FC<IconProps> = ({
 
 /** Cancel / not completed */
 export const CrossCircleIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -609,7 +609,7 @@ export const CrossCircleIcon: React.FC<IconProps> = ({
 
 /** Error / problem tooth — right-pointing warning triangle */
 export const ErrorTriangleIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -630,7 +630,7 @@ export const ErrorTriangleIcon: React.FC<IconProps> = ({
 
 // Loading Spinner
 export const LoadingIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -656,7 +656,7 @@ export const LoadingIcon: React.FC<IconProps> = ({
 
 /** About / information page */
 export const AboutIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -676,7 +676,7 @@ export const AboutIcon: React.FC<IconProps> = ({
 
 /** Help / support page */
 export const HelpIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -696,7 +696,7 @@ export const HelpIcon: React.FC<IconProps> = ({
 
 /** Medical history / health record */
 export const MedicalHistoryIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -717,7 +717,7 @@ export const MedicalHistoryIcon: React.FC<IconProps> = ({
 
 /** Clipboard / visit details icon */
 export const VisitDetailsIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -788,7 +788,7 @@ export const DirectionalNextIcon: React.FC<IconProps> = (props) => {
 
 /** Moon icon for dark mode */
 export const MoonIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -808,7 +808,7 @@ export const MoonIcon: React.FC<IconProps> = ({
 
 /** Sun icon for light mode */
 export const SunIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -828,7 +828,7 @@ export const SunIcon: React.FC<IconProps> = ({
 
 /** Chevron right icon for breadcrumbs - LTR */
 export const ChevronRightIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -848,7 +848,7 @@ export const ChevronRightIcon: React.FC<IconProps> = ({
 
 /** Chevron left icon for breadcrumbs - RTL */
 export const ChevronLeftIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -868,7 +868,7 @@ export const ChevronLeftIcon: React.FC<IconProps> = ({
 
 /** Search / find */
 export const SearchIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -888,7 +888,7 @@ export const SearchIcon: React.FC<IconProps> = ({
 
 /** Horizontal ellipsis — more actions */
 export const MoreHorizontalIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -908,7 +908,7 @@ export const MoreHorizontalIcon: React.FC<IconProps> = ({
 
 /** Vertical ellipsis — more actions */
 export const MoreVerticalIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -928,7 +928,7 @@ export const MoreVerticalIcon: React.FC<IconProps> = ({
 
 // Printer Icon
 export const PrinterIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -948,7 +948,7 @@ export const PrinterIcon: React.FC<IconProps> = ({
 
 // Send Icon
 export const SendIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -968,7 +968,7 @@ export const SendIcon: React.FC<IconProps> = ({
 
 // Trash Icon
 export const TrashIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -988,7 +988,7 @@ export const TrashIcon: React.FC<IconProps> = ({
 
 /** Home icon for breadcrumbs */
 export const HomeIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1008,7 +1008,7 @@ export const HomeIcon: React.FC<IconProps> = ({
 
 /** Arrow left icon for back navigation */
 export const ArrowLeftIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1028,7 +1028,7 @@ export const ArrowLeftIcon: React.FC<IconProps> = ({
 
 /** Image / photo icon */
 export const ImageIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1058,7 +1058,7 @@ export const ImageIcon: React.FC<IconProps> = ({
 
 /** phone icon */
 export const PhoneIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1078,7 +1078,7 @@ export const PhoneIcon: React.FC<IconProps> = ({
 
 /** location icon */
 export const LocationIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg className={`${sizeClasses[size]} ${className}`}
@@ -1100,7 +1100,7 @@ export const LocationIcon: React.FC<IconProps> = ({
 
 /** Plus icon */
 export const PlusIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg className={`${sizeClasses[size]} ${className}`} 
@@ -1116,7 +1116,7 @@ export const PlusIcon: React.FC<IconProps> = ({
 
 /** Download icon */
 export const DownloadIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1136,7 +1136,7 @@ export const DownloadIcon: React.FC<IconProps> = ({
 
 /** TechMark icon */
 export const TechMarkIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1156,7 +1156,7 @@ export const TechMarkIcon: React.FC<IconProps> = ({
 
 // Currency / billing icon - dollar sign in a circle
 export const CurrencyIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1176,7 +1176,7 @@ export const CurrencyIcon: React.FC<IconProps> = ({
 
 /** Payment icon */
 export const PaymentIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1202,7 +1202,7 @@ export const PaymentIcon: React.FC<IconProps> = ({
 
 /** Receipt icon */
 export const ReceiptIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1222,7 +1222,7 @@ export const ReceiptIcon: React.FC<IconProps> = ({
 
 /** Eye icon for view */
 export const EyeIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1248,7 +1248,7 @@ export const EyeIcon: React.FC<IconProps> = ({
 
 /** Trending up */
 export const TrendingUpIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1268,7 +1268,7 @@ export const TrendingUpIcon: React.FC<IconProps> = ({
 
 /** Trending Down */
 export const TrendingDownIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1288,7 +1288,7 @@ export const TrendingDownIcon: React.FC<IconProps> = ({
 
 /** Activity / pulse */
 export const ActivityIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1308,7 +1308,7 @@ export const ActivityIcon: React.FC<IconProps> = ({
 
 /** Pie chart */
 export const PieChartIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1334,7 +1334,7 @@ export const PieChartIcon: React.FC<IconProps> = ({
 
 /** List / menu */
 export const ListIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1354,7 +1354,7 @@ export const ListIcon: React.FC<IconProps> = ({
 
 /** Refresh / reload */
 export const RefreshCwIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1374,7 +1374,7 @@ export const RefreshCwIcon: React.FC<IconProps> = ({
 
 /** Dollar sign */
 export const DollarSignIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1414,7 +1414,7 @@ export const UsersIcon: React.FC<IconProps> = ({
 
 /** Clipboard list */
 export const ClipboardListIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1434,7 +1434,7 @@ export const ClipboardListIcon: React.FC<IconProps> = ({
 
 /** Alert triangle */
 export const AlertTriangleIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1455,7 +1455,7 @@ export const AlertTriangleIcon: React.FC<IconProps> = ({
 
 /** Timer / clock outline */
 export const TimerIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1471,7 +1471,7 @@ export const TimerIcon: React.FC<IconProps> = ({
 
 /** X circle */
 export const XCircleIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg
@@ -1491,7 +1491,7 @@ export const XCircleIcon: React.FC<IconProps> = ({
 
 /** File Icon */
 export const FileIcon: React.FC<IconProps> = ({
-  className = "",
+  className = "dark:text-white",
   size = "md",
 }) => (
   <svg 
