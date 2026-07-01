@@ -88,7 +88,7 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="py-10 sm:py-14 text-center bg-gray-800">
+        <CardContent className="py-10 sm:py-14 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
             <UsersIcon size="xl" className="text-gray-400 dark:text-gray-500" />
           </div>
@@ -121,7 +121,7 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="text-[10px] sm:text-xs font-bold text-primary hover:text-primary/80 gap-1"
+            className="text-[10px] sm:text-xs font-bold text-primary hover:text-primary/80 dark:text-white gap-1"
             onClick={() => navigate("/patients")}
           >
             {t("dashboard.viewAllPatients", "View All Patients")}
@@ -236,7 +236,7 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
                           >
                             <span
                               className={cn(
-                                "w-1.5 h-1.5 rounded-full",
+                                "w-1.5 h-1.5 rounded-full dark:text-white",
                                 STATUS_DOT_COLORS[patient.status] ??
                                   "bg-green-500",
                               )}

@@ -84,6 +84,7 @@ CREATE TABLE payments (
     id TEXT PRIMARY KEY,
     invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     amount REAL NOT NULL CHECK(amount > 0),
+    method TEXT NOT NULL DEFAULT 'Cash',
     notes TEXT DEFAULT '',
     received_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -121,6 +122,17 @@ CREATE TABLE app_settings (
     language TEXT DEFAULT 'en',
     gdrive_connected BOOLEAN NOT NULL DEFAULT 0,
     gdrive_folder_id TEXT,
+    clinic_logo TEXT,
+    local_backup_enabled INTEGER NOT NULL DEFAULT 0,
+    local_backup_frequency TEXT NOT NULL DEFAULT 'daily',
+    local_last_backup_at TEXT,
+    local_next_scheduled_backup TEXT,
+    gdrive_backup_enabled INTEGER NOT NULL DEFAULT 0,
+    gdrive_backup_frequency TEXT NOT NULL DEFAULT 'daily',
+    gdrive_connected_email TEXT,
+    gdrive_last_backup_at TEXT,
+    gdrive_next_scheduled_backup TEXT,
+    gdrive_last_sync_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -147,4 +159,31 @@ CREATE INDEX idx_backups_type_status ON backups(backup_type, status);
 CREATE INDEX  idx_treatment_tooth_record ON treatment_tooth(treatment_record_id);
 CREATE INDEX  idx_treatment_records_visit ON treatment_records(visit_id);
 CREATE INDEX  idx_xrays_treatment_record ON xrays(treatment_record_id);
+
+-- Missing indexes for query performance
+CREATE INDEX IF NOT EXISTS idx_patients_created_at ON patients(created_at);
+CREATE INDEX IF NOT EXISTS idx_patients_gender ON patients(gender);
+CREATE INDEX IF NOT EXISTS idx_visits_status ON visits(status);
+CREATE INDEX IF NOT EXISTS idx_visits_created_at ON visits(created_at);
+CREATE INDEX IF NOT EXISTS idx_procedures_visit ON procedures(visit_id);
+CREATE INDEX IF NOT EXISTS idx_procedures_name ON procedures(name);
+CREATE INDEX IF NOT EXISTS idx_invoices_visit ON invoices(visit_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_issued_at ON invoices(issued_at);
+CREATE INDEX IF NOT EXISTS idx_invoices_outstanding ON invoices(outstanding_amount);
+CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_payments_received_at ON payments(received_at);
+CREATE INDEX IF NOT EXISTS idx_patient_allergies_patient ON patient_allergies(patient_id);
+CREATE INDEX IF NOT EXISTS idx_patient_medications_patient ON patient_medications(patient_id);
+CREATE INDEX IF NOT EXISTS idx_medical_conditions_patient ON medical_conditions(patient_id);
+CREATE INDEX IF NOT EXISTS idx_xrays_patient ON xrays(patient_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
+
+-- Create indexes for common search patterns
+CREATE INDEX IF NOT EXISTS idx_invoices_number ON invoices(invoice_number);
+CREATE INDEX IF NOT EXISTS idx_patients_id ON patients(id);
+
+-- Analyze tables for query planner
+ANALYZE;
+
 

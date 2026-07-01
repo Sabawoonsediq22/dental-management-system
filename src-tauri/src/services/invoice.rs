@@ -272,7 +272,7 @@ impl InvoiceService {
         })?;
 
         let payments = sqlx::query_as::<_, ReceiptPayment>(
-            "SELECT id, invoice_id, amount, 'Cash' as method, notes, received_at FROM payments
+            "SELECT id, invoice_id, amount, method, notes, received_at FROM payments
              WHERE invoice_id = ?
              ORDER BY received_at ASC",
         )

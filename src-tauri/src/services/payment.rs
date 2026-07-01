@@ -21,7 +21,7 @@ impl PaymentService {
         let payment = sqlx::query_as::<_, Payment>(
             "INSERT INTO payments (id, invoice_id, amount, method, notes, received_at)
              VALUES (?, ?, ?, ?, ?, ?)
-             RETURNING id, invoice_id, amount, notes, received_at"
+             RETURNING id, invoice_id, amount, method, notes, received_at"
         )
         .bind(&id)
         .bind(&input.invoice_id)
@@ -60,7 +60,7 @@ impl PaymentService {
 
     pub async fn list_for_invoice(pool: &SqlitePool, invoice_id: &str) -> AppResult<Vec<Payment>> {
         let payments = sqlx::query_as(
-            "SELECT id, invoice_id, amount, notes, received_at FROM payments WHERE invoice_id = ?"
+            "SELECT id, invoice_id, amount, method, notes, received_at FROM payments WHERE invoice_id = ?"
         )
         .bind(invoice_id)
         .fetch_all(pool)
