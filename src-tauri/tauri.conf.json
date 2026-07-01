@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Khwaja Dental & Implants Clinic",
   "version": "0.1.0",
-  "identifier": "com.scs.tauri-app",
+  "identifier": "com.khwaja.dentalclinic",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",

@@ -1,9 +1,11 @@
 [package]
-name = "tauri-app"
+name = "khwaja-dental-clinic"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Dental Clinic Management System"
+authors = ["Khwaja Clinic"]
 edition = "2021"
+license = "MIT"
+repository = ""
 
 [lib]
 name = "tauri_app_lib"
@@ -27,3 +29,8 @@ base64 = "0.22"
 sha2 = "0.10"
 urlencoding = "2"
 dotenvy = "0.15"
+
+[package.metadata.windows]
+company-name = "Khwaja Clinic"
+product-name = "Khwaja Dental & Implants Clinic"
+copyright = "Copyright (C) 2026 Khwaja Clinic"

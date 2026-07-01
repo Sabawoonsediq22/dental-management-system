@@ -88,7 +88,7 @@ const RecentPatientsTable: React.FC<RecentPatientsTableProps> = ({
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="py-10 sm:py-14 text-center">
+        <CardContent className="py-10 sm:py-14 text-center bg-gray-800">
           <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
             <UsersIcon size="xl" className="text-gray-400 dark:text-gray-500" />
           </div>
