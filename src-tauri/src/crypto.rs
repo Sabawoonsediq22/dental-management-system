@@ -87,8 +87,4 @@ impl Crypto {
 
         Ok(plaintext.to_vec())
     }
-
-    pub fn key_exists(app_data: &PathBuf) -> bool {
-        Self::get_key_path(app_data).exists()
-    }
 }

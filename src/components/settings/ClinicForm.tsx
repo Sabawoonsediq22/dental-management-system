@@ -113,7 +113,7 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
           <CardTitle>{t("settings.clinicInfo")}</CardTitle>
           <CardDescription>{t("settings.clinicInfoDesc")}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 bg-white dark:bg-gray-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
@@ -181,7 +181,7 @@ const ClinicForm = forwardRef<{ save: () => void }, ClinicFormProps>(
               <label className="text-sm font-medium text-foreground">
                 {t("settings.clinicLogo")}
               </label>
-              <label className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer flex flex-col items-center gap-2 bg-muted/30">
+              <label className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 dark:border-gray-600 dark:hover:border-gray-500 transition-colors cursor-pointer flex flex-col items-center gap-2 bg-muted/30">
                 {logoPreview ? (
                   <img
                     src={logoPreview}

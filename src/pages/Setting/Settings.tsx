@@ -224,6 +224,7 @@ const Settings: React.FC = () => {
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
+              className="dark:bg-gray-600"
               onClick={() => {
                 setShowDbDialog(true);
                 refetchDbStats();
@@ -234,6 +235,7 @@ const Settings: React.FC = () => {
             </Button>
             <Button
               variant="outline"
+              className="dark:bg-gray-600"
               onClick={() => vacuumMutation.mutate()}
               disabled={vacuumMutation.isPending}
             >

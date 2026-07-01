@@ -198,7 +198,7 @@ const Reports: React.FC = () => {
               {t("reports.charts.revenueTrend", "Revenue Trend")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="bg-white dark:bg-gray-800">
+          <CardContent>
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
@@ -260,7 +260,7 @@ const Reports: React.FC = () => {
               {t("reports.charts.visitDistribution", "Visit Distribution")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="bg-white dark:bg-gray-800">
+          <CardContent>
             <div className="h-56 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={visitStatusData}>
@@ -336,7 +336,7 @@ const Reports: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="bg-white dark:bg-gray-800">
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               className="flex flex-col items-center justify-center p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed "
