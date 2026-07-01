@@ -9,9 +9,15 @@ pub async fn init_pool(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
         }
     }
     let opts = SqliteConnectOptions::from_str(db_path)?
-        .create_if_missing(true);
+        .create_if_missing(true)
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
+        .busy_timeout(std::time::Duration::from_secs(5))
+        .foreign_keys(true);
     SqlitePoolOptions::new()
         .max_connections(5)
+        .min_connections(1)
+        .acquire_timeout(std::time::Duration::from_secs(10))
         .connect_with(opts)
         .await
 }
@@ -83,4 +89,40 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         tx.commit().await?;
     }
     Ok(())
+}
+
+pub async fn check_database_integrity(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
+    let result: String = sqlx::query_scalar("PRAGMA integrity_check")
+        .fetch_one(pool)
+        .await?;
+
+    Ok(result.split('\n').map(|s| s.to_string()).collect())
+}
+
+pub async fn vacuum_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    sqlx::query("VACUUM").execute(pool).await?;
+    Ok(())
+}
+
+pub async fn get_database_stats(pool: &SqlitePool) -> Result<DatabaseStats, sqlx::Error> {
+    let page_count: i64 = sqlx::query_scalar("PRAGMA page_count").fetch_one(pool).await?;
+    let page_size: i64 = sqlx::query_scalar("PRAGMA page_size").fetch_one(pool).await?;
+    let freelist_count: i64 = sqlx::query_scalar("PRAGMA freelist_count").fetch_one(pool).await?;
+
+    Ok(DatabaseStats {
+        page_count,
+        page_size,
+        freelist_count,
+        total_size_bytes: page_count * page_size,
+        wal_mode: true,
+    })
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct DatabaseStats {
+    pub page_count: i64,
+    pub page_size: i64,
+    pub freelist_count: i64,
+    pub total_size_bytes: i64,
+    pub wal_mode: bool,
 }

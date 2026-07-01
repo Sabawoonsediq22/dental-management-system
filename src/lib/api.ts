@@ -40,6 +40,11 @@ import type {
   UpdateBackupSettingsInput,
   StartAuthResult,
   GDriveStatus,
+  RestoreBackupInput,
+  RestoreBackupResult,
+  BackupValidation,
+  DatabaseStats,
+  AuditLogEntry,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -114,5 +119,17 @@ export const api = {
     getGdriveStatus: () => invoke<GDriveStatus>("get_gdrive_status"),
     disconnectGdrive: () => invoke<void>("disconnect_gdrive"),
     updateGdriveConnection: (email: string) => invoke<void>("update_gdrive_connection", { email }),
+    restore: (input: RestoreBackupInput) => invoke<RestoreBackupResult>("restore_from_backup", { input }),
+    validateFile: (path: string) => invoke<BackupValidation>("validate_backup_file", { path }),
+    getAvailableFiles: () => invoke<BackupRecord[]>("get_available_backup_files"),
+  },
+  database: {
+    checkIntegrity: () => invoke<string[]>("check_database_integrity"),
+    vacuum: () => invoke<void>("vacuum_database"),
+    getStats: () => invoke<DatabaseStats>("get_database_stats"),
+  },
+  audit: {
+    list: (params: { limit?: number; offset?: number; entityType?: string; action?: string }) =>
+      invoke<AuditLogEntry[]>("get_audit_logs", { limit: params.limit, offset: params.offset, entityType: params.entityType, action: params.action }),
   },
 };

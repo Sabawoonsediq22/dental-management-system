@@ -1,3 +1,4 @@
+pub mod audit;
 pub mod backup;
 pub mod dashboard;
 pub mod errors;
@@ -13,6 +14,7 @@ pub mod treatment;
 pub mod visit;
 pub mod xray;
 
+pub use audit::AuditService;
 pub use backup::BackupService;
 pub use dashboard::DashboardService;
 pub use gdrive::GDriveClient;

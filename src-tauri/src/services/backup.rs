@@ -281,4 +281,160 @@ impl BackupService {
             .await?;
         Ok(())
     }
+
+    pub async fn restore_from_backup(
+        pool: &SqlitePool,
+        db_path: &str,
+        backup_path: &str,
+        create_safety_backup: bool,
+    ) -> AppResult<RestoreBackupResult> {
+        let backup_file = std::path::Path::new(backup_path);
+        if !backup_file.exists() {
+            return Err(AppError::Restore(format!(
+                "Backup file not found: {}",
+                backup_path
+            )));
+        }
+
+        // Validate the backup file is a valid SQLite database
+        let file_size = std::fs::metadata(backup_file)
+            .map(|m| m.len())
+            .unwrap_or(0);
+        if file_size == 0 {
+            return Err(AppError::Restore("Backup file is empty".into()));
+        }
+
+        // Quick validation: check SQLite header magic bytes
+        let header = std::fs::read(backup_file)
+            .map_err(|e| AppError::Restore(format!("Failed to read backup file: {}", e)))?;
+        if header.len() < 16 || &header[..16] != b"SQLite format 3\0" {
+            return Err(AppError::Restore("Invalid SQLite database file".into()));
+        }
+
+        let safety_backup_path = if create_safety_backup {
+            let current_db_path = std::path::Path::new(db_path);
+            let safety_dir = current_db_path
+                .parent()
+                .unwrap_or(std::path::Path::new("."))
+                .join("safety_backups");
+            std::fs::create_dir_all(&safety_dir)?;
+            let now = Utc::now().format("%Y%m%d_%H%M%S");
+            let safety_path = safety_dir.join(format!("pre_restore_{}.db", now));
+            std::fs::copy(current_db_path, &safety_path)?;
+            Some(safety_path.to_string_lossy().to_string())
+        } else {
+            None
+        };
+
+        // Close the current pool and replace the database
+        pool.close().await;
+
+        // Copy backup file to current database location
+        std::fs::copy(backup_file, db_path)?;
+
+        Ok(RestoreBackupResult {
+            success: true,
+            safety_backup_path,
+            restored_file: db_path.to_string(),
+            file_size: file_size as i64,
+            restored_at: Utc::now().to_rfc3339(),
+        })
+    }
+
+    pub async fn validate_backup_file(backup_path: &str) -> AppResult<BackupValidation> {
+        let path = std::path::Path::new(backup_path);
+        if !path.exists() {
+            return Ok(BackupValidation {
+                valid: false,
+                file_size: 0,
+                table_count: 0,
+                error: Some("File not found".to_string()),
+            });
+        }
+
+        let file_size = std::fs::metadata(path)
+            .map(|m| m.len() as i64)
+            .unwrap_or(0);
+        if file_size == 0 {
+            return Ok(BackupValidation {
+                valid: false,
+                file_size: 0,
+                table_count: 0,
+                error: Some("File is empty".to_string()),
+            });
+        }
+
+        // Check SQLite header
+        let header = std::fs::read(path)
+            .map_err(|e| AppError::Restore(format!("Failed to read file: {}", e)))?;
+        if header.len() < 16 || &header[..16] != b"SQLite format 3\0" {
+            return Ok(BackupValidation {
+                valid: false,
+                file_size,
+                table_count: 0,
+                error: Some("Not a valid SQLite database file".to_string()),
+            });
+        }
+
+        // Open the backup file and check integrity
+        let opts = sqlx::sqlite::SqliteConnectOptions::new()
+            .filename(backup_path)
+            .read_only(true);
+        let test_pool = match SqlitePool::connect_with(opts).await {
+            Ok(p) => p,
+            Err(e) => {
+                return Ok(BackupValidation {
+                    valid: false,
+                    file_size,
+                    table_count: 0,
+                    error: Some(format!("Failed to open database: {}", e)),
+                });
+            }
+        };
+
+        let integrity: String = sqlx::query_scalar("PRAGMA integrity_check")
+            .fetch_one(&test_pool)
+            .await
+            .unwrap_or_else(|_| "error".to_string());
+        let table_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'",
+        )
+        .fetch_one(&test_pool)
+        .await
+        .unwrap_or(0);
+
+        test_pool.close().await;
+
+        let ok = integrity.trim() == "ok";
+        Ok(BackupValidation {
+            valid: ok,
+            file_size,
+            table_count,
+            error: if ok { None } else { Some(integrity) },
+        })
+    }
+
+    pub async fn list_available_backups(pool: &SqlitePool) -> AppResult<Vec<BackupRecord>> {
+        let records = sqlx::query_as::<_, BackupRecord>(
+            "SELECT id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at
+             FROM backups WHERE status = 'success' ORDER BY created_at DESC LIMIT 50"
+        )
+        .fetch_all(pool)
+        .await?;
+        Ok(records)
+    }
+
+    pub async fn get_backup_file_path(
+        pool: &SqlitePool,
+        backup_id: i64,
+    ) -> AppResult<String> {
+        let path: Option<String> = sqlx::query_scalar(
+            "SELECT backup_path FROM backups WHERE id = ? AND cloud_provider = 'local' AND status = 'success'"
+        )
+        .bind(backup_id)
+        .fetch_optional(pool)
+        .await?;
+
+        path.ok_or_else(|| AppError::NotFound(format!("Backup {} not found or not a local backup", backup_id)))
+    }
 }

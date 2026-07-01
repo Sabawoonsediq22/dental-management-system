@@ -1,4 +1,5 @@
 mod config;
+mod crypto;
 mod db;
 mod models;
 mod services;
@@ -625,6 +626,111 @@ async fn disconnect_gdrive(
     Ok(())
 }
 
+// Restore commands
+#[tauri::command]
+async fn restore_from_backup(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    input: crate::models::RestoreBackupInput,
+) -> Result<crate::models::RestoreBackupResult, String> {
+    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let db_path_str = db_path.to_string_lossy().to_string();
+    let backup_path = BackupService::get_backup_file_path(&state.db, input.backup_id).await
+        .map_err(|e| e.to_string())?;
+
+    let result = BackupService::restore_from_backup(
+        &state.db,
+        &db_path_str,
+        &backup_path,
+        input.create_safety_backup,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
+    AuditService::log(
+        &state.db,
+        "restore_completed",
+        "backup",
+        Some(&input.backup_id.to_string()),
+        Some(&format!("Restored from: {}", backup_path)),
+        None,
+    ).await.ok();
+
+    Ok(crate::models::RestoreBackupResult {
+        success: result.success,
+        safety_backup_path: result.safety_backup_path,
+        restored_file: result.restored_file,
+        file_size: result.file_size,
+        restored_at: result.restored_at,
+    })
+}
+
+#[tauri::command]
+async fn validate_backup_file(
+    path: String,
+) -> Result<BackupValidation, String> {
+    BackupService::validate_backup_file(&path)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_available_backup_files(
+    state: State<'_, AppState>,
+) -> Result<Vec<BackupRecord>, String> {
+    BackupService::list_available_backups(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Database management commands
+#[tauri::command]
+async fn check_database_integrity(
+    state: State<'_, AppState>,
+) -> Result<Vec<String>, String> {
+    db::check_database_integrity(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn vacuum_database(
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    db::vacuum_database(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_database_stats(
+    state: State<'_, AppState>,
+) -> Result<db::DatabaseStats, String> {
+    db::get_database_stats(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Audit log commands
+#[tauri::command]
+async fn get_audit_logs(
+    state: State<'_, AppState>,
+    limit: Option<i64>,
+    offset: Option<i64>,
+    entity_type: Option<String>,
+    action: Option<String>,
+) -> Result<Vec<crate::services::audit::AuditLogEntry>, String> {
+    AuditService::query(
+        &state.db,
+        limit.unwrap_or(50),
+        offset.unwrap_or(0),
+        entity_type.as_deref(),
+        action.as_deref(),
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
 async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
         Ok(s) => s,
@@ -739,6 +845,7 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let config = tauri::async_runtime::block_on(async {
                 AppConfig::load().map_err(|e| {
@@ -826,6 +933,13 @@ pub fn run() {
             get_gdrive_status,
             disconnect_gdrive,
             update_gdrive_connection,
+            restore_from_backup,
+            validate_backup_file,
+            get_available_backup_files,
+            check_database_integrity,
+            vacuum_database,
+            get_database_stats,
+            get_audit_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

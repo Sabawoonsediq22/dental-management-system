@@ -105,8 +105,9 @@ const Dialog: React.FC<DialogProps> = ({
 
 export interface ConfirmDialogProps extends Omit<
   DialogProps,
-  "footer" | "showCloseButton"
+  "footer" | "showCloseButton" | "children"
 > {
+  children?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
@@ -120,6 +121,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   confirmVariant = "default",
   isLoading,
+  children,
   ...props
 }) => {
   const { t } = useTranslation();
@@ -153,7 +155,9 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
       }
       {...props}
-    />
+    >
+      {children}
+    </Dialog>
   );
 };
 

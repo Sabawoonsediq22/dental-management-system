@@ -51,14 +51,26 @@ impl GDriveClient {
         if !path.exists() {
             return None;
         }
-        std::fs::read_to_string(&path).ok()
-            .and_then(|s| serde_json::from_str::<GDriveToken>(&s).ok())
+        // Try plaintext first (legacy), then encrypted
+        if let Ok(s) = std::fs::read_to_string(&path) {
+            if let Ok(token) = serde_json::from_str::<GDriveToken>(&s) {
+                return Some(token);
+            }
+            // Try decryption if plaintext failed
+            if let Ok(decrypted) = crate::crypto::Crypto::decrypt(app_data, &s.trim()) {
+                if let Ok(token) = serde_json::from_slice::<GDriveToken>(&decrypted) {
+                    return Some(token);
+                }
+            }
+        }
+        None
     }
 
     fn save_token(token: &GDriveToken, app_data: &PathBuf) -> AppResult<()> {
         let path = Self::token_path(app_data);
-        let json = serde_json::to_string_pretty(token)?;
-        std::fs::write(&path, json)?;
+        let json = serde_json::to_vec(token)?;
+        let encrypted = crate::crypto::Crypto::encrypt(app_data, &json)?;
+        std::fs::write(&path, encrypted)?;
         Ok(())
     }
 

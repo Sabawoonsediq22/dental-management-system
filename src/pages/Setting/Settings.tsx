@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/api";
 import BackupSection from "../../components/settings/BackupSection";
 import StatsCards from "../../components/settings/StatsCards";
@@ -13,6 +13,10 @@ import {
   Button,
   Table,
   Badge,
+  ConfirmDialog,
+  Modal,
+  LoadingSpinner,
+  toast,
 } from "../../components/ui";
 import {
   useBackups,
@@ -23,8 +27,12 @@ import ClinicForm from "../../components/settings/ClinicForm";
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const clinicFormRef = useRef<{ save: () => void }>(null);
   const [brandingKey, setBrandingKey] = useState(0);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [showDbDialog, setShowDbDialog] = useState(false);
+  const [restoreTarget, setRestoreTarget] = useState<number | null>(null);
 
   const { data: settings } = useQuery({
     queryKey: ["settings"],
@@ -34,9 +42,45 @@ const Settings: React.FC = () => {
   const { data: backupSettings } = useBackupSettings();
   const deleteBackup = useDeleteBackup();
 
-  const handleClinicSaved = () => {
+  const { data: dbStats, refetch: refetchDbStats } = useQuery({
+    queryKey: ["db-stats"],
+    queryFn: api.database.getStats,
+    enabled: false,
+  });
+
+  const { data: integrityResult, refetch: refetchIntegrity } = useQuery({
+    queryKey: ["db-integrity"],
+    queryFn: api.database.checkIntegrity,
+    enabled: false,
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (backupId: number) =>
+      api.backups.restore({ backup_id: backupId, create_safety_backup: true }),
+    onSuccess: () => {
+      toast.success({ title: "Database restored successfully. The application will now reload." });
+      queryClient.invalidateQueries();
+      setTimeout(() => window.location.reload(), 2000);
+    },
+    onError: (err) => {
+      toast.error({ title: "Restore failed", description: err?.toString() });
+    },
+  });
+
+  const vacuumMutation = useMutation({
+    mutationFn: api.database.vacuum,
+    onSuccess: () => {
+      toast.success({ title: "Database optimized" });
+      refetchDbStats();
+    },
+    onError: (err) => {
+      toast.error({ title: "Vacuum failed", description: err?.toString() });
+    },
+  });
+
+  const handleClinicSaved = useCallback(() => {
     setBrandingKey((k) => k + 1);
-  };
+  }, []);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -67,18 +111,21 @@ const Settings: React.FC = () => {
   const handleDeleteBackup = (id: number) => {
     if (confirm(t("backup.deleteConfirm"))) {
       deleteBackup.mutate(id, {
-        onSuccess: () =>
-          import("../../components/ui").then(({ toast }) =>
-            toast.success({ title: t("backup.deleted") }),
-          ),
-        onError: (err) =>
-          import("../../components/ui").then(({ toast }) =>
-            toast.error({
-              title: t("backup.deleteError"),
-              description: err?.toString(),
-            }),
-          ),
+        onSuccess: () => toast.success({ title: t("backup.deleted") }),
+        onError: (err) => toast.error({ title: t("backup.deleteError"), description: err?.toString() }),
       });
+    }
+  };
+
+  const handleRestore = (backupId: number) => {
+    setRestoreTarget(backupId);
+    setShowRestoreDialog(true);
+  };
+
+  const confirmRestore = () => {
+    if (restoreTarget !== null) {
+      restoreMutation.mutate(restoreTarget);
+      setShowRestoreDialog(false);
     }
   };
 
@@ -124,13 +171,24 @@ const Settings: React.FC = () => {
       key: "actions",
       header: t("backup.table.actions"),
       render: (_: unknown, row: Record<string, unknown>) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleDeleteBackup(row.id as number)}
-        >
-          {t("common.delete")}
-        </Button>
+        <div className="flex gap-2">
+          {row.status === "success" && row.cloud_provider === "local" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleRestore(row.id as number)}
+            >
+              Restore
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDeleteBackup(row.id as number)}
+          >
+            {t("common.delete")}
+          </Button>
+        </div>
       ),
     },
   ];
@@ -152,7 +210,6 @@ const Settings: React.FC = () => {
         <div className="space-y-6">
           <ClinicForm key={brandingKey} ref={clinicFormRef} settings={settings} onSaved={handleClinicSaved} />
         </div>
-
         <div className="space-y-6">
           <BackupSection />
         </div>
@@ -160,12 +217,42 @@ const Settings: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("backup.history")}</CardTitle>
-          <CardDescription>
-            {backups?.length
-              ? t("backup.historyDesc", { count: backups.length })
-              : t("backup.noBackups")}
-          </CardDescription>
+          <CardTitle>Database Management</CardTitle>
+          <CardDescription>Monitor and maintain your database health</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDbDialog(true);
+                refetchDbStats();
+                refetchIntegrity();
+              }}
+            >
+              Check Database Health
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => vacuumMutation.mutate()}
+              disabled={vacuumMutation.isPending}
+            >
+              {vacuumMutation.isPending ? "Optimizing..." : "Optimize Database (VACUUM)"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{t("backup.history")}</CardTitle>
+            <CardDescription>
+              {backups?.length
+                ? t("backup.historyDesc", { count: backups.length })
+                : t("backup.noBackups")}
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <Table
@@ -178,6 +265,63 @@ const Settings: React.FC = () => {
       </Card>
 
       <StatsCards backups={backups || []} backupSettings={backupSettings} />
+
+      <ConfirmDialog
+        isOpen={showRestoreDialog}
+        onClose={() => setShowRestoreDialog(false)}
+        title="Restore Database"
+        description="This will replace the current database with the backup. A safety backup of the current database will be created automatically."
+        confirmText="Restore"
+        onConfirm={confirmRestore}
+        confirmVariant="destructive"
+      />
+
+      <Modal isOpen={showDbDialog} onClose={() => setShowDbDialog(false)}>
+        <div className="p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Database Health Report</h2>
+          {dbStats ? (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Database Size</p>
+                <p className="font-medium">{formatFileSize(dbStats.total_size_bytes)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Page Count</p>
+                <p className="font-medium">{dbStats.page_count.toLocaleString()}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Free Pages</p>
+                <p className="font-medium">{dbStats.freelist_count.toLocaleString()}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">WAL Mode</p>
+                <p className="font-medium">{dbStats.wal_mode ? "Enabled" : "Disabled"}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-4">
+              <LoadingSpinner />
+            </div>
+          )}
+
+          {integrityResult && (
+            <div>
+              <h3 className="font-medium mb-2">Integrity Check</h3>
+              {integrityResult.length === 1 && integrityResult[0] === "ok" ? (
+                <p className="text-green-600">Database integrity: OK</p>
+              ) : (
+                <div className="text-red-600 text-sm">
+                  {integrityResult.map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <Button onClick={() => setShowDbDialog(false)}>Close</Button>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -190,8 +190,32 @@ pub struct Payment {
     pub id: String,
     pub invoice_id: String,
     pub amount: f64,
+    pub method: Option<String>,
     pub notes: Option<String>,
     pub received_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RestoreBackupInput {
+    pub backup_id: i64,
+    pub create_safety_backup: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RestoreBackupResult {
+    pub success: bool,
+    pub safety_backup_path: Option<String>,
+    pub restored_file: String,
+    pub file_size: i64,
+    pub restored_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupValidation {
+    pub valid: bool,
+    pub file_size: i64,
+    pub table_count: i64,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]

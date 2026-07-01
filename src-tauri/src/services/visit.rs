@@ -1,8 +1,8 @@
 use sqlx::SqlitePool;
 use crate::models::*;
 use crate::services::errors::{AppError, AppResult};
+use crate::services::AuditService;
 use chrono::Utc;
-// use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
 struct ProcedureRow {
@@ -24,6 +24,7 @@ impl VisitService {
             count + 1
         });
 
+        let mut tx = pool.begin().await?;
         let now = Utc::now().to_rfc3339();
         let visit_date = input.visit_date.clone().unwrap_or_else(|| now.clone());
 
@@ -40,8 +41,12 @@ impl VisitService {
         .bind("Open")
         .bind(&now)
         .bind(&now)
-        .fetch_one(pool)
+        .fetch_one(&mut *tx)
         .await?;
+
+        tx.commit().await?;
+
+        AuditService::log(pool, "visit_created", "visit", Some(&id), None, None).await.ok();
 
         Ok(visit)
     }
@@ -54,6 +59,8 @@ impl VisitService {
             VisitStatus::Cancelled => "Cancelled",
         };
 
+        let mut tx = pool.begin().await?;
+
         let visit = sqlx::query_as::<_, Visit>(
             "UPDATE visits SET status=?, updated_at=? WHERE id=?
              RETURNING id, patient_id, visit_date, chief_complaint, clinical_notes, status, created_at, updated_at"
@@ -61,9 +68,13 @@ impl VisitService {
         .bind(status_str)
         .bind(&now)
         .bind(id)
-        .fetch_optional(pool)
+        .fetch_optional(&mut *tx)
         .await?
         .ok_or_else(|| AppError::NotFound(format!("Visit {} not found", id)))?;
+
+        tx.commit().await?;
+
+        AuditService::log(pool, "visit_status_updated", "visit", Some(id), Some(&format!("status: {}", status_str)), None).await.ok();
 
         Ok(visit)
     }

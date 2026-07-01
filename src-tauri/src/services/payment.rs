@@ -1,6 +1,6 @@
 use sqlx::SqlitePool;
 use crate::models::*;
-use crate::services::errors::{AppResult};
+use crate::services::errors::AppResult;
 use chrono::Utc;
 
 pub struct PaymentService;
@@ -9,18 +9,27 @@ impl PaymentService {
     pub async fn add(pool: &SqlitePool, input: AddPaymentInput) -> AppResult<Payment> {
         let id = format!("PAY-{}", uuid::Uuid::new_v4().simple());
         let now = Utc::now().to_rfc3339();
+        let method_str = match input.method {
+            PaymentMethod::Cash => "Cash",
+            PaymentMethod::Card => "Card",
+            PaymentMethod::Mobile => "Mobile",
+            PaymentMethod::Insurance => "Insurance",
+        };
+
+        let mut tx = pool.begin().await?;
 
         let payment = sqlx::query_as::<_, Payment>(
-            "INSERT INTO payments (id, invoice_id, amount, notes, received_at)
-             VALUES (?, ?, ?, ?, ?)
+            "INSERT INTO payments (id, invoice_id, amount, method, notes, received_at)
+             VALUES (?, ?, ?, ?, ?, ?)
              RETURNING id, invoice_id, amount, notes, received_at"
         )
         .bind(&id)
         .bind(&input.invoice_id)
         .bind(input.amount)
+        .bind(method_str)
         .bind(&input.notes)
         .bind(&now)
-        .fetch_one(pool)
+        .fetch_one(&mut *tx)
         .await?;
 
         // Update invoice paid amount and status
@@ -41,8 +50,20 @@ impl PaymentService {
         .bind(input.amount)
         .bind(input.amount)
         .bind(&input.invoice_id)
-        .execute(pool)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
+
+        // Audit log
+        crate::services::AuditService::log(
+            pool,
+            "payment_added",
+            "payment",
+            Some(&id),
+            Some(&format!("Amount: {}, Invoice: {}", input.amount, input.invoice_id)),
+            None,
+        ).await.ok();
 
         Ok(payment)
     }

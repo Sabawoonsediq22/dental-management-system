@@ -436,3 +436,47 @@ export interface GDriveStatus {
   email: string | null;
   last_sync_at: string | null;
 }
+
+export interface RestoreBackupInput {
+  backup_id: number;
+  create_safety_backup: boolean;
+}
+
+export interface RestoreBackupResult {
+  success: boolean;
+  safety_backup_path: string | null;
+  restored_file: string;
+  file_size: number;
+  restored_at: string;
+}
+
+export interface BackupValidation {
+  valid: boolean;
+  file_size: number;
+  table_count: number;
+  error: string | null;
+}
+
+export interface DatabaseStats {
+  page_count: number;
+  page_size: number;
+  freelist_count: number;
+  total_size_bytes: number;
+  wal_mode: boolean;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  details: string | null;
+  performed_by: string | null;
+  created_at: string;
+}
+
+export interface ErrorResponse {
+  code: string;
+  message: string;
+  details: string | null;
+}
