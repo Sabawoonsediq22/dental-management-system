@@ -1,6 +1,5 @@
 use crate::models::*;
 use crate::services::errors::AppResult;
-use crate::services::AuditService;
 use chrono::Utc;
 use sqlx::{SqlitePool, Transaction};
 use uuid::Uuid;
@@ -227,8 +226,6 @@ impl PatientService {
         .await?;
 
         tx.commit().await?;
-
-        AuditService::log(pool, "patient_created", "patient", Some(&id), Some(&input.full_name), None).await.ok();
 
         Ok(CreatedPatient {
             id,
@@ -569,7 +566,6 @@ impl PatientService {
                 id
             )));
         }
-        AuditService::log(pool, "patient_deleted", "patient", Some(id), None, None).await.ok();
         Ok(())
     }
 

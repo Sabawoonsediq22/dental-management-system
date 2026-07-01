@@ -1,14 +1,3 @@
--- Audit log table for tracking critical actions
-CREATE TABLE IF NOT EXISTS audit_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT,
-    details TEXT,
-    performed_by TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 -- Missing indexes for query performance
 CREATE INDEX IF NOT EXISTS idx_patients_created_at ON patients(created_at);
 CREATE INDEX IF NOT EXISTS idx_patients_gender ON patients(gender);
@@ -27,8 +16,6 @@ CREATE INDEX IF NOT EXISTS idx_patient_medications_patient ON patient_medication
 CREATE INDEX IF NOT EXISTS idx_medical_conditions_patient ON medical_conditions(patient_id);
 CREATE INDEX IF NOT EXISTS idx_xrays_patient ON xrays(patient_id);
 CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
-CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id);
 
 -- Add payment_method column to payments if not exists
 ALTER TABLE payments ADD COLUMN method TEXT NOT NULL DEFAULT 'Cash';

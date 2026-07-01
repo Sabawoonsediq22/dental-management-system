@@ -55,16 +55,6 @@ impl PaymentService {
 
         tx.commit().await?;
 
-        // Audit log
-        crate::services::AuditService::log(
-            pool,
-            "payment_added",
-            "payment",
-            Some(&id),
-            Some(&format!("Amount: {}, Invoice: {}", input.amount, input.invoice_id)),
-            None,
-        ).await.ok();
-
         Ok(payment)
     }
 

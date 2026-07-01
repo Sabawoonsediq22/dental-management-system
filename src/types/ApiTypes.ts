@@ -341,14 +341,6 @@ export interface UpdateSettingsInput {
   language?: string | null;
 }
 
-export interface SearchResult {
-  id: string;
-  result_type: string;
-  title: string;
-  subtitle: string;
-  route: string | null;
-}
-
 export interface DashboardStats {
   daily_revenue: number;
   patients_today: number;
@@ -465,15 +457,7 @@ export interface DatabaseStats {
   wal_mode: boolean;
 }
 
-export interface AuditLogEntry {
-  id: number;
-  action: string;
-  entity_type: string;
-  entity_id: string | null;
-  details: string | null;
-  performed_by: string | null;
-  created_at: string;
-}
+
 
 export interface ErrorResponse {
   code: string;

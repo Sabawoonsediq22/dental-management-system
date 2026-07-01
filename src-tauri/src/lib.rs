@@ -11,11 +11,6 @@ use crate::services::*;
 use tauri::Manager;
 use tauri::State;
 
-#[tauri::command]
-async fn greet(name: &str) -> Result<String, String> {
-    Ok(format!("Hello, {}! You've been greeted from Rust!", name))
-}
-
 // Patient commands
 #[tauri::command]
 async fn list_patients(
@@ -647,15 +642,6 @@ async fn restore_from_backup(
     .await
     .map_err(|e| e.to_string())?;
 
-    AuditService::log(
-        &state.db,
-        "restore_completed",
-        "backup",
-        Some(&input.backup_id.to_string()),
-        Some(&format!("Restored from: {}", backup_path)),
-        None,
-    ).await.ok();
-
     Ok(crate::models::RestoreBackupResult {
         success: result.success,
         safety_backup_path: result.safety_backup_path,
@@ -711,25 +697,7 @@ async fn get_database_stats(
         .map_err(|e| e.to_string())
 }
 
-// Audit log commands
-#[tauri::command]
-async fn get_audit_logs(
-    state: State<'_, AppState>,
-    limit: Option<i64>,
-    offset: Option<i64>,
-    entity_type: Option<String>,
-    action: Option<String>,
-) -> Result<Vec<crate::services::audit::AuditLogEntry>, String> {
-    AuditService::query(
-        &state.db,
-        limit.unwrap_or(50),
-        offset.unwrap_or(0),
-        entity_type.as_deref(),
-        action.as_deref(),
-    )
-    .await
-    .map_err(|e| e.to_string())
-}
+
 
 async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
@@ -887,7 +855,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
             list_patients,
             create_patient,
             get_patient,
@@ -939,7 +906,6 @@ pub fn run() {
             check_database_integrity,
             vacuum_database,
             get_database_stats,
-            get_audit_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

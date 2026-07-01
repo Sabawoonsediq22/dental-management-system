@@ -1,7 +1,6 @@
 use sqlx::SqlitePool;
 use crate::models::*;
 use crate::services::errors::{AppError, AppResult};
-use crate::services::AuditService;
 use chrono::Utc;
 
 #[derive(Debug, sqlx::FromRow)]
@@ -46,8 +45,6 @@ impl VisitService {
 
         tx.commit().await?;
 
-        AuditService::log(pool, "visit_created", "visit", Some(&id), None, None).await.ok();
-
         Ok(visit)
     }
 
@@ -73,8 +70,6 @@ impl VisitService {
         .ok_or_else(|| AppError::NotFound(format!("Visit {} not found", id)))?;
 
         tx.commit().await?;
-
-        AuditService::log(pool, "visit_status_updated", "visit", Some(id), Some(&format!("status: {}", status_str)), None).await.ok();
 
         Ok(visit)
     }

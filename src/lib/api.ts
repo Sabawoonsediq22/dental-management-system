@@ -44,7 +44,6 @@ import type {
   RestoreBackupResult,
   BackupValidation,
   DatabaseStats,
-  AuditLogEntry,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -127,9 +126,5 @@ export const api = {
     checkIntegrity: () => invoke<string[]>("check_database_integrity"),
     vacuum: () => invoke<void>("vacuum_database"),
     getStats: () => invoke<DatabaseStats>("get_database_stats"),
-  },
-  audit: {
-    list: (params: { limit?: number; offset?: number; entityType?: string; action?: string }) =>
-      invoke<AuditLogEntry[]>("get_audit_logs", { limit: params.limit, offset: params.offset, entityType: params.entityType, action: params.action }),
   },
 };

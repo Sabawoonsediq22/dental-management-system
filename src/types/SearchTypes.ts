@@ -5,9 +5,3 @@ export interface SearchResult {
   subtitle: string;
   route?: string;
 }
-
-export interface SearchCategory {
-  label: string;
-  labelFa?: string;
-  results: SearchResult[];
-}
