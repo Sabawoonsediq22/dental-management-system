@@ -224,12 +224,12 @@ const BackupSection: React.FC = () => {
   };
 
   const executeBackup = useCallback(
-    (backupTarget: string, savePath?: string) => {
+    (backupTarget: string, localPath?: string) => {
       if (backupInProgressRef.current) return;
       backupInProgressRef.current = true;
       setBackupInProgress(true);
 
-      backupNow.mutate({ target: backupTarget, savePath }, {
+      backupNow.mutate({ target: backupTarget, localPath }, {
         onSuccess: (records) => {
           const successCount = records.filter(
             (r) => r.status === "success",
@@ -274,7 +274,7 @@ const BackupSection: React.FC = () => {
       const selected = await open({
         directory: true,
         multiple: false,
-        title: t("backup.selectBackupFolder"),
+        title: t("backup.selectFolder"),
       });
       if (!selected) return;
       executeBackup(backupTarget, selected as string);

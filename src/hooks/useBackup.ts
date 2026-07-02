@@ -29,8 +29,8 @@ export function useUpdateBackupSettings() {
 export function useBackupNow() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ target, savePath }: { target: string; savePath?: string }) =>
-      api.backups.backupNow(target, savePath),
+    mutationFn: ({ target, localPath }: { target: string; localPath?: string }) =>
+      api.backups.backupNow(target, localPath),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["backups"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
