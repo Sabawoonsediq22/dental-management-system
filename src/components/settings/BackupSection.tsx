@@ -87,9 +87,11 @@ const BackupSection: React.FC = () => {
   const [showGdriveFreqModal, setShowGdriveFreqModal] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [connectingGdrive, setConnectingGdrive] = useState(false);
-  const [backupInProgress, setBackupInProgress] = useState(false);
+  const [localBackupInProgress, setLocalBackupInProgress] = useState(false);
+  const [gdriveBackupInProgress, setGdriveBackupInProgress] = useState(false);
 
-  const backupInProgressRef = useRef(false);
+  const localBackupInProgressRef = useRef(false);
+  const gdriveBackupInProgressRef = useRef(false);
   const connectingRef = useRef(false);
 
   useEffect(() => {
@@ -225,9 +227,12 @@ const BackupSection: React.FC = () => {
 
   const executeBackup = useCallback(
     (backupTarget: string, localPath?: string) => {
-      if (backupInProgressRef.current) return;
-      backupInProgressRef.current = true;
-      setBackupInProgress(true);
+      const isLocal = backupTarget === "local";
+      const progressRef = isLocal ? localBackupInProgressRef : gdriveBackupInProgressRef;
+      const setProgress = isLocal ? setLocalBackupInProgress : setGdriveBackupInProgress;
+      if (progressRef.current) return;
+      progressRef.current = true;
+      setProgress(true);
 
       backupNow.mutate({ target: backupTarget, localPath }, {
         onSuccess: (records) => {
@@ -255,8 +260,8 @@ const BackupSection: React.FC = () => {
           });
         },
         onSettled: () => {
-          backupInProgressRef.current = false;
-          setBackupInProgress(false);
+          progressRef.current = false;
+          setProgress(false);
         },
       });
     },
@@ -264,7 +269,8 @@ const BackupSection: React.FC = () => {
   );
 
   const handleBackupNow = async (backupTarget: string) => {
-    if (backupInProgressRef.current) return;
+    const progressRef = backupTarget === "local" ? localBackupInProgressRef : gdriveBackupInProgressRef;
+    if (progressRef.current) return;
     if (backupTarget === "google_drive" && !gdriveStatus?.connected) {
       toast.error({ title: t("backup.gdriveNotConnected") });
       return;
@@ -405,9 +411,9 @@ const BackupSection: React.FC = () => {
               size="sm"
               className="flex-1"
               onClick={() => handleBackupNow("local")}
-              disabled={backupInProgress}
+              disabled={localBackupInProgress}
             >
-              {backupInProgress ? (
+              {localBackupInProgress ? (
                 <>
                   <LoadingIcon size="sm" className="mr-1" />
                   {t("common.backingUp")}
@@ -424,9 +430,9 @@ const BackupSection: React.FC = () => {
               variant="secondary"
               className="flex-1"
               onClick={() => handleBackupNow("google_drive")}
-              disabled={backupInProgress || !gdriveStatus?.connected}
+              disabled={gdriveBackupInProgress || !gdriveStatus?.connected}
             >
-              {backupInProgress ? (
+              {gdriveBackupInProgress ? (
                 <>
                   <LoadingIcon size="sm" className="mr-1" />
                   {t("common.backingUp")}
