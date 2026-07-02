@@ -40,9 +40,9 @@ const Breadcrumbs = React.forwardRef<HTMLElement, BreadcrumbsProps>(
       <nav
         ref={ref}
         aria-label={t("ui.breadcrumb", "Breadcrumb")}
-        className={cn("flex items-center flex-wrap gap-1 text-sm", className)}
+        className={cn("flex items-center flex-wrap lg:flex-nowrap gap-1 text-sm", className)}
       >
-        <ol className="flex items-center flex-wrap gap-1">
+        <ol className="flex items-center flex-wrap lg:flex-nowrap gap-1">
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
             const isFirst = index === 0;

@@ -119,11 +119,10 @@ export default function TitleBar() {
   return (
     <>
       <div
-        data-tauri-drag-region
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         className={cn(
-          "flex h-9 w-full select-none items-center justify-between",
+          "flex h-9 w-full select-none items-center",
           "border-b",
           isDark
             ? "bg-gray-800 border-[#3c3c3c] text-white"
@@ -132,15 +131,27 @@ export default function TitleBar() {
           isRTL ? "pr-4" : "pr-2",
         )}
       >
-        <span className="ml-2 text-[13px] font-semibold leading-none tracking-tight select-none shrink-0">
-          {t("product.name")}
-        </span>
+        <div
+          data-tauri-drag-region
+          onDoubleClick={handleDoubleClick}
+          onContextMenu={handleContextMenu}
+          className="flex items-center h-full min-w-0 flex-1"
+        >
+          <span className="ml-2 text-[13px] font-semibold leading-none tracking-tight select-none shrink-0">
+            {t("product.name")}
+          </span>
+        </div>
 
-        <div className="flex-2 flex items-center justify-center px-4">
+        <div className="flex items-center justify-center px-4 shrink-0">
           <TopHeaderSearch onClick={openSearch} className="h-7 w-96 lg:w-lg text-xs" />
         </div>
 
-        <div className="flex h-full items-stretch -mr-2 shrink-0">
+        <div
+          data-tauri-drag-region
+          onDoubleClick={handleDoubleClick}
+          onContextMenu={handleContextMenu}
+          className="flex h-full items-stretch -mr-2 shrink-0"
+        >
           <button
             onClick={handleMinimize}
             aria-label="Minimize"

@@ -80,12 +80,9 @@ const BackupSection: React.FC = () => {
   const disconnectGdrive = useDisconnectGdrive();
   const updateGdriveConnection = useUpdateGdriveConnection();
 
-  const [localEnabled, setLocalEnabled] = useState(false);
   const [gdriveEnabled, setGdriveEnabled] = useState(false);
-  const [localFrequency, setLocalFrequency] = useState("daily");
   const [gdriveFrequency, setGdriveFrequency] = useState("daily");
 
-  const [showLocalFreqModal, setShowLocalFreqModal] = useState(false);
   const [showGdriveFreqModal, setShowGdriveFreqModal] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [connectingGdrive, setConnectingGdrive] = useState(false);
@@ -96,8 +93,6 @@ const BackupSection: React.FC = () => {
 
   useEffect(() => {
     if (settings) {
-      setLocalEnabled(settings.local_backup_enabled);
-      setLocalFrequency(settings.local_backup_frequency);
       setGdriveEnabled(settings.gdrive_backup_enabled);
       setGdriveFrequency(settings.gdrive_backup_frequency);
     }
@@ -144,45 +139,6 @@ const BackupSection: React.FC = () => {
       unlisten.then((fns) => fns.forEach((fn) => fn()));
     };
   }, [t, updateGdriveConnection]);
-
-  const handleLocalToggle = (enabled: boolean) => {
-    if (enabled) {
-      setShowLocalFreqModal(true);
-      setLocalEnabled(true);
-    } else {
-      setLocalEnabled(false);
-      updateSettings.mutate({ local_backup_enabled: false });
-    }
-  };
-
-  const handleLocalFreqSave = (frequency: string) => {
-    updateSettings.mutate(
-      {
-        local_backup_enabled: true,
-        local_backup_frequency: frequency,
-      },
-      {
-        onSuccess: () => {
-          setLocalFrequency(frequency);
-          setShowLocalFreqModal(false);
-          toast.success({ title: t("backup.settingsSaved") });
-        },
-        onError: (err) => {
-          setLocalEnabled(false);
-          setShowLocalFreqModal(false);
-          toast.error({
-            title: t("backup.saveError"),
-            description: String(err),
-          });
-        },
-      },
-    );
-  };
-
-  const handleLocalFreqCancel = () => {
-    setShowLocalFreqModal(false);
-    setLocalEnabled(false);
-  };
 
   const handleGdriveToggle = (enabled: boolean) => {
     if (enabled) {
@@ -338,44 +294,6 @@ const BackupSection: React.FC = () => {
         <CardDescription>{t("backup.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Automatic Local Backup */}
-        <div className="rounded-lg border border-border p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h3 className="text-sm font-semibold text-foreground">
-                {t("backup.autoLocalBackup")}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t("backup.autoLocalBackupDesc")}
-              </p>
-            </div>
-            <Switch checked={localEnabled} onCheckedChange={handleLocalToggle} />
-          </div>
-          {localEnabled && (
-            <div className="space-y-1.5 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
-                <span>
-                  {t("backup.configuredSummary", {
-                    frequency: t(`backup.${frequencyLabels[localFrequency] || "freqDaily"}`),
-                  })}
-                </span>
-                <button
-                  onClick={() => setShowLocalFreqModal(true)}
-                  className="text-primary hover:underline ml-1 cursor-pointer"
-                >
-                  {t("common.edit")}
-                </button>
-              </div>
-              {settings?.local_last_backup_at && (
-                <p>
-                  {t("backup.lastBackup")}: {formatDate(settings.local_last_backup_at)}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Automatic Google Drive Backup */}
         <div className="rounded-lg border border-border p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -511,14 +429,6 @@ const BackupSection: React.FC = () => {
           </div>
         </div>
       </CardContent>
-
-      {/* Local Backup Frequency Modal */}
-      <FrequencyModal
-        isOpen={showLocalFreqModal}
-        onClose={handleLocalFreqCancel}
-        onSave={handleLocalFreqSave}
-        isSaving={updateSettings.isPending}
-      />
 
       {/* Google Drive Frequency Modal */}
       <FrequencyModal

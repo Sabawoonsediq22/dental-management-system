@@ -712,23 +712,6 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config
         Ok(d) => d,
         Err(_) => return,
     };
-    let backup_dir = app_data.join("backups");
-
-    // Local auto backup
-    if settings.local_backup_enabled {
-        if BackupService::is_backup_due_for(&settings.local_last_backup_at, &settings.local_backup_frequency) {
-            let backup_type = &settings.local_backup_frequency;
-            match BackupService::create_local_backup(pool, &backup_dir, backup_type).await {
-                Ok(r) => {
-                    println!("Auto-backup (local): {}", r.backup_path);
-                    BackupService::set_local_backup_now(pool).await.ok();
-                }
-                Err(e) => {
-                    eprintln!("Auto-backup (local) failed: {}", e);
-                }
-            }
-        }
-    }
 
     // Google Drive auto backup
     if settings.gdrive_backup_enabled {
