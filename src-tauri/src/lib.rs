@@ -421,9 +421,10 @@ async fn backup_now(
             .map_err(|e| e.to_string())?;
         let client_id = settings.gdrive_client_id.as_deref()
             .ok_or_else(|| "Google Drive not configured. Add a Client ID in Settings.".to_string())?;
+        let client_secret = state.config.google_oauth_client_secret.as_str();
         let app_data_path = app_data.clone();
 
-        match GDriveClient::ensure_valid_token(client_id, &app_data_path).await {
+        match GDriveClient::ensure_valid_token(client_id, Some(client_secret), &app_data_path).await {
             Ok(access_token) => {
                 let folder_id = match &settings.gdrive_folder_id {
                     Some(id) if !id.is_empty() => id.clone(),
@@ -528,9 +529,10 @@ async fn delete_backup(
             if let Some(file_id) = r.backup_path.strip_prefix("gdrive:") {
                 let settings = BackupService::get_backup_settings(&state.db).await.ok();
                 let cid = settings.and_then(|s| s.gdrive_client_id);
+                let client_secret = state.config.google_oauth_client_secret.as_str();
                 if let Some(ref client_id) = cid {
                     if !client_id.is_empty() {
-                        if let Ok(token) = GDriveClient::ensure_valid_token(client_id, &app_data).await {
+                        if let Ok(token) = GDriveClient::ensure_valid_token(client_id, Some(client_secret), &app_data).await {
                             GDriveClient::delete_file(&token, file_id).await.ok();
                         }
                     }
@@ -576,9 +578,10 @@ async fn start_gdrive_auth(
     let client_id = settings.gdrive_client_id
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
+    let client_secret = state.config.google_oauth_client_secret.as_str();
     let app_data = app.path().app_data_dir().unwrap();
 
-    let auth_url = GDriveClient::start_auth_flow(&client_id, app_data, app)
+    let auth_url = GDriveClient::start_auth_flow(&client_id, Some(client_secret), app_data, app)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -726,7 +729,7 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config
                 .filter(|s| !s.is_empty())
                 .unwrap_or_else(|| config.google_oauth_client_id.clone());
 
-            match GDriveClient::ensure_valid_token(&client_id, &app_data).await {
+            match GDriveClient::ensure_valid_token(&client_id, Some(config.google_oauth_client_secret.as_str()), &app_data).await {
                 Ok(access_token) => {
                     let folder_id = match &settings.gdrive_folder_id {
                         Some(id) if !id.is_empty() => id.clone(),

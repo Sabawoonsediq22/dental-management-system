@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tauri::Emitter;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use tokio::time::{timeout, Duration};
+use tokio::time::Duration;
 use uuid::Uuid;
 use std::path::PathBuf;
 use crate::services::errors::{AppError, AppResult};
@@ -134,15 +134,14 @@ impl GDriveClient {
 
     pub async fn start_auth_flow(
         client_id: &str,
+        client_secret: Option<&str>,
         app_data: PathBuf,
         app_handle: tauri::AppHandle,
     ) -> AppResult<String> {
         let verifier = Self::random_verifier();
         let challenge = Self::code_challenge(&verifier);
 
-        let redirect_port = 43210u16;
-        let listener = TcpListener::bind(format!("127.0.0.1:{}", redirect_port)).await
-            .map_err(|e| AppError::OAuth(format!("bind error: {}", e)))?;
+        let (listener, redirect_port) = Self::bind_available_port(43210u16, 43210u16, 43310u16).await?;
         let redirect_uri = format!("http://127.0.0.1:{}", redirect_port);
 
         let auth_url = format!(
@@ -158,19 +157,20 @@ impl GDriveClient {
         let app_data_clone = app_data.clone();
         let redirect_uri_clone = redirect_uri.clone();
         let app_handle_clone = app_handle.clone();
+        let client_secret_owned = client_secret.map(str::to_owned);
 
         tokio::spawn(async move {
             let result = Self::handle_redirect(
-                listener,
+                &listener,
                 &client_id_owned,
                 &redirect_uri_clone,
                 &verifier,
+                client_secret_owned.as_deref(),
                 &app_data_clone,
             ).await;
 
             match result {
                 Ok(()) => {
-                    // Fetch user email after successful auth
                     if let Some(token) = Self::load_token(&app_data_clone) {
                         if let Ok(info) = Self::get_user_info(&token.access_token).await {
                             let info_json = serde_json::json!({
@@ -196,79 +196,136 @@ impl GDriveClient {
         Ok(auth_url)
     }
 
+    async fn bind_available_port(start: u16, min: u16, max: u16) -> AppResult<(TcpListener, u16)> {
+        for port in start..=max {
+            match TcpListener::bind(format!("127.0.0.1:{}", port)).await {
+                Ok(listener) => return Ok((listener, port)),
+                Err(_) if port < max => continue,
+                Err(e) => {
+                    return Err(AppError::OAuth(format!(
+                        "could not bind any port in range {}-{}: {}",
+                        min, max, e
+                    )));
+                }
+            }
+        }
+        Err(AppError::OAuth(format!(
+            "no available port in range {}-{}",
+            min, max
+        )))
+    }
+
     async fn handle_redirect(
-        listener: TcpListener,
+        listener: &TcpListener,
         client_id: &str,
         redirect_uri: &str,
         verifier: &str,
+        client_secret: Option<&str>,
         app_data: &PathBuf,
     ) -> AppResult<()> {
-        let accept_future = listener.accept();
         let timeout_dur = Duration::from_secs(300);
-        let (mut stream, _) = timeout(timeout_dur, accept_future).await
-            .map_err(|_| AppError::OAuth("auth timeout".into()))?
-            .map_err(|e| AppError::OAuth(format!("accept error: {}", e)))?;
+        let deadline = tokio::time::Instant::now() + timeout_dur;
 
-        let mut buf = [0u8; 4096];
-        let n = stream.read(&mut buf).await
-            .map_err(|e| AppError::OAuth(format!("read error: {}", e)))?;
-        let req = String::from_utf8_lossy(&buf[..n]);
+        loop {
+            let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+            if remaining.is_zero() {
+                return Err(AppError::OAuth("auth timeout".into()));
+            }
 
-        let code = req.lines()
-            .next()
-            .and_then(|line| {
-                let path = line.split_whitespace().nth(1)?;
-                let query = path.split('?').nth(1)?;
-                for pair in query.split('&') {
-                    let mut kv = pair.splitn(2, '=');
-                    if kv.next()? == "code" {
-                        return kv.next();
+            let accept_future = listener.accept();
+            let (mut stream, peer_addr) = match tokio::time::timeout(remaining, accept_future).await {
+                Ok(Ok(pair)) => pair,
+                Ok(Err(e)) => return Err(AppError::OAuth(format!("accept error: {}", e))),
+                Err(_) => return Err(AppError::OAuth("auth timeout".into())),
+            };
+
+            let mut buf = [0u8; 4096];
+            let n = match tokio::time::timeout(Duration::from_secs(10), stream.read(&mut buf)).await {
+                Ok(Ok(n)) => n,
+                Ok(Err(e)) => {
+                    eprintln!("GDrive auth: read error from {}: {}", peer_addr, e);
+                    continue;
+                }
+                Err(_) => {
+                    eprintln!("GDrive auth: read timeout from {}", peer_addr);
+                    continue;
+                }
+            };
+
+            let req = String::from_utf8_lossy(&buf[..n]);
+
+            let request_line = req.lines().next().unwrap_or("");
+
+            let code = request_line
+                .split_whitespace()
+                .nth(1)
+                .and_then(|path| {
+                    let query = path.split('?').nth(1)?;
+                    for pair in query.split('&') {
+                        let mut kv = pair.splitn(2, '=');
+                        if kv.next()? == "code" {
+                            return kv.next();
+                        }
+                    }
+                    None
+                });
+
+            match code {
+                Some(code_str) => {
+                    let code_decoded = urlencoding::decode(code_str)
+                        .map_err(|e| AppError::OAuth(format!("decode error: {}", e)))?;
+
+                    let token = Self::exchange_code(client_id, &code_decoded, verifier, redirect_uri, client_secret).await?;
+                    Self::save_token(&token, app_data)?;
+
+                    let html = "<html><body><h2>Authorization successful</h2><p>You can close this tab and return to the app.</p></body></html>";
+                    let resp = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                        html.len(),
+                        html
+                    );
+                    stream.write_all(resp.as_bytes()).await.ok();
+                    return Ok(());
+                }
+                None => {
+                    let error_msg = request_line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|path| {
+                            let query = path.split('?').nth(1)?;
+                            for pair in query.split('&') {
+                                let mut kv = pair.splitn(2, '=');
+                                if kv.next()? == "error" {
+                                    return kv.next();
+                                }
+                            }
+                            None
+                        });
+
+                    match error_msg {
+                        Some(msg) => {
+                            let error_msg_owned = msg.to_string();
+                            let html = format!("<html><body><h2>Authorization failed</h2><p>Error: {}</p></body></html>", error_msg_owned);
+                            let resp = format!(
+                                "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                                html.len(),
+                                html
+                            );
+                            stream.write_all(resp.as_bytes()).await.ok();
+                            return Err(AppError::OAuth(format!("auth error: {}", error_msg_owned)));
+                        }
+                        None => {
+                            eprintln!(
+                                "GDrive auth: ignoring non-OAuth request from {}: {}",
+                                peer_addr,
+                                request_line
+                            );
+                            let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+                            stream.write_all(resp.as_bytes()).await.ok();
+                            continue;
+                        }
                     }
                 }
-                None
-            });
-
-        match code {
-            Some(code_str) => {
-                let code_decoded = urlencoding::decode(code_str)
-                    .map_err(|e| AppError::OAuth(format!("decode error: {}", e)))?;
-
-                let token = Self::exchange_code(client_id, &code_decoded, verifier, redirect_uri).await?;
-                Self::save_token(&token, app_data)?;
-
-                let html = "<html><body><h2>Authorization successful</h2><p>You can close this tab and return to the app.</p></body></html>";
-                let resp = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
-                    html.len(),
-                    html
-                );
-                stream.write_all(resp.as_bytes()).await.ok();
-                Ok(())
-            }
-            None => {
-                let error_msg = req.lines()
-                    .next()
-                    .and_then(|line| {
-                        let path = line.split_whitespace().nth(1)?;
-                        let query = path.split('?').nth(1)?;
-                        for pair in query.split('&') {
-                            let mut kv = pair.splitn(2, '=');
-                            if kv.next()? == "error" {
-                                return kv.next();
-                            }
-                        }
-                        None
-                    })
-                    .unwrap_or("unknown_error");
-
-                let html = format!("<html><body><h2>Authorization failed</h2><p>Error: {}</p></body></html>", error_msg);
-                let resp = format!(
-                    "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
-                    html.len(),
-                    html
-                );
-                stream.write_all(resp.as_bytes()).await.ok();
-                Err(AppError::OAuth(format!("auth error: {}", error_msg)))
             }
         }
     }
@@ -278,18 +335,22 @@ impl GDriveClient {
         code: &str,
         code_verifier: &str,
         redirect_uri: &str,
+        client_secret: Option<&str>,
     ) -> AppResult<GDriveToken> {
         let client = reqwest::Client::builder()
             .build()
             .map_err(|e| AppError::Http(e.to_string()))?;
 
-        let params = [
+        let mut params = vec![
             ("code", code),
             ("client_id", client_id),
             ("code_verifier", code_verifier),
             ("redirect_uri", redirect_uri),
             ("grant_type", "authorization_code"),
         ];
+        if let Some(secret) = client_secret.filter(|s| !s.is_empty()) {
+            params.push(("client_secret", secret));
+        }
 
         let resp = client.post(TOKEN_ENDPOINT)
             .form(&params)
@@ -325,7 +386,7 @@ impl GDriveClient {
         })
     }
 
-    pub async fn refresh_token(client_id: &str, token: &GDriveToken, app_data: &PathBuf) -> AppResult<GDriveToken> {
+    pub async fn refresh_token(client_id: &str, client_secret: Option<&str>, token: &GDriveToken, app_data: &PathBuf) -> AppResult<GDriveToken> {
         let refresh_token = token.refresh_token.as_deref()
             .ok_or_else(|| AppError::OAuth("no refresh token".into()))?;
 
@@ -333,11 +394,14 @@ impl GDriveClient {
             .build()
             .map_err(|e| AppError::Http(e.to_string()))?;
 
-        let params = [
+        let mut params = vec![
             ("refresh_token", refresh_token),
             ("client_id", client_id),
             ("grant_type", "refresh_token"),
         ];
+        if let Some(secret) = client_secret.filter(|s| !s.is_empty()) {
+            params.push(("client_secret", secret));
+        }
 
         let resp = client.post(TOKEN_ENDPOINT)
             .form(&params)
@@ -376,12 +440,12 @@ impl GDriveClient {
         Ok(new_token)
     }
 
-    pub async fn ensure_valid_token(client_id: &str, app_data: &PathBuf) -> AppResult<String> {
+    pub async fn ensure_valid_token(client_id: &str, client_secret: Option<&str>, app_data: &PathBuf) -> AppResult<String> {
         let token = Self::load_token(app_data)
             .ok_or_else(|| AppError::OAuth("no token available".into()))?;
 
         if Self::is_token_expired(&token) {
-            let refreshed = Self::refresh_token(client_id, &token, app_data).await?;
+            let refreshed = Self::refresh_token(client_id, client_secret, &token, app_data).await?;
             Ok(refreshed.access_token)
         } else {
             Ok(token.access_token)
