@@ -12,7 +12,11 @@ const appWindow = getCurrentWindow();
 const buttonBase =
   "flex items-center justify-center w-[46px] h-full transition-colors duration-150";
 
-export default function TitleBar() {
+interface TitleBarProps {
+  clinicLogo?: string | null;
+}
+
+export default function TitleBar({ clinicLogo }: TitleBarProps) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isFocused, setIsFocused] = useState(true);
@@ -137,7 +141,14 @@ export default function TitleBar() {
           onContextMenu={handleContextMenu}
           className="flex items-center h-full min-w-0 flex-1"
         >
-          <span className="ml-2 text-[13px] font-semibold leading-none tracking-tight select-none shrink-0">
+          {clinicLogo && (
+            <img
+              src={clinicLogo}
+              alt="Clinic Logo"
+              className="mx-2 h-5 w-5 object-contain shrink-0"
+            />
+          )}
+          <span className="text-[13px] font-semibold leading-none tracking-tight select-none shrink-0">
             {t("product.name")}
           </span>
         </div>

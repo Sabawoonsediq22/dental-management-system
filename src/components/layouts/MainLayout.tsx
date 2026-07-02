@@ -100,7 +100,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gray-50 dark:bg-gray-900">
-      <TitleBar />
+      <TitleBar clinicLogo={clinicLogo} />
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
