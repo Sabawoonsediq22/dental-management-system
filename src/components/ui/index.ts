@@ -79,6 +79,9 @@ export type {
   LoadingOverlayProps,
 } from "./LoadingSpinner";
 
+export { Popover } from "./Popover";
+export type { PopoverAction } from "./Popover";
+
 export { default as Pagination } from "./Pagination";
 
 export { toast } from "../../lib/toast-utils";

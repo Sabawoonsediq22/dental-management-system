@@ -16,6 +16,7 @@ import {
   ConfirmDialog,
   Modal,
   LoadingSpinner,
+  Popover,
   toast,
 } from "../../components/ui";
 import {
@@ -155,7 +156,7 @@ const Settings: React.FC = () => {
       header: t("backup.table.location"),
       render: (_: unknown, row: Record<string, unknown>) => {
         const path = row.backup_path as string;
-        if (path.startsWith("gdrive:")) {
+        if (path?.startsWith("gdrive:")) {
           return t("backup.cloudStorage");
         }
         return path || "-";
@@ -170,26 +171,23 @@ const Settings: React.FC = () => {
     {
       key: "actions",
       header: t("backup.table.actions"),
-      render: (_: unknown, row: Record<string, unknown>) => (
-        <div className="flex gap-2">
-          {row.status === "success" && row.cloud_provider === "local" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleRestore(row.id as number)}
-            >
-              Restore
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteBackup(row.id as number)}
-          >
-            {t("common.delete")}
-          </Button>
-        </div>
-      ),
+      render: (_: unknown, row: Record<string, unknown>) => {
+        const actions: Array<{ label: string; onClick: () => void; className?: string }> = [];
+        
+        if (row.status === "success" && row.cloud_provider === "local") {
+          actions.push({
+            label: "Restore",
+            onClick: () => handleRestore(row.id as number),
+          });
+        }
+        actions.push({
+          label: t("common.delete"),
+          onClick: () => handleDeleteBackup(row.id as number),
+          className: "text-destructive",
+        });
+        
+        return <Popover actions={actions} />;
+      },
     },
   ];
 
@@ -212,10 +210,7 @@ const Settings: React.FC = () => {
         </div>
         <div className="space-y-6">
           <BackupSection />
-        </div>
-      </div>
-
-      <Card>
+          <Card>
         <CardHeader>
           <CardTitle>Database Management</CardTitle>
           <CardDescription>Monitor and maintain your database health</CardDescription>
@@ -244,6 +239,8 @@ const Settings: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
