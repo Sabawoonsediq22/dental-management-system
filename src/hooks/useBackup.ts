@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import type { BackupSettings } from "../types/ApiTypes";
 
 export function useBackups() {
   return useQuery({
@@ -19,8 +20,28 @@ export function useUpdateBackupSettings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.backups.updateSettings,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["backupSettings"] });
+      const previousSettings = qc.getQueryData<BackupSettings>([
+        "backupSettings",
+      ]);
+      qc.setQueryData<BackupSettings>(["backupSettings"], (current) => {
+        if (!current) return current;
+        return { ...current, ...input };
+      });
+      return { previousSettings };
+    },
+    onError: (_err, _input, context) => {
+      if (context?.previousSettings) {
+        qc.setQueryData(["backupSettings"], context.previousSettings);
+      }
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["backupSettings"], data);
+      qc.invalidateQueries({
+        queryKey: ["backupSettings"],
+        refetchType: "all",
+      });
       qc.invalidateQueries({ queryKey: ["settings"], refetchType: "all" });
     },
   });
@@ -29,11 +50,19 @@ export function useUpdateBackupSettings() {
 export function useBackupNow() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ target, localPath }: { target: string; localPath?: string }) =>
-      api.backups.backupNow(target, localPath),
+    mutationFn: ({
+      target,
+      localPath,
+    }: {
+      target: string;
+      localPath?: string;
+    }) => api.backups.backupNow(target, localPath),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["backups"], refetchType: "all" });
-      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+      qc.invalidateQueries({
+        queryKey: ["backupSettings"],
+        refetchType: "all",
+      });
     },
   });
 }
@@ -53,7 +82,10 @@ export function useGdriveAuth() {
   return useMutation({
     mutationFn: () => api.backups.startGdriveAuth(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+      qc.invalidateQueries({
+        queryKey: ["backupSettings"],
+        refetchType: "all",
+      });
     },
   });
 }
@@ -72,7 +104,10 @@ export function useDisconnectGdrive() {
     mutationFn: () => api.backups.disconnectGdrive(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["gdriveStatus"], refetchType: "all" });
-      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+      qc.invalidateQueries({
+        queryKey: ["backupSettings"],
+        refetchType: "all",
+      });
     },
   });
 }
@@ -83,7 +118,10 @@ export function useUpdateGdriveConnection() {
     mutationFn: (email: string) => api.backups.updateGdriveConnection(email),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["gdriveStatus"], refetchType: "all" });
-      qc.invalidateQueries({ queryKey: ["backupSettings"], refetchType: "all" });
+      qc.invalidateQueries({
+        queryKey: ["backupSettings"],
+        refetchType: "all",
+      });
     },
   });
 }

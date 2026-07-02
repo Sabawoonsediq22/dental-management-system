@@ -449,16 +449,6 @@ export interface BackupValidation {
   error: string | null;
 }
 
-export interface DatabaseStats {
-  page_count: number;
-  page_size: number;
-  freelist_count: number;
-  total_size_bytes: number;
-  wal_mode: boolean;
-}
-
-
-
 export interface ErrorResponse {
   code: string;
   message: string;

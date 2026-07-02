@@ -677,36 +677,6 @@ async fn get_available_backup_files(
         .map_err(|e| e.to_string())
 }
 
-// Database management commands
-#[tauri::command]
-async fn check_database_integrity(
-    state: State<'_, AppState>,
-) -> Result<Vec<String>, String> {
-    db::check_database_integrity(&state.db)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn vacuum_database(
-    state: State<'_, AppState>,
-) -> Result<(), String> {
-    db::vacuum_database(&state.db)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn get_database_stats(
-    state: State<'_, AppState>,
-) -> Result<db::DatabaseStats, String> {
-    db::get_database_stats(&state.db)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-
-
 async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
         Ok(s) => s,
@@ -895,9 +865,6 @@ pub fn run() {
             restore_from_backup,
             validate_backup_file,
             get_available_backup_files,
-            check_database_integrity,
-            vacuum_database,
-            get_database_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

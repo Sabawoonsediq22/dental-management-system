@@ -20,7 +20,12 @@ interface StatCardProps {
   sublabel?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon, label, value, sublabel }) => (
+const StatCard: React.FC<StatCardProps> = ({
+  icon,
+  label,
+  value,
+  sublabel,
+}) => (
   <div className="rounded-lg border border-border bg-card p-5 flex items-start gap-4 transition-shadow hover:shadow-sm">
     <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
       {icon}
@@ -47,9 +52,18 @@ const StatsCards: React.FC<StatsCardsProps> = ({ backups, backupSettings }) => {
   const lastBackup = backupSettings?.last_backup_at
     ? new Date(backupSettings.last_backup_at).toLocaleString()
     : t("backup.noLastBackup");
-  const autoBackupStatus = backupSettings?.auto_backup_enabled
+  const isAutoBackupEnabled = Boolean(
+    backupSettings?.auto_backup_enabled ||
+    backupSettings?.gdrive_backup_enabled ||
+    backupSettings?.local_backup_enabled,
+  );
+  const autoBackupStatus = isAutoBackupEnabled
     ? t("settings.statusEnabled")
     : t("settings.statusDisabled");
+  const activeFrequency =
+    backupSettings?.gdrive_backup_frequency ||
+    backupSettings?.local_backup_frequency ||
+    backupSettings?.auto_backup_frequency;
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -83,8 +97,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ backups, backupSettings }) => {
           label={t("settings.autoBackup")}
           value={autoBackupStatus}
           sublabel={
-            backupSettings?.auto_backup_enabled && backupSettings?.auto_backup_frequency
-              ? t(`backup.freq${backupSettings.auto_backup_frequency.charAt(0).toUpperCase()}${backupSettings.auto_backup_frequency.slice(1)}`)
+            isAutoBackupEnabled && activeFrequency
+              ? t(
+                  `backup.freq${activeFrequency.charAt(0).toUpperCase()}${activeFrequency.slice(1)}`,
+                )
               : undefined
           }
         />
