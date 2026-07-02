@@ -25,9 +25,9 @@ const TopHeaderSearch: React.FC<TopHeaderSearchProps> = ({ onClick, className })
         }
       }}
       className={cn(
-        "flex items-center gap-3 w-80 max-w-md h-10 px-4 rounded-full",
-        "bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600",
-        "hover:bg-gray-200 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500",
+        "flex items-center gap-3 w-80 max-w-md h-10 px-4 rounded",
+        "bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600",
+        "hover:bg-gray-300 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500",
         "transition-all duration-200 cursor-pointer",
         isRTL && "flex-row-reverse",
         className,

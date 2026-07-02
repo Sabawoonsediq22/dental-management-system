@@ -4,6 +4,9 @@ import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { CloseIcon, MaximizeIcon, MinimizeIcon, RestoreIcon } from "../../shared/icons/icons";
+import { useKeyboardShortcut } from "../../hooks/useKeyboardShortcut";
+import SearchModal from "../search/SearchModal";
+import TopHeaderSearch from "../search/SearchHeader";
 
 const appWindow = getCurrentWindow();
 const buttonBase =
@@ -18,6 +21,14 @@ export default function TitleBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const isRTL = i18n.language === "ps";
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const openSearch = () => setIsSearchOpen(true);
+  const closeSearch = () => setIsSearchOpen(false);
+
+  useKeyboardShortcut("k", openSearch, "ctrl");
+  useKeyboardShortcut("k", openSearch, "meta");
 
   useEffect(() => {
     const checkMaximized = async () => {
@@ -121,11 +132,15 @@ export default function TitleBar() {
           isRTL ? "pr-4" : "pr-2",
         )}
       >
-        <span className="ml-2 text-[13px] font-semibold leading-none tracking-tight select-none">
+        <span className="ml-2 text-[13px] font-semibold leading-none tracking-tight select-none shrink-0">
           {t("product.name")}
         </span>
 
-        <div className="flex h-full items-stretch -mr-2">
+        <div className="flex-2 flex items-center justify-center px-4">
+          <TopHeaderSearch onClick={openSearch} className="h-7 w-96 lg:w-lg text-xs" />
+        </div>
+
+        <div className="flex h-full items-stretch -mr-2 shrink-0">
           <button
             onClick={handleMinimize}
             aria-label="Minimize"
@@ -201,6 +216,7 @@ export default function TitleBar() {
           })}
         </div>
       )}
+      <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
     </>
   );
 }

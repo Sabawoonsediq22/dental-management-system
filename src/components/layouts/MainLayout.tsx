@@ -18,8 +18,6 @@ import {
 import { Button, Breadcrumbs } from "../ui/index";
 import { cn } from "../../lib/utils";
 import { useKeyboardShortcut } from "../../hooks/useKeyboardShortcut";
-import SearchModal from "../search/SearchModal";
-import TopHeaderSearch from "../search/SearchHeader";
 import Logo from "../../assets/favicon.svg";
 import { api } from "../../lib/api";
 import { useBreadcrumbs } from "../../hooks/useBreadcrumbs";
@@ -59,14 +57,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const changeLanguage = (lng: "en" | "ps") => {
     i18n.changeLanguage(lng);
   };
-
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  const openSearch = () => setIsSearchOpen(true);
-  const closeSearch = () => setIsSearchOpen(false);
-
-  useKeyboardShortcut("k", openSearch, "ctrl");
-  useKeyboardShortcut("k", openSearch, "meta");
 
   const goTo = useCallback((path: string) => {
     navigate(path);
@@ -223,9 +213,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Breadcrumbs items={useBreadcrumbs()} isRTL={isRTL} />
           </div>
           <div className="flex-1 flex items-center justify-end gap-2">
-            <div className={`flex justify-center ${isRTL ? "ml-4" : "mr-4"}`}>
-            <TopHeaderSearch onClick={openSearch} />
-          </div>
+
             {/* Theme toggle button */}
             <Button
               onClick={toggleTheme}
@@ -251,7 +239,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </NavLink>
           </div>
         </header>
-        <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
         {/* Page content */}
         <div className="p-6">{children}</div>
       </main>
