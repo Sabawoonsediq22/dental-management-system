@@ -850,5 +850,8 @@
     "genderRequired": "Gender is required",
     "ageRange": "Age must be between 1 and 120",
     "addressMaxLength": "Address must be 200 characters or less"
+  },
+  "product":{
+    "name":"Khwaja Dental & Implants Clinic"
   }
 }

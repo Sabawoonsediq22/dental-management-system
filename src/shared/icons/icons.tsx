@@ -1505,3 +1505,36 @@ export const FileIcon: React.FC<IconProps> = ({
     <polyline points="10 9 9 9 8 9" />
   </svg>
 );
+
+/** Restore Icon */
+export const RestoreIcon: React.FC<IconProps> = ({
+  className = "dark:text-white",
+}) => (
+  <svg
+    className={`${className}`}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    fill="none">
+    <rect x="3.5" y="1.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" />
+    <rect x="1.5" y="3.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" />
+  </svg>
+);
+
+/** Maximize Icon */
+export const MaximizeIcon: React.FC<IconProps> = ({
+  className = "dark:text-white",
+}) => (
+  <svg className={`${className}`} width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1" />
+  </svg>
+);
+
+/** Minimize Icon */
+export const MinimizeIcon: React.FC<IconProps> = ({
+  className = "dark:text-white",
+}) => (
+  <svg className={`${className}`} width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="2" y="5.5" width="8" height="1" fill="currentColor" />
+  </svg>
+);

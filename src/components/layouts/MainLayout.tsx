@@ -23,6 +23,7 @@ import TopHeaderSearch from "../search/SearchHeader";
 import Logo from "../../assets/favicon.svg";
 import { api } from "../../lib/api";
 import { useBreadcrumbs } from "../../hooks/useBreadcrumbs";
+import TitleBar from "./TitleBar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -108,7 +109,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, [isDark]);
 
   return (
-    <div className="flex h-screen w-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen w-screen bg-gray-50 dark:bg-gray-900">
+      <TitleBar />
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -252,6 +255,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         {/* Page content */}
         <div className="p-6">{children}</div>
       </main>
+      </div>
     </div>
   );
 };
