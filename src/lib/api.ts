@@ -110,7 +110,8 @@ export const api = {
   },
   backups: {
     list: () => invoke<BackupRecord[]>("list_backups"),
-    backupNow: (target: string) => invoke<BackupRecord[]>("backup_now", { target }),
+    backupNow: (target: string, savePath?: string) =>
+      invoke<BackupRecord[]>("backup_now", { target, save_path: savePath ?? null }),
     delete: (id: number) => invoke<void>("delete_backup", { id }),
     getSettings: () => invoke<BackupSettings>("get_backup_settings"),
     updateSettings: (input: UpdateBackupSettingsInput) => invoke<BackupSettings>("update_backup_settings", { input }),

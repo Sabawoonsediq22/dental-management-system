@@ -381,6 +381,7 @@ async fn backup_now(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
     target: String,
+    save_path: Option<String>,
 ) -> Result<Vec<BackupRecord>, String> {
     let app_data = app.path().app_data_dir().unwrap();
     let backup_dir = app_data.join("backups");
@@ -389,8 +390,12 @@ async fn backup_now(
     let do_local = target == "local" || target == "both";
     let do_gdrive = target == "google_drive" || target == "both";
 
+    let custom_path = if do_local { save_path.as_deref() } else { None };
+
     let local_file_path = if do_local || (do_gdrive && target == "both") {
-        let record = BackupService::create_local_backup(&state.db, &backup_dir, "manual").await
+        let record = BackupService::create_local_backup(
+            &state.db, &backup_dir, "manual", custom_path,
+        ).await
             .map_err(|e| e.to_string())?;
         let path = record.backup_path.clone();
         results.push(record);
@@ -797,6 +802,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let config = tauri::async_runtime::block_on(async {
                 AppConfig::load().map_err(|e| {

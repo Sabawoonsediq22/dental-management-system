@@ -825,6 +825,7 @@
     "deleted": "Backup record deleted",
     "deleteError": "Failed to delete backup",
     "deleteConfirm": "Delete this backup record?",
+    "selectBackupFolder": "Select folder to save backup",
     "history": "Backup History",
     "historyDesc": "Showing {{count}} backup record(s)",
     "noBackups": "No backups yet",
@@ -840,7 +841,9 @@
     },
     "cloudStorage": "Cloud Storage",
     "connecting": "Connecting...",
-    "savingConfig": "Saving configuration..."
+    "savingConfig": "Saving configuration...",
+    "selectFolder": "Select Backup Location",
+    "selectFolderDesc": "Choose where to save your backup file"
   },
   "validation": {
     "fullNameRequired": "Full name is required",

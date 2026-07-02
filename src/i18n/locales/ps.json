@@ -812,6 +812,7 @@
     "deleted": "د بیک اپ ریکارډ ړنګ شو",
     "deleteError": "د بیک اپ په ړنګولو کې پاتې راغی",
     "deleteConfirm": "آیا دا بیک اپ ریکارډ ړنګ کړم؟",
+    "selectBackupFolder": "د بیک اپ خوندي کولو لپاره فولډر غوره کړئ",
     "history": "د بیک اپ تاریخ",
     "historyDesc": "د {{count}} بیک اپ ریکارډ(ونه) ښودل",
     "noBackups": "تر اوسه بیک اپ نشته",
@@ -825,7 +826,9 @@
       "status": "حالت",
       "actions": "کړنې"
     },
-    "cloudStorage": "کلاوډ ذخیره"
+    "cloudStorage": "کلاوډ ذخیره",
+    "selectFolder": "د بیک اپ خوندي کولو لپاره ځای غوره کړئ",
+    "selectFolderDesc": "غوره کړئ چې خپل بیک اپ فایل کومو ځای کې خوندي کړئ"
   },
   "validation": {
     "fullNameRequired": "بشپړ نوم اړین دی",

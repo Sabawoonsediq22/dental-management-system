@@ -12,12 +12,20 @@ impl BackupService {
         pool: &SqlitePool,
         backup_dir: &PathBuf,
         backup_type: &str,
+        custom_path: Option<&str>,
     ) -> AppResult<BackupRecord> {
-        std::fs::create_dir_all(backup_dir)?;
-
-        let now = Utc::now();
-        let filename = format!("dental_clinic_{}.db", now.format("%Y%m%d_%H%M%S"));
-        let dest = backup_dir.join(&filename);
+        let dest = if let Some(path) = custom_path {
+            let p = std::path::PathBuf::from(path);
+            if let Some(parent) = p.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            p
+        } else {
+            std::fs::create_dir_all(backup_dir)?;
+            let now = Utc::now();
+            let filename = format!("dental_clinic_{}.db", now.format("%Y%m%d_%H%M%S"));
+            backup_dir.join(&filename)
+        };
         let dest_str = dest.to_string_lossy().replace('\\', "/");
         let escaped = dest_str.replace('\'', "''");
 

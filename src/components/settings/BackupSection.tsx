@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { listen } from "@tauri-apps/api/event";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
   Card,
   CardHeader,
@@ -223,12 +224,12 @@ const BackupSection: React.FC = () => {
   };
 
   const executeBackup = useCallback(
-    (backupTarget: string) => {
+    (backupTarget: string, savePath?: string) => {
       if (backupInProgressRef.current) return;
       backupInProgressRef.current = true;
       setBackupInProgress(true);
 
-      backupNow.mutate(backupTarget, {
+      backupNow.mutate({ target: backupTarget, savePath }, {
         onSuccess: (records) => {
           const successCount = records.filter(
             (r) => r.status === "success",
@@ -262,13 +263,24 @@ const BackupSection: React.FC = () => {
     [backupNow, t],
   );
 
-  const handleBackupNow = (backupTarget: string) => {
+  const handleBackupNow = async (backupTarget: string) => {
     if (backupInProgressRef.current) return;
     if (backupTarget === "google_drive" && !gdriveStatus?.connected) {
       toast.error({ title: t("backup.gdriveNotConnected") });
       return;
     }
-    executeBackup(backupTarget);
+
+    if (backupTarget === "local") {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: t("backup.selectBackupFolder"),
+      });
+      if (!selected) return;
+      executeBackup(backupTarget, selected as string);
+    } else {
+      executeBackup(backupTarget);
+    }
   };
 
   if (settingsLoading) {

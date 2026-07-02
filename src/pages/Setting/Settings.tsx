@@ -159,7 +159,16 @@ const Settings: React.FC = () => {
         if (path?.startsWith("gdrive:")) {
           return t("backup.cloudStorage");
         }
-        return path || "-";
+        if (!path) return "-";
+        const parts = path.replace(/\\/g, "/").split("/");
+        const filename = parts[parts.length - 1];
+        const folder = parts.length > 1 ? parts.slice(-2, -1)[0] : "";
+        const shortPath = folder ? `${folder}/${filename}` : filename;
+        return (
+          <span title={path} className="text-xs font-mono truncate max-w-50 inline-block" style={{ textOverflow: "ellipsis" }}>
+            {shortPath}
+          </span>
+        );
       },
     },
     {
