@@ -202,7 +202,7 @@ const Dashboard: React.FC = () => {
                   className={`px-2.5 sm:px-4 py-1 sm:py-1.5 text-[10px] sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
                     flowMode === mode
                       ? "bg-primary text-white shadow-sm"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
                   }`}
                 >
                   {t(`dashboard.${mode}`, mode.charAt(0).toUpperCase() + mode.slice(1))}
