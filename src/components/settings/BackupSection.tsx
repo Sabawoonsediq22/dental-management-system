@@ -288,7 +288,22 @@ const BackupSection: React.FC = () => {
         title: t("backup.selectFolder"),
       });
       if (!selected) return;
-      executeBackup(backupTarget, selected as string);
+
+      let folderPath = selected as string;
+      if (folderPath.startsWith("file://")) {
+        const match = folderPath.match(
+          /^file:\/\/\/([A-Za-z]:[/\\].*)$/
+        );
+        if (match) {
+          folderPath = match[1];
+        } else {
+          folderPath = folderPath.replace(/^file:\/\//, "");
+        }
+      }
+      folderPath = folderPath.trim().replace(/[/\\]+$/, "");
+      if (!folderPath) return;
+
+      executeBackup(backupTarget, folderPath);
     } else {
       executeBackup(backupTarget);
     }
