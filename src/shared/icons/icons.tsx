@@ -1538,3 +1538,31 @@ export const MinimizeIcon: React.FC<IconProps> = ({
     <rect x="2" y="5.5" width="8" height="1" fill="currentColor" />
   </svg>
 );
+
+/** GDRIVE_LOGO_SVG Icon */
+export const GDRIVE_LOGO_SVG_Icon: React.FC<IconProps> = ({
+  className = "dark:text-white",
+}) => (
+  <svg className={`${className} h-8 w-8`}
+    viewBox="0 0 87.3 78"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z"
+      fill="#0066da"
+    />
+    <path
+      d="M43.65 25l-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9 9 0 00-1.2 4.5h27.5z"
+      fill="#00ac47"
+    />
+    <path
+      d="M73.4 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l-13.75 23.8c4.1 2.5 9.3 3.3 14.3 2.75 2.1-.25 4.2-.9 6.3-1.85z"
+      fill="#ea4335"
+    />
+    <path
+      d="M73.4 76.8c-2.1.95-4.2 1.6-6.3 1.85-5 .55-10.2-.25-14.3-2.75l-4.1 7.1v7.5c0 1.55.4 3.1 1.2 4.5h27.5l9.9-17.2z"
+      fill="#2684fc"
+    />
+    <path d="M43.65 57.7l13.75-23.8h-27.5l-13.75 23.8h27.5z" fill="#ffba00" />
+  </svg>
+);

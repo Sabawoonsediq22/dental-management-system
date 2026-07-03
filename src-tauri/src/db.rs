@@ -91,6 +91,7 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn check_database_integrity(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
     let result: String = sqlx::query_scalar("PRAGMA integrity_check")
         .fetch_one(pool)
@@ -99,11 +100,13 @@ pub async fn check_database_integrity(pool: &SqlitePool) -> Result<Vec<String>, 
     Ok(result.split('\n').map(|s| s.to_string()).collect())
 }
 
+#[allow(dead_code)]
 pub async fn vacuum_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("VACUUM").execute(pool).await?;
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn get_database_stats(pool: &SqlitePool) -> Result<DatabaseStats, sqlx::Error> {
     let page_count: i64 = sqlx::query_scalar("PRAGMA page_count").fetch_one(pool).await?;
     let page_size: i64 = sqlx::query_scalar("PRAGMA page_size").fetch_one(pool).await?;
@@ -118,6 +121,7 @@ pub async fn get_database_stats(pool: &SqlitePool) -> Result<DatabaseStats, sqlx
     })
 }
 
+#[allow(dead_code)]
 #[derive(Debug, serde::Serialize)]
 pub struct DatabaseStats {
     pub page_count: i64,

@@ -28,18 +28,9 @@ import {
   RefreshCwIcon,
   LoadingIcon,
   CheckCircleIcon,
+  GDRIVE_LOGO_SVG_Icon,
 } from "../../shared/icons/icons";
 import FrequencyModal from "./FrequencyModal";
-
-const GDRIVE_LOGO_SVG = (
-  <svg viewBox="0 0 87.3 78" className="h-8 w-8" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
-    <path d="M43.65 25l-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9 9 0 00-1.2 4.5h27.5z" fill="#00ac47" />
-    <path d="M73.4 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l-13.75 23.8c4.1 2.5 9.3 3.3 14.3 2.75 2.1-.25 4.2-.9 6.3-1.85z" fill="#ea4335" />
-    <path d="M73.4 76.8c-2.1.95-4.2 1.6-6.3 1.85-5 .55-10.2-.25-14.3-2.75l-4.1 7.1v7.5c0 1.55.4 3.1 1.2 4.5h27.5l9.9-17.2z" fill="#2684fc" />
-    <path d="M43.65 57.7l13.75-23.8h-27.5l-13.75 23.8h27.5z" fill="#ffba00" />
-  </svg>
-);
 
 const frequencyLabels: Record<string, string> = {
   daily: "freqDaily",
@@ -47,7 +38,10 @@ const frequencyLabels: Record<string, string> = {
   monthly: "freqMonthly",
 };
 
-function formatLastSync(dateStr: string | null, t: (key: string, opts?: any) => string): string {
+function formatLastSync(
+  dateStr: string | null,
+  t: (key: string, opts?: any) => string,
+): string {
   if (!dateStr) return "";
   const now = Date.now();
   const date = new Date(dateStr);
@@ -145,7 +139,6 @@ const BackupSection: React.FC = () => {
 
   const handleGdriveToggle = (enabled: boolean) => {
     if (enabled) {
-
       if (gdriveStatus?.connected) {
         setShowGdriveFreqModal(true);
       } else {
@@ -228,48 +221,60 @@ const BackupSection: React.FC = () => {
   const executeBackup = useCallback(
     (backupTarget: string, localPath?: string) => {
       const isLocal = backupTarget === "local";
-      const progressRef = isLocal ? localBackupInProgressRef : gdriveBackupInProgressRef;
-      const setProgress = isLocal ? setLocalBackupInProgress : setGdriveBackupInProgress;
+      const progressRef = isLocal
+        ? localBackupInProgressRef
+        : gdriveBackupInProgressRef;
+      const setProgress = isLocal
+        ? setLocalBackupInProgress
+        : setGdriveBackupInProgress;
       if (progressRef.current) return;
       progressRef.current = true;
       setProgress(true);
 
-      backupNow.mutate({ target: backupTarget, localPath }, {
-        onSuccess: (records) => {
-          const successCount = records.filter(
-            (r) => r.status === "success",
-          ).length;
-          const failCount = records.filter((r) => r.status === "failed").length;
-          if (successCount > 0) {
-            toast.success({
-              title: t("backup.success"),
-              description: t("backup.successDesc", { count: successCount }),
-            });
-          }
-          if (failCount > 0) {
+      backupNow.mutate(
+        { target: backupTarget, localPath },
+        {
+          onSuccess: (records) => {
+            const successCount = records.filter(
+              (r) => r.status === "success",
+            ).length;
+            const failCount = records.filter(
+              (r) => r.status === "failed",
+            ).length;
+            if (successCount > 0) {
+              toast.success({
+                title: t("backup.success"),
+                description: t("backup.successDesc", { count: successCount }),
+              });
+            }
+            if (failCount > 0) {
+              toast.error({
+                title: t("backup.failed"),
+                description: t("backup.failedDesc", { count: failCount }),
+              });
+            }
+          },
+          onError: (err) => {
             toast.error({
               title: t("backup.failed"),
-              description: t("backup.failedDesc", { count: failCount }),
+              description: String(err),
             });
-          }
+          },
+          onSettled: () => {
+            progressRef.current = false;
+            setProgress(false);
+          },
         },
-        onError: (err) => {
-          toast.error({
-            title: t("backup.failed"),
-            description: String(err),
-          });
-        },
-        onSettled: () => {
-          progressRef.current = false;
-          setProgress(false);
-        },
-      });
+      );
     },
     [backupNow, t],
   );
 
   const handleBackupNow = async (backupTarget: string) => {
-    const progressRef = backupTarget === "local" ? localBackupInProgressRef : gdriveBackupInProgressRef;
+    const progressRef =
+      backupTarget === "local"
+        ? localBackupInProgressRef
+        : gdriveBackupInProgressRef;
     if (progressRef.current) return;
     if (backupTarget === "google_drive" && !gdriveStatus?.connected) {
       toast.error({ title: t("backup.gdriveNotConnected") });
@@ -340,7 +345,7 @@ const BackupSection: React.FC = () => {
           {gdriveStatus?.connected && !connectingGdrive && (
             <div className="flex items-center justify-between px-3 py-3 rounded-lg bg-muted/30 border border-border">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="shrink-0">{GDRIVE_LOGO_SVG}</div>
+                <div className="shrink-0">{<GDRIVE_LOGO_SVG_Icon/>}</div>
                 <div className="min-w-0 space-y-0.5">
                   <p className="text-sm font-medium text-foreground truncate">
                     {t("backup.gdriveConnectedStatus")}
@@ -351,12 +356,16 @@ const BackupSection: React.FC = () => {
                     </p>
                   )}
                   <div className="flex items-center gap-2">
-                    <Badge variant="default" className="text-[10px] px-1.5 py-0 h-5">
+                    <Badge
+                      variant="default"
+                      className="text-[10px] px-1.5 py-0 h-5"
+                    >
                       {t("backup.gdriveConnected")}
                     </Badge>
                     {gdriveStatus.last_sync_at && (
                       <span className="text-[10px] text-muted-foreground">
-                        {t("backup.lastSynced")}: {formatLastSync(gdriveStatus.last_sync_at, t)}
+                        {t("backup.lastSynced")}:{" "}
+                        {formatLastSync(gdriveStatus.last_sync_at, t)}
                       </span>
                     )}
                   </div>
@@ -379,7 +388,9 @@ const BackupSection: React.FC = () => {
                 <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
                 <span>
                   {t("backup.configuredSummary", {
-                    frequency: t(`backup.${frequencyLabels[gdriveFrequency] || "freqDaily"}`),
+                    frequency: t(
+                      `backup.${frequencyLabels[gdriveFrequency] || "freqDaily"}`,
+                    ),
                   })}
                 </span>
                 <button
@@ -391,7 +402,8 @@ const BackupSection: React.FC = () => {
               </div>
               {settings?.gdrive_last_backup_at && (
                 <p>
-                  {t("backup.lastBackup")}: {formatDate(settings.gdrive_last_backup_at)}
+                  {t("backup.lastBackup")}:{" "}
+                  {formatDate(settings.gdrive_last_backup_at)}
                 </p>
               )}
             </div>
