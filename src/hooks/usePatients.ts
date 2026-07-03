@@ -87,6 +87,7 @@ export function useDeletePatient() {
     mutationFn: api.patients.delete,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
+      qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
     },

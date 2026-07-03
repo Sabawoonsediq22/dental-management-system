@@ -91,7 +91,6 @@ const PatientTable: React.FC<PatientTableProps> = ({
     if (!activePatient) return;
     deletePatientMutation.mutate(activePatient.id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "all" });
         toast.success({ title: t("patientProfile.notifications.deleted") });
       },
     });
