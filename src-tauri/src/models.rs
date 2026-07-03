@@ -203,10 +203,6 @@ pub struct RestoreBackupInput {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RestoreBackupResult {
     pub success: bool,
-    pub safety_backup_path: Option<String>,
-    pub restored_file: String,
-    pub file_size: i64,
-    pub restored_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

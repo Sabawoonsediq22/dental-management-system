@@ -435,10 +435,6 @@ export interface RestoreBackupInput {
 
 export interface RestoreBackupResult {
   success: boolean;
-  safety_backup_path: string | null;
-  restored_file: string;
-  file_size: number;
-  restored_at: string;
 }
 
 export interface BackupValidation {

@@ -1,7 +1,8 @@
 import React, { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "../../lib/api";
+import { relaunch } from "@tauri-apps/plugin-process";
 import BackupSection from "../../components/settings/BackupSection";
 import StatsCards from "../../components/settings/StatsCards";
 import {
@@ -25,7 +26,6 @@ import ClinicForm from "../../components/settings/ClinicForm";
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const clinicFormRef = useRef<{ save: () => void }>(null);
   const [brandingKey, setBrandingKey] = useState(0);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
@@ -42,17 +42,6 @@ const Settings: React.FC = () => {
   const restoreMutation = useMutation({
     mutationFn: (backupId: number) =>
       api.backups.restore({ backup_id: backupId }),
-    onSuccess: () => {
-      toast.success({
-        title:
-          "Database restored successfully. The application will now reload.",
-      });
-      queryClient.invalidateQueries();
-      setTimeout(() => window.location.reload(), 2000);
-    },
-    onError: (err) => {
-      toast.error({ title: "Restore failed", description: err?.toString() });
-    },
   });
 
   const handleClinicSaved = useCallback(() => {
@@ -85,15 +74,17 @@ const Settings: React.FC = () => {
     return <Badge variant={variant}>{status}</Badge>;
   };
 
-  const handleDeleteBackup = (id: number) => {
+  const handleDeleteBackup = async (id: number) => {
     if (confirm(t("backup.deleteConfirm"))) {
-      deleteBackup.mutate(id, {
-        onSuccess: () => toast.success({ title: t("backup.deleted") }),
-        onError: (err) =>
-          toast.error({
-            title: t("backup.deleteError"),
-            description: err?.toString(),
-          }),
+      toast.promise(deleteBackup.mutateAsync(id), {
+        loading: "Deleting backup...",
+        success: t("backup.deleted"),
+        error: (err) => {
+          const msg = err?.toString();
+          return msg
+            ? `${t("backup.deleteError")}: ${msg}`
+            : t("backup.deleteError");
+        },
       });
     }
   };
@@ -103,10 +94,18 @@ const Settings: React.FC = () => {
     setShowRestoreDialog(true);
   };
 
-  const confirmRestore = () => {
+  const confirmRestore = async () => {
     if (restoreTarget !== null) {
-      restoreMutation.mutate(restoreTarget);
+      const id = restoreTarget;
       setShowRestoreDialog(false);
+      toast.promise(restoreMutation.mutateAsync(id), {
+        loading: "Restoring backup...",
+        success: () => {
+          setTimeout(() => relaunch(), 2000);
+          return "Database restored successfully. The application will now restart.";
+        },
+        error: (err) => `Restore failed: ${err?.toString()}`,
+      });
     }
   };
 
@@ -249,7 +248,7 @@ const Settings: React.FC = () => {
         isOpen={showRestoreDialog}
         onClose={() => setShowRestoreDialog(false)}
         title="Restore Database"
-        description="This will replace the current database with the selected backup. A safety backup named 'database_before_restore.db' will be created automatically. If the restore fails, the original database will be restored. The application will reload after completion."
+        description="This will replace the current database with the selected backup and restart the application. Make sure you have a recent backup before proceeding."
         confirmText="Restore"
         onConfirm={confirmRestore}
         confirmVariant="destructive"
