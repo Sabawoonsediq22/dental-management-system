@@ -642,6 +642,8 @@ async fn restore_from_backup(
     let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
     let db_path_str = db_path.to_string_lossy().to_string();
 
+    let app_data = app.path().app_data_dir().unwrap();
+
     // Fetch the backup record so we can handle local and Google Drive backups
     let record = sqlx::query_as::<_, crate::models::BackupRecord>(
         "SELECT id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at
@@ -652,65 +654,69 @@ async fn restore_from_backup(
     .await
     .map_err(|e| e.to_string())?;
 
-    let backup_file_path = match record {
-        Some(r) => {
-            if r.cloud_provider == "local" {
-                // existing helper for local backups
-                BackupService::get_backup_file_path(&state.db, input.backup_id).await
-                    .map_err(|e| e.to_string())?
-            } else if r.cloud_provider == "google_drive" {
-                // download the file from Google Drive to a temp path
-                if let Some(file_id) = r.backup_path.strip_prefix("gdrive:") {
-                    let settings = BackupService::get_backup_settings(&state.db).await
-                        .map_err(|e| e.to_string())?;
-                    let client_id = settings.gdrive_client_id
-                        .filter(|s| !s.is_empty())
-                        .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
-                    if client_id.is_empty() {
-                        return Err("Google Drive client ID not configured".to_string());
-                    }
+    let record = record.ok_or_else(|| "Backup not found".to_string())?;
 
-                    let access_token = GDriveClient::ensure_valid_token(
-                        &client_id,
-                        Some(state.config.google_oauth_client_secret.as_str()),
-                        &app.path().app_data_dir().unwrap(),
-                    )
-                    .await
-                    .map_err(|e| e.to_string())?;
+    let is_gdrive = record.cloud_provider == "google_drive";
 
-                    let tmp_dir = app.path().app_data_dir().unwrap().join("gdrive_restores");
-                    std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
-                    let filename = format!("gdrive_restore_{}_{}.db", input.backup_id, chrono::Utc::now().format("%Y%m%d_%H%M%S"));
-                    let dest_path = tmp_dir.join(filename);
+    let backup_file_path = if record.cloud_provider == "local" {
+        BackupService::get_backup_file_path(&state.db, input.backup_id).await
+            .map_err(|e| e.to_string())?
+    } else if record.cloud_provider == "google_drive" {
+        let file_id = record.backup_path.strip_prefix("gdrive:")
+            .ok_or_else(|| "Invalid Google Drive backup path".to_string())?;
 
-                    GDriveClient::download_file(&access_token, file_id, &dest_path).await.map_err(|e| e.to_string())?;
-                    dest_path.to_string_lossy().to_string()
-                } else {
-                    return Err("Invalid Google Drive backup path".to_string());
-                }
-            } else {
-                return Err("Unsupported backup provider".to_string());
-            }
+        let settings = BackupService::get_backup_settings(&state.db).await
+            .map_err(|e| e.to_string())?;
+        let client_id = settings.gdrive_client_id
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
+
+        if client_id.is_empty() {
+            return Err("Google Drive client ID not configured".to_string());
         }
-        None => return Err("Backup not found".to_string()),
+
+        let access_token = GDriveClient::ensure_valid_token(
+            &client_id,
+            Some(state.config.google_oauth_client_secret.as_str()),
+            &app_data,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+        // Download to a temporary location (requirement 3)
+        let tmp_dir = app_data.join("gdrive_restores");
+        std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
+        let filename = format!("gdrive_restore_{}_{}.db", input.backup_id, chrono::Utc::now().format("%Y%m%d_%H%M%S"));
+        let dest_path = tmp_dir.join(filename);
+
+        GDriveClient::download_file(&access_token, file_id, &dest_path).await
+            .map_err(|e| e.to_string())?;
+
+        dest_path.to_string_lossy().to_string()
+    } else {
+        return Err("Unsupported backup provider".to_string());
     };
 
     let result = BackupService::restore_from_backup(
         &state.db,
         &db_path_str,
         &backup_file_path,
-        input.create_safety_backup,
     )
     .await
     .map_err(|e| e.to_string())?;
 
-    Ok(crate::models::RestoreBackupResult {
-        success: result.success,
-        safety_backup_path: result.safety_backup_path,
-        restored_file: result.restored_file,
-        file_size: result.file_size,
-        restored_at: result.restored_at,
-    })
+    // Clean up the downloaded temporary file for GDrive backups (requirement 9)
+    if is_gdrive {
+        std::fs::remove_file(&backup_file_path).ok();
+        // Also try to clean up the temp directory if empty
+        if let Some(parent) = std::path::Path::new(&backup_file_path).parent() {
+            if parent.is_dir() && parent.read_dir().map(|mut d| d.next().is_none()).unwrap_or(false) {
+                std::fs::remove_dir(parent).ok();
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 #[tauri::command]

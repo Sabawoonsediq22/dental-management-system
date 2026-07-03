@@ -198,7 +198,6 @@ pub struct Payment {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RestoreBackupInput {
     pub backup_id: i64,
-    pub create_safety_backup: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

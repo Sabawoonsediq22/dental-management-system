@@ -41,7 +41,7 @@ const Settings: React.FC = () => {
 
   const restoreMutation = useMutation({
     mutationFn: (backupId: number) =>
-      api.backups.restore({ backup_id: backupId, create_safety_backup: true }),
+      api.backups.restore({ backup_id: backupId }),
     onSuccess: () => {
       toast.success({
         title:
@@ -249,11 +249,11 @@ const Settings: React.FC = () => {
         isOpen={showRestoreDialog}
         onClose={() => setShowRestoreDialog(false)}
         title="Restore Database"
-        description="This will replace the current database with the backup. A safety backup of the current database will be created automatically."
+        description="This will replace the current database with the selected backup. A safety backup named 'database_before_restore.db' will be created automatically. If the restore fails, the original database will be restored. The application will reload after completion."
         confirmText="Restore"
         onConfirm={confirmRestore}
         confirmVariant="destructive"
-        isLoading={restoreMutation.isLoading}
+        isLoading={restoreMutation.isPending}
       />
     </div>
   );

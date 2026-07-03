@@ -431,7 +431,6 @@ export interface GDriveStatus {
 
 export interface RestoreBackupInput {
   backup_id: number;
-  create_safety_backup: boolean;
 }
 
 export interface RestoreBackupResult {

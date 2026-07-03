@@ -302,9 +302,12 @@ impl BackupService {
         pool: &SqlitePool,
         db_path: &str,
         backup_path: &str,
-        create_safety_backup: bool,
     ) -> AppResult<RestoreBackupResult> {
         let backup_file = std::path::Path::new(backup_path);
+        let db_file = std::path::Path::new(db_path);
+        let db_dir = db_file.parent().unwrap_or(std::path::Path::new("."));
+
+        // Step 1: Validate backup file exists and is a valid SQLite database
         if !backup_file.exists() {
             return Err(AppError::Restore(format!(
                 "Backup file not found: {}",
@@ -312,49 +315,171 @@ impl BackupService {
             )));
         }
 
-        // Validate the backup file is a valid SQLite database
         let file_size = std::fs::metadata(backup_file)
             .map(|m| m.len())
-            .unwrap_or(0);
+            .map_err(|e| AppError::Restore(format!("Cannot read backup file: {}", e)))?;
         if file_size == 0 {
             return Err(AppError::Restore("Backup file is empty".into()));
         }
 
-        // Quick validation: check SQLite header magic bytes
+        // Check SQLite header magic bytes
         let header = std::fs::read(backup_file)
             .map_err(|e| AppError::Restore(format!("Failed to read backup file: {}", e)))?;
         if header.len() < 16 || &header[..16] != b"SQLite format 3\0" {
-            return Err(AppError::Restore("Invalid SQLite database file".into()));
+            return Err(AppError::Restore("Invalid SQLite database file (missing SQLite header)".into()));
         }
 
-        let safety_backup_path = if create_safety_backup {
-            let current_db_path = std::path::Path::new(db_path);
-            let safety_dir = current_db_path
-                .parent()
-                .unwrap_or(std::path::Path::new("."))
-                .join("safety_backups");
-            std::fs::create_dir_all(&safety_dir)?;
-            let now = Utc::now().format("%Y%m%d_%H%M%S");
-            let safety_path = safety_dir.join(format!("pre_restore_{}.db", now));
-            std::fs::copy(current_db_path, &safety_path)?;
-            Some(safety_path.to_string_lossy().to_string())
+        // Full integrity check on the backup file
+        let opts = sqlx::sqlite::SqliteConnectOptions::new()
+            .filename(backup_path)
+            .read_only(true);
+        let test_pool = SqlitePool::connect_with(opts)
+            .await
+            .map_err(|e| AppError::Restore(format!("Failed to open backup for validation: {}", e)))?;
+
+        let integrity: String = sqlx::query_scalar("PRAGMA integrity_check")
+            .fetch_one(&test_pool)
+            .await
+            .unwrap_or_else(|_| "error".to_string());
+
+        let table_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'",
+        )
+        .fetch_one(&test_pool)
+        .await
+        .unwrap_or(0);
+
+        test_pool.close().await;
+
+        if integrity.trim() != "ok" {
+            return Err(AppError::Restore(format!(
+                "Backup file integrity check failed: {}",
+                integrity
+            )));
+        }
+        if table_count == 0 {
+            return Err(AppError::Restore(
+                "Backup file contains no database tables".into(),
+            ));
+        }
+
+        // Safety backup path in the same directory as the database
+        let safety_path = db_dir.join("database_before_restore.db");
+
+        // Temp file for atomic replacement (same filesystem as db)
+        let temp_path = db_dir.join("dental_clinic_restore_temp.db");
+
+        // Clean up any stale temp file from a previous failed restore
+        if temp_path.exists() {
+            std::fs::remove_file(&temp_path).ok();
+        }
+
+        // Step 3: Create safety backup of the current database
+        let safety_created = if db_file.exists() {
+            match std::fs::copy(db_file, &safety_path) {
+                Ok(_) => {
+                    println!(
+                        "Safety backup created at: {}",
+                        safety_path.display()
+                    );
+                    true
+                }
+                Err(e) => {
+                    return Err(AppError::Restore(format!(
+                        "Failed to create safety backup: {}",
+                        e
+                    )));
+                }
+            }
         } else {
-            None
+            false
         };
 
-        // Close the current pool and replace the database
+        // Step 4: WAL checkpoint to flush all pending writes to the main DB file
+        let _ = sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
+            .execute(pool)
+            .await;
+
+        // Step 5: Close all database connections
         pool.close().await;
 
-        // Copy backup file to current database location
-        std::fs::copy(backup_file, db_path)?;
+        // Step 6: Atomically replace the database file
+        // First copy backup to a temp file in the same directory (ensuring we can rename atomically)
+        if let Err(e) = std::fs::copy(backup_file, &temp_path) {
+            // Attempt rollback: restore safety backup back to original location
+            Self::rollback_restore(&safety_path, db_file, &temp_path, safety_created);
+            return Err(AppError::Restore(format!(
+                "Failed to copy backup to database location: {}",
+                e
+            )));
+        }
+
+        // Rename temp file to the actual database path (atomic on same filesystem)
+        if let Err(e) = std::fs::rename(&temp_path, db_file) {
+            // Clean up temp file first
+            std::fs::remove_file(&temp_path).ok();
+            // Attempt rollback
+            Self::rollback_restore(&safety_path, db_file, &temp_path, safety_created);
+            return Err(AppError::Restore(format!(
+                "Failed to replace database file: {}",
+                e
+            )));
+        }
+
+        // Clean up WAL and SHM files from the old database to prevent conflicts
+        let wal_path = db_dir.join("dental_clinic.db-wal");
+        if wal_path.exists() {
+            std::fs::remove_file(&wal_path).ok();
+        }
+        let shm_path = db_dir.join("dental_clinic.db-shm");
+        if shm_path.exists() {
+            std::fs::remove_file(&shm_path).ok();
+        }
+
+        println!(
+            "Database restored successfully from: {} (size: {} bytes)",
+            backup_path, file_size
+        );
 
         Ok(RestoreBackupResult {
             success: true,
-            safety_backup_path,
+            safety_backup_path: Some(safety_path.to_string_lossy().to_string()),
             restored_file: db_path.to_string(),
             file_size: file_size as i64,
             restored_at: Utc::now().to_rfc3339(),
         })
+    }
+
+    /// Attempts to roll back a failed restore by replacing the current database
+    /// with the safety backup. Safe to call even if partial state exists.
+    fn rollback_restore(
+        safety_path: &std::path::Path,
+        db_file: &std::path::Path,
+        temp_path: &std::path::Path,
+        safety_created: bool,
+    ) {
+        if !safety_created {
+            return;
+        }
+        // Remove the failed restored file if it exists
+        if db_file.exists() {
+            std::fs::remove_file(db_file).ok();
+        }
+        // Rename safety backup back to original database path
+        if safety_path.exists() {
+            if let Err(e) = std::fs::rename(safety_path, db_file) {
+                eprintln!(
+                    "CRITICAL: Failed to restore safety backup. Manual intervention required: {}",
+                    e
+                );
+            } else {
+                println!("Rollback successful: original database restored from safety backup");
+            }
+        }
+        // Clean up any temp file
+        if temp_path.exists() {
+            std::fs::remove_file(temp_path).ok();
+        }
     }
 
     pub async fn validate_backup_file(backup_path: &str) -> AppResult<BackupValidation> {
