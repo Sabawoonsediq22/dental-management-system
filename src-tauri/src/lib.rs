@@ -525,19 +525,22 @@ async fn delete_backup(
             if path.exists() {
                 std::fs::remove_file(path).ok();
             }
-        } else if r.cloud_provider == "google_drive" {
-            if let Some(file_id) = r.backup_path.strip_prefix("gdrive:") {
-                let settings = BackupService::get_backup_settings(&state.db).await.ok();
-                let cid = settings.and_then(|s| s.gdrive_client_id);
-                let client_secret = state.config.google_oauth_client_secret.as_str();
-                if let Some(ref client_id) = cid {
-                    if !client_id.is_empty() {
-                        if let Ok(token) = GDriveClient::ensure_valid_token(client_id, Some(client_secret), &app_data).await {
-                            GDriveClient::delete_file(&token, file_id).await.ok();
-                        }
-                    }
-                }
+        } else if let Some(file_id) = r.backup_path.strip_prefix("gdrive:") {
+            let settings = BackupService::get_backup_settings(&state.db).await?;
+            let client_id = settings.gdrive_client_id
+                .filter(|s| !s.is_empty())
+                .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
+            if client_id.is_empty() {
+                return Err("Google Drive client ID not configured".to_string());
             }
+
+            let token = GDriveClient::ensure_valid_token(
+                &client_id,
+                Some(state.config.google_oauth_client_secret.as_str()),
+                &app_data,
+            )
+            .await?;
+            GDriveClient::delete_file(&token, file_id).await?;
         }
 
         sqlx::query("DELETE FROM backups WHERE id = ?")

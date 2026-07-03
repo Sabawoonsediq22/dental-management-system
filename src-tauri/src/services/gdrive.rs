@@ -576,9 +576,12 @@ impl GDriveClient {
             .await
             .map_err(|e| AppError::Http(e.to_string()))?;
 
-        if !resp.status().is_success() {
-            eprintln!("Warning: Drive file delete failed: {}", resp.text().await.unwrap_or_default());
+        let status = resp.status();
+        if status.is_success() || status.as_u16() == 404 {
+            return Ok(());
         }
-        Ok(())
+
+        let text = resp.text().await.unwrap_or_default();
+        Err(AppError::Http(format!("delete failed ({}): {}", status, text)))
     }
 }
