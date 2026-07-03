@@ -584,4 +584,27 @@ impl GDriveClient {
         let text = resp.text().await.unwrap_or_default();
         Err(AppError::Http(format!("delete failed ({}): {}", status, text)))
     }
+
+    pub async fn download_file(access_token: &str, file_id: &str, dest: &PathBuf) -> AppResult<()> {
+        let client = reqwest::Client::builder()
+            .build()
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        let url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", file_id);
+        let resp = client.get(&url)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        let status = resp.status();
+        if !status.is_success() {
+            return Err(AppError::Http(format!("download failed: {}", status)));
+        }
+
+        let bytes = resp.bytes().await.map_err(|e| AppError::Http(e.to_string()))?;
+        std::fs::create_dir_all(dest.parent().unwrap_or_else(|| std::path::Path::new(".")))?;
+        std::fs::write(dest, &bytes)?;
+        Ok(())
+    }
 }

@@ -96,7 +96,7 @@ const Dialog: React.FC<DialogProps> = ({
             </div>
           )}
           <div className="p-6 overflow-y-auto">{children}</div>
-          {footer && <div className="p-6 pt-0 border-t">{footer}</div>}
+          {footer && <div className="p-6 pt-3 border-t">{footer}</div>}
         </div>
       </div>
     </div>

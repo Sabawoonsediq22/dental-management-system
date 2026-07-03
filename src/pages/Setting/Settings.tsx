@@ -177,6 +177,13 @@ const Settings: React.FC = () => {
             onClick: () => handleRestore(row.id as number),
           });
         }
+        // Allow restoring from Google Drive backups as well
+        if (row.status === "success" && row.cloud_provider === "google_drive") {
+          actions.push({
+            label: "Restore",
+            onClick: () => handleRestore(row.id as number),
+          });
+        }
         actions.push({
           label: t("common.delete"),
           onClick: () => handleDeleteBackup(row.id as number),
@@ -246,6 +253,7 @@ const Settings: React.FC = () => {
         confirmText="Restore"
         onConfirm={confirmRestore}
         confirmVariant="destructive"
+        isLoading={restoreMutation.isLoading}
       />
     </div>
   );
