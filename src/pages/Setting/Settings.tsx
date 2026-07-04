@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "../../lib/api";
+import { exit } from "@tauri-apps/plugin-process";
 
 import BackupSection from "../../components/settings/BackupSection";
 import StatsCards from "../../components/settings/StatsCards";
@@ -30,6 +31,7 @@ const Settings: React.FC = () => {
   const [brandingKey, setBrandingKey] = useState(0);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState<number | null>(null);
+  const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
 
   const { data: settings } = useQuery({
     queryKey: ["settings"],
@@ -98,15 +100,20 @@ const Settings: React.FC = () => {
     if (restoreTarget !== null) {
       const id = restoreTarget;
       setShowRestoreDialog(false);
-      const promise = restoreMutation.mutateAsync(id);
-      toast.promise(promise, {
-        loading: "Restoring backup...",
-        success:
-          "Database restored successfully. Please restart the app to take effect.",
-        error: (err) => `Restore failed: ${err?.toString()}`,
-      });
-      await promise;
+      try {
+        await restoreMutation.mutateAsync(id);
+        setShowRestoreSuccess(true);
+      } catch (err) {
+        toast.error({
+          title: "Restore failed",
+          description: (err as Error)?.toString(),
+        });
+      }
     }
+  };
+
+  const handleRestoreExit = async () => {
+    await exit(0);
   };
 
   const backupColumns = [
@@ -254,6 +261,28 @@ const Settings: React.FC = () => {
         confirmVariant="destructive"
         isLoading={restoreMutation.isPending}
       />
+
+      {showRestoreSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="fixed inset-0 bg-background/90 backdrop-blur-md" />
+          <div className="relative z-10 w-full max-w-md mx-4 bg-background rounded-lg shadow-xl border p-8 text-center space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-foreground">
+                Restore Complete
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Database restored successfully. Click OK to close the app, then restart it manually for the changes to take effect.
+              </p>
+            </div>
+            <button
+              onClick={handleRestoreExit}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
