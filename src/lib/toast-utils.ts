@@ -60,8 +60,12 @@ const toastPromise = <T,>(
   return sonnerToast.promise(promise, messages);
 };
 
-const toastDismiss = (id?: string) => {
+const toastDismiss = (id?: string | number) => {
   sonnerToast.dismiss(id);
+};
+
+const toastLoading = (title: string) => {
+  return sonnerToast.loading(title);
 };
 
 export const toast = {
@@ -72,4 +76,5 @@ export const toast = {
   message: toastMessage,
   promise: toastPromise,
   dismiss: toastDismiss,
+  loading: toastLoading,
 };

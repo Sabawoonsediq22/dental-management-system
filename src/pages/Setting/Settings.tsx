@@ -100,10 +100,13 @@ const Settings: React.FC = () => {
     if (restoreTarget !== null) {
       const id = restoreTarget;
       setShowRestoreDialog(false);
+      const loadingToastId = toast.loading("Restoring backup...");
       try {
         await restoreMutation.mutateAsync(id);
+        toast.dismiss(loadingToastId);
         setShowRestoreSuccess(true);
       } catch (err) {
+        toast.dismiss(loadingToastId);
         toast.error({
           title: "Restore failed",
           description: (err as Error)?.toString(),
