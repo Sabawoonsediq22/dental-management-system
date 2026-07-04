@@ -1,8 +1,8 @@
 [package]
-name = "khwaja-dental-clinic"
+name = "parsa-dental-clinic"
 version = "0.1.0"
 description = "Dental Clinic Management System"
-authors = ["Khwaja Clinic"]
+authors = ["Parsa Technology"]
 edition = "2021"
 license = "MIT"
 repository = ""
@@ -37,6 +37,6 @@ log = "0.4"
 env_logger = "0.11"
 
 [package.metadata.windows]
-company-name = "Khwaja Clinic"
-product-name = "Khwaja Dental & Implants Clinic"
-copyright = "Copyright (C) 2026 Khwaja Clinic"
+company-name = "Parsa Technology"
+product-name = "Parsa Dental & Implants Clinic"
+copyright = "Copyright (C) 2026 Parsa Technology"

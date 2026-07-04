@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Khwaja Dental & Implants Clinic",
+  "productName": "Parsa Dental & Implants Clinic",
   "version": "0.1.0",
-  "identifier": "com.khwaja.dentalclinic",
+  "identifier": "com.parsa.technology.dentalclinic",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Khwaja Dental & Implants Clinic",
+        "title": "Parsa Dental & Implants Clinic",
         "width": 1000,
         "height": 600,
         "minWidth": 900,
@@ -30,11 +30,9 @@
     "publisher": "Parsa Technology",
     "targets": "nsis",
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
+      "icons/icon.ico",
       "icons/icon.icns",
-      "icons/icon.ico"
+      "icons/icon.png"
     ],
     "windows": {
       "wix": {
@@ -42,7 +40,10 @@
         "template": "default"
       },
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "startMenuFolder": "Parsa Technology"
       }
     },
     "macOS": {
