@@ -607,4 +607,49 @@ impl GDriveClient {
         std::fs::write(dest, &bytes)?;
         Ok(())
     }
+
+    pub async fn list_files(access_token: &str, folder_id: &str) -> AppResult<Vec<crate::models::GDriveBackupFile>> {
+        let client = reqwest::Client::builder()
+            .build()
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        let query = format!(
+            "'{}' in parents and not mimeType contains 'folder' and trashed=false",
+            folder_id
+        );
+        let fields = "files(id,name,size,modifiedTime)";
+
+        let resp = client.get("https://www.googleapis.com/drive/v3/files")
+            .query(&[
+                ("q", query.as_ref()),
+                ("fields", fields.as_ref()),
+                ("orderBy", "modifiedTime desc"),
+            ])
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(|e| AppError::Http(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            return Err(AppError::OAuth(format!("list files failed: {}", resp.text().await.unwrap_or_default())));
+        }
+
+        let text = resp.text().await
+            .map_err(|e| AppError::Http(e.to_string()))?;
+        let v: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| AppError::Serde(e))?;
+
+        let files = v["files"].as_array()
+            .ok_or_else(|| AppError::OAuth("missing files array".into()))?;
+
+        let result = files.iter().map(|f| {
+            let id = f["id"].as_str().unwrap_or("").to_string();
+            let name = f["name"].as_str().unwrap_or("").to_string();
+            let size = f["size"].as_str().and_then(|s| s.parse::<i64>().ok());
+            let modified_time = f["modifiedTime"].as_str().map(|s| s.to_string());
+            crate::models::GDriveBackupFile { id, name, size, modified_time }
+        }).collect();
+
+        Ok(result)
+    }
 }

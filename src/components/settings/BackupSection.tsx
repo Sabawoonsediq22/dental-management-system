@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
+import { exit } from "@tauri-apps/plugin-process";
+import { api } from "../../lib/api";
+import type { GDriveBackupFile } from "../../types/ApiTypes";
 import {
   Card,
   CardHeader,
@@ -13,6 +17,7 @@ import {
   Switch,
   ConfirmDialog,
   Badge,
+  Modal,
   toast,
 } from "../ui";
 import {
@@ -83,10 +88,21 @@ const BackupSection: React.FC = () => {
   const [connectingGdrive, setConnectingGdrive] = useState(false);
   const [localBackupInProgress, setLocalBackupInProgress] = useState(false);
   const [gdriveBackupInProgress, setGdriveBackupInProgress] = useState(false);
+  const [showGdriveRestoreModal, setShowGdriveRestoreModal] = useState(false);
+  const [gdriveFiles, setGdriveFiles] = useState<GDriveBackupFile[]>([]);
+  const [gdriveFilesLoading, setGdriveFilesLoading] = useState(false);
+  const [gdriveFilesError, setGdriveFilesError] = useState<string | null>(null);
+  const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
+  const [restoreInProgress, setRestoreInProgress] = useState(false);
 
   const localBackupInProgressRef = useRef(false);
   const gdriveBackupInProgressRef = useRef(false);
   const connectingRef = useRef(false);
+
+  const restoreGdriveMutation = useMutation({
+    mutationFn: (fileId: string) =>
+      api.backups.restoreGdriveFile({ file_id: fileId, file_name: null }),
+  });
 
   useEffect(() => {
     if (settings) {
@@ -309,6 +325,43 @@ const BackupSection: React.FC = () => {
     }
   };
 
+  const handleOpenGdriveRestore = async () => {
+    setShowGdriveRestoreModal(true);
+    setGdriveFilesLoading(true);
+    setGdriveFilesError(null);
+    try {
+      const files = await api.backups.listGdriveFiles();
+      setGdriveFiles(files);
+    } catch (err) {
+      setGdriveFilesError((err as Error)?.toString());
+    } finally {
+      setGdriveFilesLoading(false);
+    }
+  };
+
+  const handleRestoreGdriveFile = async (fileId: string) => {
+    setShowGdriveRestoreModal(false);
+    setRestoreInProgress(true);
+    const loadingToastId = toast.loading("Restoring backup...");
+    try {
+      await restoreGdriveMutation.mutateAsync(fileId);
+      toast.dismiss(loadingToastId);
+      setRestoreInProgress(false);
+      setShowRestoreSuccess(true);
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      setRestoreInProgress(false);
+      toast.error({
+        title: "Restore failed",
+        description: (err as Error)?.toString(),
+      });
+    }
+  };
+
+  const handleRestoreExit = async () => {
+    await exit(0);
+  };
+
   if (settingsLoading) {
     return (
       <Card>
@@ -433,10 +486,10 @@ const BackupSection: React.FC = () => {
           <h3 className="text-sm font-semibold text-foreground">
             {t("backup.manualBackup")}
           </h3>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <Button
               size="sm"
-              className="flex-1"
+              className="w-full"
               onClick={() => handleBackupNow("local")}
               disabled={localBackupInProgress}
             >
@@ -455,7 +508,7 @@ const BackupSection: React.FC = () => {
             <Button
               size="sm"
               variant="secondary"
-              className="flex-1"
+              className="w-full"
               onClick={() => handleBackupNow("google_drive")}
               disabled={gdriveBackupInProgress || !gdriveStatus?.connected}
             >
@@ -471,6 +524,15 @@ const BackupSection: React.FC = () => {
                 </>
               )}
             </Button>
+            {gdriveStatus?.connected && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleOpenGdriveRestore}
+              >
+                {t("backup.restoreFromGdrive")}
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
@@ -498,6 +560,89 @@ const BackupSection: React.FC = () => {
           {t("backup.gdriveDisconnectConfirmDesc")}
         </p>
       </ConfirmDialog>
+
+      {/* GDrive Restore Modal */}
+      <Modal
+        isOpen={showGdriveRestoreModal}
+        onClose={() => setShowGdriveRestoreModal(false)}
+        title={t("backup.restoreFromGdrive")}
+        size="lg"
+        showCloseButton={!restoreInProgress}
+      >
+        {gdriveFilesLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <LoadingIcon size="md" />
+          </div>
+        ) : gdriveFilesError ? (
+          <div className="text-sm text-destructive py-4">
+            {gdriveFilesError}
+          </div>
+        ) : gdriveFiles.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4">
+            No backups found in Google Drive.
+          </p>
+        ) : (
+          <div className="space-y-1 max-h-80 overflow-y-auto -mx-1">
+            {gdriveFiles.map((file) => (
+              <button
+                key={file.id}
+                onClick={() => handleRestoreGdriveFile(file.id)}
+                disabled={restoreInProgress}
+                className="w-full text-left px-3 py-3 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {file.modified_time
+                        ? formatDate(file.modified_time)
+                        : "Unknown date"}
+                    </p>
+                  </div>
+                  {file.size != null && (
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Restore Success Blocking Overlay */}
+      {showRestoreSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm">
+          <div className="mx-auto max-w-sm text-center space-y-4 p-8">
+            <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto" />
+            <h2 className="text-xl font-semibold">
+              Restore Complete
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              The backup has been restored. Please restart the application to
+              apply the changes.
+            </p>
+            <Button onClick={handleRestoreExit}>
+              OK
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Restore In Progress Overlay */}
+      {restoreInProgress && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm">
+          <div className="mx-auto max-w-sm text-center space-y-4 p-8">
+            <LoadingIcon size="lg" />
+            <p className="text-sm text-muted-foreground">
+              Restoring backup...
+            </p>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };

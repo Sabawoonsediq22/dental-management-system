@@ -783,6 +783,7 @@
     "manualBackup": "لاسي بیک اپ",
     "backupNowLocal": "اوس بیک اپ واخلئ (محلي)",
     "backupNowGdrive": "اوس بیک اپ واخلئ (ګوګل ډرایو)",
+    "restoreFromGdrive": "بیرته راوړل (ګوګل ډرایو)",
     "lastBackup": "وروستی بیک اپ",
     "noLastBackup": "تر اوسه بیک اپ نشته",
     "googleDrive": "ګوګل ډرایو",

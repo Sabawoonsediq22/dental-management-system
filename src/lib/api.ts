@@ -43,6 +43,8 @@ import type {
   RestoreBackupInput,
   RestoreBackupResult,
   BackupValidation,
+  GDriveBackupFile,
+  RestoreGDriveFileInput,
 } from "../types/ApiTypes";
 
 export const api = {
@@ -179,5 +181,9 @@ export const api = {
       invoke<BackupValidation>("validate_backup_file", { path }),
     getAvailableFiles: () =>
       invoke<BackupRecord[]>("get_available_backup_files"),
+    listGdriveFiles: () =>
+      invoke<GDriveBackupFile[]>("list_gdrive_backup_files"),
+    restoreGdriveFile: (input: RestoreGDriveFileInput) =>
+      invoke<RestoreBackupResult>("restore_gdrive_file", { input }),
   },
 };

@@ -761,6 +761,98 @@ async fn get_available_backup_files(
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn list_gdrive_backup_files(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Vec<GDriveBackupFile>, String> {
+    let app_data = app.path().app_data_dir().unwrap();
+    let settings = BackupService::get_backup_settings(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let client_id = settings.gdrive_client_id
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
+
+    if client_id.is_empty() {
+        return Err("Google Drive client ID not configured".to_string());
+    }
+
+    let access_token = GDriveClient::ensure_valid_token(
+        &client_id,
+        Some(state.config.google_oauth_client_secret.as_str()),
+        &app_data,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
+    let folder_id = settings.gdrive_folder_id
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "Google Drive backup folder not found".to_string())?;
+
+    GDriveClient::list_files(&access_token, &folder_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn restore_gdrive_file(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    input: RestoreGDriveFileInput,
+) -> Result<RestoreBackupResult, String> {
+    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let db_path_str = db_path.to_string_lossy().to_string();
+    let app_data = app.path().app_data_dir().unwrap();
+
+    let settings = BackupService::get_backup_settings(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let client_id = settings.gdrive_client_id
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
+
+    if client_id.is_empty() {
+        return Err("Google Drive client ID not configured".to_string());
+    }
+
+    let access_token = GDriveClient::ensure_valid_token(
+        &client_id,
+        Some(state.config.google_oauth_client_secret.as_str()),
+        &app_data,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
+    let tmp_dir = app_data.join("gdrive_restores");
+    std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
+    let filename = format!("gdrive_restore_{}.db", input.file_id);
+    let dest_path = tmp_dir.join(filename);
+
+    GDriveClient::download_file(&access_token, &input.file_id, &dest_path)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let result = BackupService::restore_from_backup(
+        &state.db,
+        &db_path_str,
+        &dest_path.to_string_lossy(),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
+    std::fs::remove_file(&dest_path).ok();
+    if let Some(parent) = dest_path.parent() {
+        if parent.is_dir() && parent.read_dir().map(|mut d| d.next().is_none()).unwrap_or(false) {
+            std::fs::remove_dir(parent).ok();
+        }
+    }
+
+    Ok(result)
+}
+
 async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
         Ok(s) => s,
@@ -950,6 +1042,8 @@ pub fn run() {
             restore_from_backup,
             validate_backup_file,
             get_available_backup_files,
+            list_gdrive_backup_files,
+            restore_gdrive_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

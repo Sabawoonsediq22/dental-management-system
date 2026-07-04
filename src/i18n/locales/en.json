@@ -783,6 +783,7 @@
     "manualBackup": "Manual Backup",
     "backupNowLocal": "Back Up Now (Local)",
     "backupNowGdrive": "Back Up Now (Google Drive)",
+    "restoreFromGdrive": "Restore (Google Drive)",
     "lastBackup": "Last backup",
     "noLastBackup": "No backups yet",
     "googleDrive": "Google Drive",

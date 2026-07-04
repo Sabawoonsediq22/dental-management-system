@@ -437,6 +437,18 @@ export interface RestoreBackupResult {
   success: boolean;
 }
 
+export interface GDriveBackupFile {
+  id: string;
+  name: string;
+  size: number | null;
+  modified_time: string | null;
+}
+
+export interface RestoreGDriveFileInput {
+  file_id: string;
+  file_name: string | null;
+}
+
 export interface BackupValidation {
   valid: boolean;
   file_size: number;

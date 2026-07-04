@@ -206,6 +206,20 @@ pub struct RestoreBackupResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct GDriveBackupFile {
+    pub id: String,
+    pub name: String,
+    pub size: Option<i64>,
+    pub modified_time: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RestoreGDriveFileInput {
+    pub file_id: String,
+    pub file_name: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct BackupValidation {
     pub valid: bool,
     pub file_size: i64,
