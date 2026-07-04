@@ -126,7 +126,7 @@ export default function TitleBar({ clinicLogo }: TitleBarProps) {
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         className={cn(
-          "flex h-9 w-full select-none items-center",
+          "flex h-10 w-full select-none items-center",
           "border-b",
           isDark
             ? "bg-gray-800 border-[#3c3c3c] text-white"

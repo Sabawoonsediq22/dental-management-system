@@ -705,6 +705,30 @@ async fn restore_from_backup(
     .await
     .map_err(|e| e.to_string())?;
 
+    // Preserve this backup record in the restored database
+    let opts = sqlx::sqlite::SqliteConnectOptions::new()
+        .filename(&db_path_str)
+        .create_if_missing(false);
+    if let Ok(temp_pool) = sqlx::SqlitePool::connect_with(opts).await {
+        sqlx::query(
+            "INSERT OR REPLACE INTO backups (id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        .bind(record.id)
+        .bind(&record.backup_type)
+        .bind(&record.backup_path)
+        .bind(&record.cloud_provider)
+        .bind("success")
+        .bind(record.file_size)
+        .bind(&record.error_message)
+        .bind(&record.created_at)
+        .bind(&record.completed_at)
+        .execute(&temp_pool)
+        .await
+        .ok();
+        temp_pool.close().await;
+    }
+
     // Clean up the downloaded temporary file for GDrive backups (requirement 9)
     if is_gdrive {
         std::fs::remove_file(&backup_file_path).ok();
@@ -836,6 +860,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let config = tauri::async_runtime::block_on(async {
                 AppConfig::load().map_err(|e| {

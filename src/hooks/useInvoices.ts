@@ -1,7 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-export function useInvoices(params: { query?: string; status?: string; page?: number; perPage?: number }) {
+export function useInvoices(params: {
+  query?: string;
+  status?: string;
+  page?: number;
+  perPage?: number;
+}) {
   return useQuery({
     queryKey: ["invoices", params],
     queryFn: () => api.invoices.list(params),
@@ -31,6 +36,8 @@ export function useAddPayment() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["payments"], refetchType: "all" });
+      // Ensure any open receipt previews refresh after a payment
+      qc.invalidateQueries({ queryKey: ["receipt"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     },
@@ -43,7 +50,12 @@ export function useRecordPayment() {
     mutationFn: api.payments.add,
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["invoices"], refetchType: "all" });
-      qc.invalidateQueries({ queryKey: ["payments", variables.invoice_id], refetchType: "all" });
+      qc.invalidateQueries({
+        queryKey: ["payments", variables.invoice_id],
+        refetchType: "all",
+      });
+      // Refresh receipts related to this invoice/visit/patient
+      qc.invalidateQueries({ queryKey: ["receipt"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["reports"], refetchType: "all" });
       qc.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     },

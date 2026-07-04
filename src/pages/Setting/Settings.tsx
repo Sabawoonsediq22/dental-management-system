@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "../../lib/api";
-import { relaunch } from "@tauri-apps/plugin-process";
+
 import BackupSection from "../../components/settings/BackupSection";
 import StatsCards from "../../components/settings/StatsCards";
 import {
@@ -98,14 +98,14 @@ const Settings: React.FC = () => {
     if (restoreTarget !== null) {
       const id = restoreTarget;
       setShowRestoreDialog(false);
-      toast.promise(restoreMutation.mutateAsync(id), {
+      const promise = restoreMutation.mutateAsync(id);
+      toast.promise(promise, {
         loading: "Restoring backup...",
-        success: () => {
-          setTimeout(() => relaunch(), 2000);
-          return "Database restored successfully. The application will now restart.";
-        },
+        success:
+          "Database restored successfully. Please restart the app to take effect.",
         error: (err) => `Restore failed: ${err?.toString()}`,
       });
+      await promise;
     }
   };
 
