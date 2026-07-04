@@ -33,7 +33,6 @@ export const DeleteIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-
 // Navigation icons
 export const DashboardIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
@@ -624,7 +623,12 @@ export const ErrorTriangleIcon: React.FC<IconProps> = ({
       strokeWidth={2}
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
     />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 9v4m0 4h.01"
+    />
   </svg>
 );
 
@@ -650,6 +654,317 @@ export const LoadingIcon: React.FC<IconProps> = ({
       className="opacity-75"
       fill="currentColor"
       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    />
+  </svg>
+);
+
+export const Smile: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 14c1 1.5 2.5 2.5 4 2.5s3-1 4-2.5"
+    />
+    <circle cx="9" cy="10" r="1" fill="currentColor" />
+    <circle cx="15" cy="10" r="1" fill="currentColor" />
+  </svg>
+);
+
+export const Star: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 3l2.6 5.3 5.8.8-4.4 4.3 1.1 5.7L12 16.7 6.9 19.1l1.1-5.7L3.6 9.1l5.8-.8L12 3z"
+    />
+  </svg>
+);
+
+export const Rocket: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M14 4c3 2 5 5 5 8 0 3-2 5-5 6l-2-4-2 4c-3-1-5-3-5-6 0-3 2-6 5-8l2-2 2 2z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 4l-2 4 2 2 2-2-2-4z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 12l3 2"
+    />
+  </svg>
+);
+
+export const Heart: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 20s-7-4.35-7-10a4.5 4.5 0 017-3 4.5 4.5 0 017 3c0 5.65-7 10-7 10z"
+    />
+  </svg>
+);
+
+export const Eye: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+    />
+    <circle cx="12" cy="12" r="3" strokeWidth={2} />
+  </svg>
+);
+
+export const Shield: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 3l7 3v5c0 4.5-2.9 8.3-7 10-4.1-1.7-7-5.5-7-10V6l7-3z"
+    />
+  </svg>
+);
+
+export const Users: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M16 19a4 4 0 00-8 0M12 11a3 3 0 100-6 3 3 0 000 6zm6 8a3 3 0 00-2-2.8M18 7a2 2 0 11-4 0 2 2 0 014 0z"
+    />
+  </svg>
+);
+
+export const Tooth: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      d="M8 4c0-1.5 1.2-2.5 2.5-2.5S13 2.5 13 4c0 1.4-.8 2.2-1.7 3.3-.7 1-.9 2.3-.9 3.2v1.4c0 1.1-.4 2.2-1.2 3-.7.8-1.7 1.1-2.7 1.1-1.5 0-2.8-.7-3.7-1.9C2.2 12.6 2 10.9 2 9.2 2 5.8 4.3 4 8 4z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      d="M16 8c1.5 0 2.7 1.2 2.7 2.7 0 1.1-.5 2.1-1.4 2.8-.8.7-1.2 1.6-1.2 2.5V17c0 1.1-.4 2.2-1.2 3"
+    />
+  </svg>
+);
+
+export const Cloud: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M7 18a4 4 0 01-.8-7.9A5.5 5.5 0 0117.5 5a5.5 5.5 0 011.2 10.9A4 4 0 0117 18H7z"
+    />
+  </svg>
+);
+
+export const Headphones: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 12a8 8 0 0116 0v6a2 2 0 01-2 2h-2v-6h2v-2a6 6 0 00-12 0v2h2v6H6a2 2 0 01-2-2v-6z"
+    />
+  </svg>
+);
+
+export const MapPin: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"
+    />
+    <circle cx="12" cy="11" r="2.5" strokeWidth={2} />
+  </svg>
+);
+
+export const Mail: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <rect x="3" y="5" width="18" height="14" rx="2" strokeWidth={2} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 7l8 6 8-6"
+    />
+  </svg>
+);
+
+export const Globe: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 12h18M12 3a16 16 0 013 9 16 16 0 01-3 9 16 16 0 01-3-9 16 16 0 013-9z"
+    />
+  </svg>
+);
+
+export const Phone: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M5 5a2 2 0 012-2h2.2a2 2 0 011.9 1.3l1 2.8a2 2 0 01-.4 2.1L9.6 11a13 13 0 003.4 3.4l1.8-1.1a2 2 0 012.1-.4l2.8 1a2 2 0 011.3 1.9V19a2 2 0 01-2 2h-1C7.8 21 3 16.2 3 10V5h2z"
+    />
+  </svg>
+);
+
+export const Clock: React.FC<IconProps> = ({
+  className = "dark:text-white",
+  size = "md",
+}) => (
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 7v5l3 2"
     />
   </svg>
 );
@@ -705,7 +1020,16 @@ export const MedicalHistoryIcon: React.FC<IconProps> = ({
     stroke="currentColor"
     viewBox="0 0 24 24"
   >
-    <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <rect
+      x="4"
+      y="4"
+      width="16"
+      height="16"
+      rx="3"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -735,11 +1059,13 @@ export const VisitDetailsIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-
 // RTL-aware directional icons
 // These components automatically swap direction based on the current language
 
-const ChevronLeftIconComponent: React.FC<IconProps> = ({ className, size = "md" }) => (
+const ChevronLeftIconComponent: React.FC<IconProps> = ({
+  className,
+  size = "md",
+}) => (
   <svg
     className={`${sizeClasses[size]} ${className}`}
     fill="none"
@@ -755,7 +1081,10 @@ const ChevronLeftIconComponent: React.FC<IconProps> = ({ className, size = "md" 
   </svg>
 );
 
-const ChevronRightIconComponent: React.FC<IconProps> = ({ className, size = "md" }) => (
+const ChevronRightIconComponent: React.FC<IconProps> = ({
+  className,
+  size = "md",
+}) => (
   <svg
     className={`${sizeClasses[size]} ${className}`}
     fill="none"
@@ -771,19 +1100,28 @@ const ChevronRightIconComponent: React.FC<IconProps> = ({ className, size = "md"
   </svg>
 );
 
-
 export const DirectionalPreviousIcon: React.FC<IconProps> = (props) => {
   // For LTR: use ChevronLeft (points left/back)
   // For RTL: use ChevronRight (points right/back in RTL context)
-  const rtl = typeof window !== 'undefined' && document.documentElement.dir === 'rtl';
-  return rtl ? <ChevronRightIconComponent {...props} /> : <ChevronLeftIconComponent {...props} />;
+  const rtl =
+    typeof window !== "undefined" && document.documentElement.dir === "rtl";
+  return rtl ? (
+    <ChevronRightIconComponent {...props} />
+  ) : (
+    <ChevronLeftIconComponent {...props} />
+  );
 };
 
 export const DirectionalNextIcon: React.FC<IconProps> = (props) => {
   // For LTR: use ChevronRight (points right/forward)
   // For RTL: use ChevronLeft (points left/forward in RTL context)
-  const rtl = typeof window !== 'undefined' && document.documentElement.dir === 'rtl';
-  return rtl ? <ChevronLeftIconComponent {...props} /> : <ChevronRightIconComponent {...props} />;
+  const rtl =
+    typeof window !== "undefined" && document.documentElement.dir === "rtl";
+  return rtl ? (
+    <ChevronLeftIconComponent {...props} />
+  ) : (
+    <ChevronRightIconComponent {...props} />
+  );
 };
 
 /** Moon icon for dark mode */
@@ -1037,15 +1375,7 @@ export const ImageIcon: React.FC<IconProps> = ({
     stroke="currentColor"
     viewBox="0 0 24 24"
   >
-    <rect
-      x="3"
-      y="3"
-      width="18"
-      height="18"
-      rx="2"
-      ry="2"
-      strokeWidth={2}
-    />
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
     <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={2} fill="none" />
     <path
       strokeLinecap="round"
@@ -1081,20 +1411,24 @@ export const LocationIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
   size = "md",
 }) => (
-  <svg className={`${sizeClasses[size]} ${className}`}
-   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
       d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-      />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-        />
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+    />
   </svg>
 );
 
@@ -1103,14 +1437,18 @@ export const PlusIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
   size = "md",
 }) => (
-  <svg className={`${sizeClasses[size]} ${className}`} 
-    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 4v16m8-8H4"
-      />
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 4v16m8-8H4"
+    />
   </svg>
 );
 
@@ -1449,7 +1787,12 @@ export const AlertTriangleIcon: React.FC<IconProps> = ({
       strokeWidth={2}
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
     />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 9v4m0 4h.01"
+    />
   </svg>
 );
 
@@ -1465,7 +1808,12 @@ export const TimerIcon: React.FC<IconProps> = ({
     viewBox="0 0 24 24"
   >
     <circle cx="12" cy="12" r="9" strokeWidth={2} />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 6v6l4 2"
+    />
   </svg>
 );
 
@@ -1494,9 +1842,14 @@ export const FileIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
   size = "md",
 }) => (
-  <svg 
-    className={`${sizeClasses[size]} ${className}`} 
-    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+  <svg
+    className={`${sizeClasses[size]} ${className}`}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
     <polyline points="14 2 14 8 20 8" />
@@ -1515,9 +1868,26 @@ export const RestoreIcon: React.FC<IconProps> = ({
     width="12"
     height="12"
     viewBox="0 0 12 12"
-    fill="none">
-    <rect x="3.5" y="1.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" />
-    <rect x="1.5" y="3.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" />
+    fill="none"
+  >
+    <rect
+      x="3.5"
+      y="1.5"
+      width="7"
+      height="7"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1"
+    />
+    <rect
+      x="1.5"
+      y="3.5"
+      width="7"
+      height="7"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1"
+    />
   </svg>
 );
 
@@ -1525,8 +1895,22 @@ export const RestoreIcon: React.FC<IconProps> = ({
 export const MaximizeIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
 }) => (
-  <svg className={`${className}`} width="12" height="12" viewBox="0 0 12 12" fill="none">
-    <rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1" />
+  <svg
+    className={`${className}`}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    fill="none"
+  >
+    <rect
+      x="2"
+      y="2"
+      width="8"
+      height="8"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1"
+    />
   </svg>
 );
 
@@ -1534,7 +1918,13 @@ export const MaximizeIcon: React.FC<IconProps> = ({
 export const MinimizeIcon: React.FC<IconProps> = ({
   className = "dark:text-white",
 }) => (
-  <svg className={`${className}`} width="12" height="12" viewBox="0 0 12 12" fill="none">
+  <svg
+    className={`${className}`}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    fill="none"
+  >
     <rect x="2" y="5.5" width="8" height="1" fill="currentColor" />
   </svg>
 );
@@ -1543,7 +1933,8 @@ export const MinimizeIcon: React.FC<IconProps> = ({
 export const GDRIVE_LOGO_SVG_Icon: React.FC<IconProps> = ({
   className = "dark:text-white",
 }) => (
-  <svg className={`${className} h-8 w-8`}
+  <svg
+    className={`${className} h-8 w-8`}
     viewBox="0 0 87.3 78"
     xmlns="http://www.w3.org/2000/svg"
   >

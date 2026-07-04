@@ -454,8 +454,68 @@
     "currency": "AFN"
   },
   "about": {
-    "title": "Dental Clinic",
-    "description": "About Us."
+    "hero": {
+      "badge": "About Parsa Technology",
+      "titleLine1": "Building Smart Dental",
+      "titleLine2": "Solutions",
+      "description": "We design and develop secure, modern and scalable software that helps dental clinics manage patients, operations and growth with confidence and simplicity.",
+      "imageAlt": "Parsa Technology"
+    },
+    "stats": {
+      "clients": "Happy Clients",
+      "clientsValue": "500+",
+      "experience": "Experience",
+      "experienceValue": "10+",
+      "products": "Products",
+      "productsValue": "25+"
+    },
+    "cards": {
+      "mission": {
+        "title": "Mission",
+        "text": "Deliver powerful clinic software that simplifies daily workflows."
+      },
+      "vision": {
+        "title": "Vision",
+        "text": "Become a global leader in dental technology solutions."
+      },
+      "values": {
+        "title": "Values",
+        "text": "Integrity, innovation, and customer-first thinking."
+      },
+      "team": {
+        "title": "Team",
+        "text": "Skilled engineers focused on real-world healthcare impact."
+      }
+    },
+    "services": {
+      "title": "Our Services",
+      "dentalManagement": {
+        "title": "Dental Management",
+        "desc": "Full clinic operations: patients, billing & records."
+      },
+      "customSoftware": {
+        "title": "Custom Software",
+        "desc": "Tailor-made systems built for your workflow."
+      },
+      "cloudBackup": {
+        "title": "Cloud Backup",
+        "desc": "Secure and automated data protection."
+      },
+      "support": {
+        "title": "Support",
+        "desc": "24/7 technical support and training."
+      }
+    },
+    "location": {
+      "title": "Our Location"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "address": "Behsood, Nangarhar, Afghanistan",
+      "email": "info@parsatechnology.com",
+      "website": "www.parsatechnology.com",
+      "hours": "Sat - Thu: 9:00 AM - 6:00 PM"
+    }
   },
   "help": {
     "title": "Help & Documentation",
@@ -855,7 +915,7 @@
     "ageRange": "Age must be between 1 and 120",
     "addressMaxLength": "Address must be 200 characters or less"
   },
-  "product":{
-    "name":"Khwaja Dental & Implants Clinic"
+  "product": {
+    "name": "Khwaja Dental & Implants Clinic"
   }
 }
