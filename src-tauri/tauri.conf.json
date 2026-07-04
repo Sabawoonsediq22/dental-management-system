@@ -29,11 +29,7 @@
     "active": true,
     "publisher": "Parsa Technology",
     "targets": "nsis",
-    "icon": [
-      "icons/icon.ico",
-      "icons/icon.icns",
-      "icons/icon.png"
-    ],
+    "icon": ["icons/icon.ico", "icons/icon.icns", "icons/icon.png"],
     "windows": {
       "wix": {
         "language": "en-US",
