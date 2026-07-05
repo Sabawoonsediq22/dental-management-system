@@ -94,6 +94,7 @@ const BackupSection: React.FC = () => {
   const [gdriveFilesError, setGdriveFilesError] = useState<string | null>(null);
   const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
   const [restoreInProgress, setRestoreInProgress] = useState(false);
+  const [localRestoreInProgress, setLocalRestoreInProgress] = useState(false);
 
   const localBackupInProgressRef = useRef(false);
   const gdriveBackupInProgressRef = useRef(false);
@@ -102,6 +103,11 @@ const BackupSection: React.FC = () => {
   const restoreGdriveMutation = useMutation({
     mutationFn: (fileId: string) =>
       api.backups.restoreGdriveFile({ file_id: fileId, file_name: null }),
+  });
+
+  const restoreLocalMutation = useMutation({
+    mutationFn: (filePath: string) =>
+      api.backups.restoreLocalFile({ file_path: filePath }),
   });
 
   useEffect(() => {
@@ -362,6 +368,48 @@ const BackupSection: React.FC = () => {
     await exit(0);
   };
 
+  const handleRestoreLocal = async () => {
+    const selected = await open({
+      multiple: false,
+      title: t("backup.selectBackupFile"),
+      filters: [
+        {
+          name: t("backup.databaseFiles"),
+          extensions: ["db", "sqlite", "sqlite3"],
+        },
+      ],
+    });
+    if (!selected) return;
+
+    let filePath = selected as string;
+    if (filePath.startsWith("file://")) {
+      const match = filePath.match(/^file:\/\/\/([A-Za-z]:[/\\].*)$/);
+      if (match) {
+        filePath = match[1];
+      } else {
+        filePath = filePath.replace(/^file:\/\//, "");
+      }
+    }
+    filePath = filePath.trim();
+    if (!filePath) return;
+
+    setLocalRestoreInProgress(true);
+    const loadingToastId = toast.loading(t("backup.restoring"));
+    try {
+      await restoreLocalMutation.mutateAsync(filePath);
+      toast.dismiss(loadingToastId);
+      setLocalRestoreInProgress(false);
+      setShowRestoreSuccess(true);
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      setLocalRestoreInProgress(false);
+      toast.error({
+        title: t("backup.restoreFailed"),
+        description: (err as Error)?.toString(),
+      });
+    }
+  };
+
   if (settingsLoading) {
     return (
       <Card>
@@ -486,7 +534,7 @@ const BackupSection: React.FC = () => {
           <h3 className="text-sm font-semibold text-foreground">
             {t("backup.manualBackup")}
           </h3>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button
               size="sm"
               className="w-full"
@@ -522,6 +570,21 @@ const BackupSection: React.FC = () => {
                   <RefreshCwIcon className="h-3.5 w-3.5" />
                   {t("backup.backupNowGdrive")}
                 </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRestoreLocal}
+              disabled={localRestoreInProgress}
+            >
+              {localRestoreInProgress ? (
+                <>
+                  <LoadingIcon size="sm" className="mr-1" />
+                  {t("common.restoring")}
+                </>
+              ) : (
+                t("backup.restoreLocal")
               )}
             </Button>
             {gdriveStatus?.connected && (
@@ -633,7 +696,7 @@ const BackupSection: React.FC = () => {
       )}
 
       {/* Restore In Progress Overlay */}
-      {restoreInProgress && (
+      {(restoreInProgress || localRestoreInProgress) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm">
           <div className="mx-auto max-w-sm text-center space-y-4 p-8">
             <LoadingIcon size="lg" />

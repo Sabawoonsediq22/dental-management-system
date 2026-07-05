@@ -853,6 +853,26 @@ async fn restore_gdrive_file(
     Ok(result)
 }
 
+#[tauri::command]
+async fn restore_local_file(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    input: RestoreLocalFileInput,
+) -> Result<RestoreBackupResult, String> {
+    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let db_path_str = db_path.to_string_lossy().to_string();
+
+    let result = BackupService::restore_from_backup(
+        &state.db,
+        &db_path_str,
+        &input.file_path,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(result)
+}
+
 async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config: &AppConfig) {
     let settings = match BackupService::get_backup_settings(pool).await {
         Ok(s) => s,
@@ -1044,6 +1064,7 @@ pub fn run() {
             get_available_backup_files,
             list_gdrive_backup_files,
             restore_gdrive_file,
+            restore_local_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

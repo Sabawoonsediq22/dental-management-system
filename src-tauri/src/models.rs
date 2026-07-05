@@ -220,6 +220,11 @@ pub struct RestoreGDriveFileInput {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct RestoreLocalFileInput {
+    pub file_path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct BackupValidation {
     pub valid: bool,
     pub file_size: i64,

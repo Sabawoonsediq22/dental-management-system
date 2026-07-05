@@ -307,7 +307,8 @@
     "confirm": "Confirm",
     "delete": "Delete",
     "deleting": "Deleting...",
-    "edit": "Edit"
+    "edit": "Edit",
+    "restoring": "Restoring..."
   },
   "pagination": {
     "showing": "Showing {{start}} to {{end}} of {{total}}",
@@ -904,7 +905,12 @@
     "connecting": "Connecting...",
     "savingConfig": "Saving configuration...",
     "selectFolder": "Select Backup Location",
-    "selectFolderDesc": "Choose where to save your backup file"
+    "selectFolderDesc": "Choose where to save your backup file",
+    "restoreLocal": "Restore (Local)",
+    "restoreFailed": "Restore failed",
+    "restoring": "Restoring...",
+    "selectBackupFile": "Select backup file",
+    "databaseFiles": "Database Files"
   },
   "validation": {
     "fullNameRequired": "Full name is required",

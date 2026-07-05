@@ -22,7 +22,7 @@ const About: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white px-6 py-10 space-y-10 text-gray-900 dark:from-gray-950 dark:to-gray-900 dark:text-gray-100">
+    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white space-y-10 text-gray-900 dark:from-gray-950 dark:to-gray-900 dark:text-gray-100">
       {/* HERO */}
       <section className="relative overflow-hidden rounded-3xl bg-white shadow-sm border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-red-100 rounded-full blur-3xl opacity-60 dark:bg-red-950/70" />

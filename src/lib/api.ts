@@ -185,5 +185,7 @@ export const api = {
       invoke<GDriveBackupFile[]>("list_gdrive_backup_files"),
     restoreGdriveFile: (input: RestoreGDriveFileInput) =>
       invoke<RestoreBackupResult>("restore_gdrive_file", { input }),
+    restoreLocalFile: (input: { file_path: string }) =>
+      invoke<RestoreBackupResult>("restore_local_file", { input }),
   },
 };

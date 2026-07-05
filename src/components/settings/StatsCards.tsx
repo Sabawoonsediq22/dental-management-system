@@ -26,7 +26,7 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   sublabel,
 }) => (
-  <div className="rounded-lg border border-border bg-card p-5 flex items-start gap-4 transition-shadow hover:shadow-sm">
+  <div className="rounded-lg border border-border bg-card dark:bg-gray-800 p-5 flex items-start gap-4 transition-shadow hover:shadow-sm">
     <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
       {icon}
     </div>
