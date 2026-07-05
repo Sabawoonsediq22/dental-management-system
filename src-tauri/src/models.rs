@@ -348,6 +348,12 @@ pub struct AppSettings {
 
 // Reports
 #[derive(Debug, Serialize, Deserialize)]
+pub struct DailyTrendPoint {
+    pub day: String,
+    pub value: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ReportSummary {
     pub active_patients: i64,
     pub total_visits_this_month: i64,
@@ -355,6 +361,14 @@ pub struct ReportSummary {
     pub outstanding_balance: f64,
     pub completed_visits_this_month: i64,
     pub cancelled_visits_this_month: i64,
+    pub active_patients_trend: Vec<DailyTrendPoint>,
+    pub visits_trend: Vec<DailyTrendPoint>,
+    pub revenue_trend: Vec<DailyTrendPoint>,
+    pub outstanding_trend: Vec<DailyTrendPoint>,
+    pub prev_active_patients: i64,
+    pub prev_total_visits: i64,
+    pub prev_revenue: f64,
+    pub prev_outstanding: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

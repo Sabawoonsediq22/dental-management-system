@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, LoadingSpinner } from "../../components/ui";
 import { useReportSummary, useMonthlyRevenue } from "../../hooks/useReports";
@@ -15,10 +15,11 @@ import {
   Cell,
 } from "recharts";
 import { CurrencyIcon, PatientIcon, ToothIcon, CalendarIcon, DownloadIcon, FileIcon } from "../../shared/icons/icons";
-import type { MonthlyRevenuePoint } from "../../types/ApiTypes";
+import type { MonthlyRevenuePoint, DailyTrendPoint } from "../../types/ApiTypes";
 import { exportPatientsReport, exportFinancialReport, exportTreatmentReport } from "../../lib/export";
 import type { ReportFormat } from "../../lib/export";
 import { toast } from "../../lib/toast-utils";
+import SparklineChart from "../../components/charts/SparklineChart";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -29,32 +30,47 @@ interface StatCardProps {
   title: string;
   value: string;
   icon: React.ReactNode;
+  trendData?: DailyTrendPoint[];
+  trendColor?: string;
   change?: {
     value: string;
     positive?: boolean;
   };
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, change }) => (
-  <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-gray-800">
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, trendData, trendColor = "#0d9488", change }) => (
+  <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow dark:border-gray-700 dark:bg-gray-800 flex flex-col">
     <div className="flex items-start justify-between">
-      <div>
+      <div className="min-w-0 flex-1">
         <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
           {title}
         </p>
-        <p className="mt-2 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           {value}
         </p>
         {change && (
-          <p className={`mt-1 text-xs font-medium ${change.positive ? "text-green-600" : "text-gray-500"}`}>
+          <p className={`mt-1 text-xs font-semibold inline-flex items-center gap-1 ${
+            change.positive === undefined
+              ? "text-gray-500 dark:text-gray-400"
+              : change.positive
+                ? "text-green-600 dark:text-green-500"
+                : "text-red-600 dark:text-red-500"
+          }`}>
+            {change.positive === true && "↑"}
+            {change.positive === false && "↓"}
             {change.value}
           </p>
         )}
       </div>
-      <div className="rounded-lg bg-blue-50 p-2 sm:p-3 text-primary dark:bg-blue-900/30">
+      <div className="rounded-lg bg-blue-50 p-2 sm:p-3 text-primary dark:bg-blue-900/30 shrink-0 ml-3">
         {icon}
       </div>
     </div>
+    {trendData && (
+      <div className="mt-2 -mx-1">
+        <SparklineChart data={trendData} color={trendColor} height={50} />
+      </div>
+    )}
   </div>
 );
 
@@ -90,6 +106,62 @@ const Reports: React.FC = () => {
   const { data: monthlyRevenue, isLoading: revenueLoading } = useMonthlyRevenue();
   const [exporting, setExporting] = useState<string | null>(null);
   const [format, setFormat] = useState<ReportFormat>("pdf");
+
+  const statCards = useMemo(() => {
+    if (!summary) return [];
+
+    const sumTrend = (data: DailyTrendPoint[]) =>
+      data.reduce((acc, d) => acc + d.value, 0);
+
+    const currentActive = sumTrend(summary.active_patients_trend);
+    const currentVisits = sumTrend(summary.visits_trend);
+    const currentRevenue = sumTrend(summary.revenue_trend);
+    const currentOutstanding = sumTrend(summary.outstanding_trend);
+
+    const pct = (cur: number, prev: number): { value: string; positive: boolean } | undefined => {
+      if (prev <= 0) return undefined;
+      const change = ((cur - prev) / prev) * 100;
+      return {
+        value: `${Math.abs(change).toFixed(1)}% vs last month`,
+        positive: change >= 0,
+      };
+    };
+
+    return [
+      {
+        title: t("reports.stats.activePatients", "Active Patients"),
+        value: String(summary.active_patients),
+        icon: <PatientIcon size="md" />,
+        trendData: summary.active_patients_trend,
+        trendColor: "#3b82f6",
+        change: pct(currentActive, summary.prev_active_patients),
+      },
+      {
+        title: t("reports.stats.totalVisits", "Total Visits"),
+        value: String(summary.total_visits_this_month),
+        icon: <CalendarIcon size="md" />,
+        trendData: summary.visits_trend,
+        trendColor: "#0d9488",
+        change: pct(currentVisits, summary.prev_total_visits),
+      },
+      {
+        title: t("reports.stats.revenue", "Revenue"),
+        value: formatAFN(summary.revenue_this_month),
+        icon: <CurrencyIcon size="md" />,
+        trendData: summary.revenue_trend,
+        trendColor: "#22c55e",
+        change: pct(currentRevenue, summary.prev_revenue),
+      },
+      {
+        title: t("reports.stats.outstanding", "Outstanding"),
+        value: formatAFN(summary.outstanding_balance),
+        icon: <CurrencyIcon size="md" />,
+        trendData: summary.outstanding_trend,
+        trendColor: "#f59e0b",
+        change: pct(currentOutstanding, summary.prev_outstanding),
+      },
+    ];
+  }, [summary, t]);
 
   if (isLoading || revenueLoading) {
     return (
@@ -166,29 +238,9 @@ const Reports: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-        <StatCard
-          title={t("reports.stats.activePatients", "Active Patients")}
-          value={String(summary?.active_patients ?? 0)}
-          icon={<PatientIcon size="md" />}
-          change={{ value: t("reports.trend.monthly", "This month") }}
-        />
-        <StatCard
-          title={t("reports.stats.totalVisits", "Total Visits")}
-          value={String(summary?.total_visits_this_month ?? 0)}
-          icon={<CalendarIcon size="md" />}
-          change={{ value: t("reports.trend.monthly", "This month") }}
-        />
-        <StatCard
-          title={t("reports.stats.revenue", "Revenue")}
-          value={formatAFN(summary?.revenue_this_month ?? 0)}
-          icon={<CurrencyIcon size="md" />}
-          change={{ value: t("reports.trend.monthly", "This month") }}
-        />
-        <StatCard
-          title={t("reports.stats.outstanding", "Outstanding")}
-          value={formatAFN(summary?.outstanding_balance ?? 0)}
-          icon={<CurrencyIcon size="md" />}
-        />
+        {statCards.map((card, idx) => (
+          <StatCard key={idx} {...card} />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

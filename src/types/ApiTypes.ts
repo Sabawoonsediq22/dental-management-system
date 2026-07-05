@@ -311,6 +311,11 @@ export interface MonthlyRevenuePoint {
   revenue: number;
 }
 
+export interface DailyTrendPoint {
+  day: string;
+  value: number;
+}
+
 export interface ReportSummary {
   active_patients: number;
   total_visits_this_month: number;
@@ -318,6 +323,14 @@ export interface ReportSummary {
   outstanding_balance: number;
   completed_visits_this_month: number;
   cancelled_visits_this_month: number;
+  active_patients_trend: DailyTrendPoint[];
+  visits_trend: DailyTrendPoint[];
+  revenue_trend: DailyTrendPoint[];
+  outstanding_trend: DailyTrendPoint[];
+  prev_active_patients: number;
+  prev_total_visits: number;
+  prev_revenue: number;
+  prev_outstanding: number;
 }
 
 export interface AppSettings {
