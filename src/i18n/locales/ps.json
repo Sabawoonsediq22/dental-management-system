@@ -515,7 +515,8 @@
       "email": "info@parsatechnology.com",
       "website": "www.parsatechnology.com",
       "hours": "شنبه - پنجشنبه: د سهار 9:00 - د ماښام 6:00"
-    }
+    },
+    "copyright": "© {{year}} د پارسا ټکنالوژۍ ټول حقوق خوندي دي."
   },
   "help": {
     "title": "مرسته او لارښود",
