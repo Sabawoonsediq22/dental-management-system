@@ -13,8 +13,8 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, badge, trend, loading, secondary }) => (
-  <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg border shadow-lg group">
-    <CardContent className="relative p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg">
+  <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg border shadow-lg group bg-white dark:bg-gray-800">
+    <CardContent className="relative p-4 sm:p-6">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] sm:text-xs font-bold tracking-wide text-gray-500 dark:text-gray-400">

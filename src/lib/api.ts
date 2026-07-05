@@ -187,5 +187,7 @@ export const api = {
       invoke<RestoreBackupResult>("restore_gdrive_file", { input }),
     restoreLocalFile: (input: { file_path: string }) =>
       invoke<RestoreBackupResult>("restore_local_file", { input }),
+    copyDbTo: (destPath: string) =>
+      invoke<string>("copy_db_to", { destPath }),
   },
 };

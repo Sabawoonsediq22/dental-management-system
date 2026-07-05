@@ -298,10 +298,6 @@ const BackupSection: React.FC = () => {
         ? localBackupInProgressRef
         : gdriveBackupInProgressRef;
     if (progressRef.current) return;
-    if (backupTarget === "google_drive" && !gdriveStatus?.connected) {
-      toast.error({ title: t("backup.gdriveNotConnected") });
-      return;
-    }
 
     if (backupTarget === "local") {
       const selected = await open({
@@ -325,8 +321,36 @@ const BackupSection: React.FC = () => {
       folderPath = folderPath.trim().replace(/[/\\]+$/, "");
       if (!folderPath) return;
 
-      executeBackup(backupTarget, folderPath);
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const fileName = `dental_clinic_backup_${timestamp}.db`;
+      const destPath = `${folderPath}/${fileName}`;
+
+      if (progressRef.current) return;
+      progressRef.current = true;
+      setLocalBackupInProgress(true);
+
+      try {
+        await api.backups.copyDbTo(destPath);
+        toast.success({
+          title: t("backup.success"),
+          description: t("backup.successDesc", { count: 1 }),
+        });
+      } catch (err) {
+        toast.error({
+          title: t("backup.failed"),
+          description: String(err),
+        });
+      } finally {
+        progressRef.current = false;
+        setLocalBackupInProgress(false);
+      }
     } else {
+      if (backupTarget === "google_drive" && !gdriveStatus?.connected) {
+        toast.error({ title: t("backup.gdriveNotConnected") });
+        return;
+      }
       executeBackup(backupTarget);
     }
   };

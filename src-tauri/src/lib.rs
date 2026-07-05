@@ -503,6 +503,26 @@ async fn backup_now(
 }
 
 #[tauri::command]
+async fn copy_db_to(app: tauri::AppHandle, dest_path: String) -> Result<String, String> {
+    let db_path = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?
+        .join("dental_clinic.db");
+
+    let dest = std::path::Path::new(&dest_path);
+    if let Some(parent) = dest.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+
+    std::fs::copy(&db_path, &dest)
+        .map_err(|e| format!("Failed to copy database file: {}", e))?;
+
+    Ok(dest_path)
+}
+
+#[tauri::command]
 async fn delete_backup(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -1052,6 +1072,7 @@ pub fn run() {
             get_recent_patients,
             list_backups,
             backup_now,
+            copy_db_to,
             delete_backup,
             get_backup_settings,
             update_backup_settings,
