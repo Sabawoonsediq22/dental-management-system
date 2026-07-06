@@ -190,6 +190,7 @@
     "currentMedicationsPlaceholder": "List any medications currently being taken",
     "clinicalNotes": "Clinical Notes",
     "clinicalNotesPlaceholder": "Doctor's initial observations...",
+    "treatmentRecording":"Treatment Recording",
     "procedureAdditionalNotes": "Additional Notes",
     "additionalNotesPlaceholder": "Add procedure notes",
     "medicalConditions": "Medical Conditions",

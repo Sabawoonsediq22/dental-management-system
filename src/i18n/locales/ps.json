@@ -190,6 +190,7 @@
     "currentMedicationsPlaceholder": "اوسني درمل دلته لیست کړئ",
     "clinicalNotes": "کلینیکي یادښتونه",
     "clinicalNotesPlaceholder": "د ډاکټر لومړني مشاهدات...",
+    "treatmentRecording": "د درملنې ثبتول",
     "procedureAdditionalNotes": "اضافي یادښتونه",
     "additionalNotesPlaceholder": "د درملنې یادښتونه اضافه کړئ",
     "medicalConditions": "طبي حالتونه",
