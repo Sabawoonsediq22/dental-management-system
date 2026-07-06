@@ -8,18 +8,55 @@ pub async fn init_pool(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
             return Err(sqlx::Error::Io(e));
         }
     }
+
+    if let Ok(pool) = try_connect(db_path).await {
+        checkpoint_wal(&pool).await;
+        return Ok(pool);
+    }
+
+    cleanup_stale_wal_files(db_path);
+
+    let pool = try_connect(db_path).await?;
+    checkpoint_wal(&pool).await;
+    Ok(pool)
+}
+
+async fn try_connect(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
     let opts = SqliteConnectOptions::from_str(db_path)?
         .create_if_missing(true)
         .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
         .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
-        .busy_timeout(std::time::Duration::from_secs(5))
+        .busy_timeout(std::time::Duration::from_secs(10))
         .foreign_keys(true);
     SqlitePoolOptions::new()
         .max_connections(5)
         .min_connections(1)
-        .acquire_timeout(std::time::Duration::from_secs(10))
+        .acquire_timeout(std::time::Duration::from_secs(30))
         .connect_with(opts)
         .await
+}
+
+async fn checkpoint_wal(pool: &SqlitePool) {
+    if let Err(e) = sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
+        .execute(pool)
+        .await
+    {
+        eprintln!("[WARN] Failed to checkpoint WAL: {}", e);
+    }
+}
+
+fn cleanup_stale_wal_files(db_path: &str) {
+    for suffix in &["-wal", "-shm"] {
+        let stale_path = format!("{}{}", db_path, suffix);
+        let path = std::path::Path::new(&stale_path);
+        if path.exists() {
+            if let Err(e) = std::fs::remove_file(path) {
+                eprintln!("[WARN] Failed to remove stale file {}: {}", stale_path, e);
+            } else {
+                println!("[INFO] Cleaned up stale WAL file: {}", stale_path);
+            }
+        }
+    }
 }
 
 pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
@@ -28,7 +65,7 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             id INTEGER PRIMARY KEY,
             version TEXT NOT NULL UNIQUE,
             applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )"
+        )",
     )
     .execute(pool)
     .await?;
@@ -42,7 +79,8 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         .filter_map(|entry| {
             let path = entry.path();
             if path.extension().map(|ext| ext == "sql").unwrap_or(false) {
-                let version = path.file_stem()
+                let version = path
+                    .file_stem()
                     .and_then(|s| s.to_str())
                     .unwrap_or("")
                     .split('_')
@@ -60,7 +98,7 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     for (version, file) in &files {
         let exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM _sqlx_migrations WHERE version = ?)"
+            "SELECT EXISTS(SELECT 1 FROM _sqlx_migrations WHERE version = ?)",
         )
         .bind(version)
         .fetch_one(pool)
@@ -108,9 +146,15 @@ pub async fn vacuum_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
 #[allow(dead_code)]
 pub async fn get_database_stats(pool: &SqlitePool) -> Result<DatabaseStats, sqlx::Error> {
-    let page_count: i64 = sqlx::query_scalar("PRAGMA page_count").fetch_one(pool).await?;
-    let page_size: i64 = sqlx::query_scalar("PRAGMA page_size").fetch_one(pool).await?;
-    let freelist_count: i64 = sqlx::query_scalar("PRAGMA freelist_count").fetch_one(pool).await?;
+    let page_count: i64 = sqlx::query_scalar("PRAGMA page_count")
+        .fetch_one(pool)
+        .await?;
+    let page_size: i64 = sqlx::query_scalar("PRAGMA page_size")
+        .fetch_one(pool)
+        .await?;
+    let freelist_count: i64 = sqlx::query_scalar("PRAGMA freelist_count")
+        .fetch_one(pool)
+        .await?;
 
     Ok(DatabaseStats {
         page_count,

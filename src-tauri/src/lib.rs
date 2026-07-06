@@ -383,7 +383,10 @@ async fn backup_now(
     target: String,
     save_path: Option<String>,
 ) -> Result<Vec<BackupRecord>, String> {
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
     let backup_dir = app_data.join("backups");
     let mut results = Vec::new();
 
@@ -528,7 +531,10 @@ async fn delete_backup(
     state: State<'_, AppState>,
     id: i64,
 ) -> Result<(), String> {
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
     let record = sqlx::query_as::<_, BackupRecord>(
         "SELECT id, backup_type, backup_path, cloud_provider, status, file_size, error_message, created_at, completed_at
@@ -602,7 +608,10 @@ async fn start_gdrive_auth(
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| state.config.google_oauth_client_id.clone());
     let client_secret = state.config.google_oauth_client_secret.as_str();
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
     let auth_url = GDriveClient::start_auth_flow(&client_id, Some(client_secret), app_data, app)
         .await
@@ -631,7 +640,10 @@ async fn get_gdrive_status(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
 ) -> Result<GDriveStatus, String> {
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
     let connected = GDriveClient::load_token(&app_data).is_some();
     let settings = BackupService::get_backup_settings(&state.db)
         .await
@@ -647,7 +659,10 @@ async fn get_gdrive_status(
 async fn disconnect_gdrive(
     app: tauri::AppHandle,
 ) -> Result<(), String> {
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
     GDriveClient::delete_token(&app_data);
     Ok(())
 }
@@ -659,10 +674,12 @@ async fn restore_from_backup(
     state: State<'_, AppState>,
     input: crate::models::RestoreBackupInput,
 ) -> Result<crate::models::RestoreBackupResult, String> {
-    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    let db_path = app_data.join("dental_clinic.db");
     let db_path_str = db_path.to_string_lossy().to_string();
-
-    let app_data = app.path().app_data_dir().unwrap();
 
     // Fetch the backup record so we can handle local and Google Drive backups
     let record = sqlx::query_as::<_, crate::models::BackupRecord>(
@@ -786,7 +803,10 @@ async fn list_gdrive_backup_files(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
 ) -> Result<Vec<GDriveBackupFile>, String> {
-    let app_data = app.path().app_data_dir().unwrap();
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
     let settings = BackupService::get_backup_settings(&state.db)
         .await
         .map_err(|e| e.to_string())?;
@@ -822,9 +842,12 @@ async fn restore_gdrive_file(
     state: State<'_, AppState>,
     input: RestoreGDriveFileInput,
 ) -> Result<RestoreBackupResult, String> {
-    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    let db_path = app_data.join("dental_clinic.db");
     let db_path_str = db_path.to_string_lossy().to_string();
-    let app_data = app.path().app_data_dir().unwrap();
 
     let settings = BackupService::get_backup_settings(&state.db)
         .await
@@ -879,7 +902,11 @@ async fn restore_local_file(
     state: State<'_, AppState>,
     input: RestoreLocalFileInput,
 ) -> Result<RestoreBackupResult, String> {
-    let db_path = app.path().app_data_dir().unwrap().join("dental_clinic.db");
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    let db_path = app_data.join("dental_clinic.db");
     let db_path_str = db_path.to_string_lossy().to_string();
 
     let result = BackupService::restore_from_backup(
@@ -988,6 +1015,8 @@ async fn run_auto_backup(app: &tauri::AppHandle, pool: &sqlx::SqlitePool, config
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    env_logger::init();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -1001,15 +1030,16 @@ pub fn run() {
                 })
             })?;
 
-            let db_path = app
+            let app_data_dir = app
                 .path()
                 .app_data_dir()
-                .unwrap()
+                .map_err(|e| format!("Failed to resolve app data directory: {}", e))?;
+            let db_path = app_data_dir
                 .join("dental_clinic.db")
                 .to_string_lossy()
                 .to_string();
 
-            println!("Database path: {}", db_path);
+            println!("[INFO] Database path: {}", db_path);
 
             let pool = tauri::async_runtime::block_on(db::init_pool(&db_path));
             match pool {
