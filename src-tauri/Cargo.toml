@@ -1,5 +1,5 @@
 [package]
-name = "parsa-dental-clinic"
+name = "khwaja-dental-clinic"
 version = "0.1.0"
 description = "Dental Clinic Management System"
 authors = ["Parsa Technology"]
@@ -38,5 +38,5 @@ env_logger = "0.11"
 
 [package.metadata.windows]
 company-name = "Parsa Technology"
-product-name = "Parsa Dental & Implants Clinic"
+product-name = "Khwaja Dental & Implants Clinic"
 copyright = "Copyright (C) 2026 Parsa Technology"
